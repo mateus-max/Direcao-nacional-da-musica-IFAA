@@ -97,6 +97,34 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 .footer strong{font-size:15px!important;letter-spacing:.02em}
 .footer span{display:block;margin-top:4px}.footer .copyright{display:block;margin-top:10px;color:#d3dfed;font-size:12px;letter-spacing:.02em}
 
+
+/* Login-only landing page and two-step access */
+body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b33 58%,#03101f 100%);display:flex;flex-direction:column}
+.shell{width:100%;max-width:100%;padding:0;display:flex;flex-direction:column;flex:1}
+.header{background:#031326;border-bottom:1px solid #d7ad55;padding:15px clamp(16px,4vw,52px);min-height:92px}
+.header .tag{display:none}
+.hero-stage{min-height:0;flex:1;display:flex;align-items:center;justify-content:center;padding:34px 16px}
+.hero{display:none!important}
+.form-wrap{position:static!important;transform:none!important;width:min(100%,520px)!important;max-width:520px!important;margin:0!important;display:block!important}
+.form-card{width:100%;border:1px solid #e8b653;border-radius:22px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 80px #0006}
+.form-card h3{text-align:center;font-size:clamp(23px,4vw,30px);margin-bottom:8px}
+.sub{text-align:center;margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+.field{display:grid;grid-template-columns:1fr!important;gap:7px;background:transparent;border:0;padding:0}
+.field label{font-size:13px}
+.field input,.field select{min-height:48px}
+.primary{margin-top:18px}
+.info-card,.services,.trust-strip,.footer,.hero-card{display:none!important}
+.login-step{display:none}
+.login-step.active{display:block}
+#roleField{margin-bottom:16px}
+#roleField label{font-size:14px}
+#role{font-weight:650}
+.step-indicator{text-align:center;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#a16a18;font-weight:800;margin-bottom:12px}
+.back-button{display:block;width:100%;margin-top:10px;padding:11px;border:1px solid #d7dee8;border-radius:11px;background:#fff;color:#31445a;font-weight:650}
+.brand h1{font-size:clamp(13px,2vw,20px)}
+.brand p{font-size:11px}
+@media(max-width:650px){.header{min-height:78px}.logo{width:56px;height:56px;margin:0}.brand{min-width:0}.hero-stage{padding:22px 12px}.form-card{padding:22px 18px}.field.full{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -126,15 +154,15 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
   <div class="field"><label for="role">Função</label><select id="role" name="role" required><option value="">Selecione a sua função</option><option value="ministro-musica">Ministro da Música</option><option value="diretor-musica">Diretor da Música</option><option value="director">Diretor</option><option value="dirigente">Dirigente</option></select></div>
   <div class="field"><label for="province">Província</label><select id="province" name="province" required><option value="">A carregar províncias…</option></select></div>
   <div class="field"><label for="municipality">Município</label><select id="municipality" name="municipality" required disabled><option value="">Escolha primeiro a província</option></select><span class="hint" id="municipalityCount">Municípios de Angola.</span></div>
-  <div class="field full hidden" id="hostUsernameField"><label for="hostUsername">Utilizador de acesso</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="lideres@gmail.com" aria-describedby="hostAccessHint"></div>
+  </div><div id="credentialsStep" class="login-step">\n  <div class="step-indicator">Passo 2 de 2 · Acesso institucional</div>\n  <div class="field full hidden" id="hostUsernameField"><label for="hostUsername">Utilizador de acesso</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="lideres@gmail.com" aria-describedby="hostAccessHint"></div>
   <div class="field full hidden" id="hostPasswordField"><label for="hostPassword">Palavra-passe</label><input id="hostPassword" name="hostPassword" type="password" autocomplete="current-password" placeholder="Introduza a palavra-passe" aria-describedby="hostAccessHint"></div>
-  <div class="field full hidden" id="hostAccessHint"><span class="hint">O acesso de anfitrião exige o e-mail institucional e a palavra-passe registados no Firebase.</span></div>
-  <div class="field"><label for="activity">Tipo de atividade</label><select id="activity" name="activity" required><option value="">Selecione uma atividade</option><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
+  <div class="field full hidden" id="hostAccessHint"><span class="hint">Utilize o e-mail e a palavra-passe registados no Firebase.</span></div></div>
+  <div class="field hidden"><label for="activity">Atividade</label><select id="activity" name="activity"><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
   <div class="field full hidden" id="voiceField"><label for="voice">Se for corista, escolha a sua voz</label><select id="voice" name="voice"><option value="">Selecione a sua voz</option><option value="Soprano">Soprano</option><option value="Mezzo-soprano">Mezzo-soprano</option><option value="Contralto">Contralto</option><option value="Tenor">Tenor</option><option value="Barítono">Barítono</option><option value="Baixo">Baixo</option><option value="Voz infantil">Voz infantil</option><option value="Outra voz">Outra voz</option></select><span class="hint">Esta opção aparece para coristas que entram num ensaio de coral.</span></div>
   <div class="field full hidden" id="instrumentField"><label for="instrument">Instrumento musical</label><select id="instrument" name="instrument"><option value="">Selecione o seu instrumento</option><optgroup label="Teclas"><option>Órgão</option><option>Piano</option><option>Teclado eletrónico</option><option>Acordeão</option><option>Cravo</option><option>Harmónio</option></optgroup><optgroup label="Cordas"><option>Violino</option><option>Viola de arco</option><option>Violoncelo</option><option>Contrabaixo</option><option>Guitarra clássica</option><option>Guitarra elétrica</option><option>Guitarra baixo</option><option>Harpa</option><option>Bandolim</option><option>Banjo</option><option>Cavaquinho</option><option>Ukulele</option><option>Violão de 7 cordas</option><option>Viola caipira</option><option>Saltério</option></optgroup><optgroup label="Metais"><option>Trombeta</option><option>Trompete</option><option>Trompa</option><option>Trombone</option><option>Tuba</option><option>Eufónio</option><option>Fliscorne</option><option>Sousafone</option><option>Barítono de metal</option></optgroup><optgroup label="Madeiras"><option>Flauta transversal</option><option>Flauta de bisel / doce</option><option>Flautim (piccolo)</option><option>Clarinete</option><option>Clarinete baixo</option><option>Oboé</option><option>Corne inglês</option><option>Fagote</option><option>Contrafagote</option><option>Saxofone soprano</option><option>Saxofone alto</option><option>Saxofone tenor</option><option>Saxofone barítono</option><option>Harmónica</option></optgroup><optgroup label="Percussão"><option>Bateria</option><option>Tímpanos</option><option>Caixa</option><option>Bombo</option><option>Pratos</option><option>Pandeireta</option><option>Congas</option><option>Bongós</option><option>Cajón</option><option>Djembê</option><option>Atabaque</option><option>Marimba</option><option>Xilofone</option><option>Vibrafone</option><option>Glockenspiel</option><option>Metalofone</option><option>Triângulo</option><option>Agogô</option><option>Reco-reco</option><option>Chocalho</option><option>Ganzá</option><option>Clavas</option><option>Castanholas</option><option>Tamborim</option><option>Timba</option><option>Surdo</option><option>Cuíca</option><option>Berimbau</option></optgroup><optgroup label="Voz e outros"><option>Voz / canto</option><option>Instrumento tradicional</option><option>Outro instrumento</option></optgroup></select><span class="hint">Escolha o instrumento que toca. Se não estiver na lista, selecione “Outro instrumento”.</span></div>
 </div>
-<button class="primary" id="enterButton" type="submit">↪ Entrar no Quadro Virtual　›</button>
-<p class="hint" style="margin:12px 0 0">As credenciais institucionais são exigidas apenas para iniciar uma atividade como anfitrião. Os participantes entram através do link de convite.</p>
+<button class="primary" id="advanceButton" type="button">Avançar　›</button><button class="primary hidden" id="enterButton" type="submit">Entrar no Quadro Virtual　›</button><button class="back-button hidden" id="backButton" type="button">← Voltar aos dados</button>
+<p class="hint" id="loginFootnote" style="text-align:center;margin:14px 0 0">Acesso reservado aos responsáveis autorizados.</p>
 </form>
 <aside class="info-card">
 <h4>Como funciona</h4>
@@ -177,7 +205,7 @@ let divisions={};
 function notice(text,error=false){const el=$("alert");el.textContent=text;el.classList.remove("hidden","error");if(error)el.classList.add("error");}
 function updateAccessFields(){const invited=!!inviteRoom;$("hostUsernameField").classList.toggle("hidden",invited);$("hostPasswordField").classList.toggle("hidden",invited);$("hostAccessHint").classList.toggle("hidden",invited);$("hostUsername").required=!invited;$("hostPassword").required=!invited;if(invited){$("hostUsername").value="";$("hostPassword").value="";}}
 function updateVoiceVisibility(){const show=$("role").value==="corista"&&$("activity").value==="ensaio";$("voiceField").classList.toggle("hidden",!show);$("voice").required=show;if(!show)$("voice").value="";const instrumentShow=$("role").value==="instrumentista";$("instrumentField").classList.toggle("hidden",!instrumentShow);$("instrument").required=instrumentShow;if(!instrumentShow)$("instrument").value="";}
-$("role").addEventListener("change",updateVoiceVisibility);
+$("role").addEventListener("change",()=>{updateVoiceVisibility();if(!inviteRoom){$("profileStep").classList.toggle("active",!!$("role").value);$("formTitle").textContent=$("role").value?"Os seus dados":"Acesso institucional";$("formSubtitle").textContent=$("role").value?"Informe o seu nome e a sua localização.":"Escolha a sua função para começar.";}});
 $("activity").addEventListener("change",updateVoiceVisibility);
 function fillMunicipalities(province,selected=""){const select=$("municipality");select.innerHTML="";const list=divisions[province]||[];select.add(new Option(list.length?"Selecionar município":"Selecione uma província", ""));list.forEach(name=>select.add(new Option(name,name)));select.disabled=!list.length;$("municipalityCount").textContent=list.length?list.length+" municípios disponíveis.":"Escolha primeiro a província.";if(selected&&list.includes(selected))select.value=selected;}
 $("province").addEventListener("change",()=>fillMunicipalities($("province").value));
@@ -196,6 +224,24 @@ if(inviteRoom){
   updateAccessFields();
   $("inviteInfo").textContent="Para iniciar uma atividade como anfitrião, selecione a função, preencha os seus dados e introduza as credenciais institucionais. Os participantes entram pelo link da sessão.";
 }
+
+$("advanceButton").addEventListener("click",()=>{
+ const role=$("role").value;
+ if(!role){notice("Escolha primeiro a sua função.",true);return;}
+ if(!$("fullName").value.trim()||!$("province").value||!$("municipality").value){notice("Preencha o nome, a província e o município.",true);return;}
+ $("alert").classList.add("hidden");
+ $("profileStep").classList.remove("active");$("roleField").classList.add("hidden");
+ $("credentialsStep").classList.add("active");$("hostUsernameField").classList.remove("hidden");$("hostPasswordField").classList.remove("hidden");$("hostAccessHint").classList.remove("hidden");
+ $("advanceButton").classList.add("hidden");$("enterButton").classList.remove("hidden");$("backButton").classList.remove("hidden");
+ $("formTitle").textContent="Iniciar sessão";$("formSubtitle").textContent="Introduza as credenciais institucionais para continuar.";
+ $("hostUsername").focus();
+});
+$("backButton").addEventListener("click",()=>{
+ $("credentialsStep").classList.remove("active");$("profileStep").classList.add("active");$("roleField").classList.remove("hidden");
+ $("advanceButton").classList.remove("hidden");$("enterButton").classList.add("hidden");$("backButton").classList.add("hidden");
+ $("hostUsernameField").classList.add("hidden");$("hostPasswordField").classList.add("hidden");$("hostAccessHint").classList.add("hidden");
+ $("formTitle").textContent="Os seus dados";$("formSubtitle").textContent="Confirme o seu nome e a sua localização.";
+});
 $("profileForm").addEventListener("submit",async e=>{
  e.preventDefault();
  const name=$("fullName").value.trim(),role=$("role").value,activity=inviteActivity||$("activity").value,province=$("province").value,municipality=$("municipality").value,voice=$("voice").value,instrument=$("instrument").value;
