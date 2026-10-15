@@ -22,7 +22,7 @@
 <form id="joinForm"><div class="field"><label for="participantName">Nome do participante</label><input id="participantName" maxlength="80" autocomplete="name" required placeholder="O seu nome"/></div><div class="field"><label for="sessionCode">Código da sessão</label><input id="sessionCode" maxlength="40" required placeholder="Código recebido"/></div><button class="gold" type="submit">Entrar na sessão</button></form>
 <hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
 <h3>Acesso da Direção</h3><p class="note">O painel de direção deve ser ativado com autenticação segura antes da utilização pública.</p>
-<div class="field"><label for="directorKey">Código de acesso da Direção</label><input id="directorKey" type="password" autocomplete="current-password" placeholder="Código configurado pelo administrador"/></div>
+<div class="field"><label for="directorEmail">E-mail da Direção</label><input id="directorEmail" type="email" autocomplete="username" placeholder="E-mail autorizado"/></div><div class="field"><label for="directorPassword">Palavra-passe</label><input id="directorPassword" type="password" autocomplete="current-password" placeholder="Palavra-passe do Firebase"/></div>
 <button id="directorMode" class="secondary" type="button">Abrir painel da Direção</button>
 <p class="note">A proteção definitiva do painel depende de configurar Firebase Authentication e regras de segurança. Não publiques um código de acesso no HTML.</p>
 </section>
