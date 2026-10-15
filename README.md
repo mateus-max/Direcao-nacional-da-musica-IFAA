@@ -1,44 +1,32 @@
 # Departamento Nacional da Música — Quadro Virtual
 
-Versão institucional independente para a Igreja da Fé Apostólica Americana. Este repositório não altera nem partilha a base de dados do Quadro Virtual AZNY.
+Versão institucional independente para a Igreja da Fé Apostólica Americana. O repositório `QUADRO-AZNY` não é modificado por este projeto.
 
-## Estado atual
+## Páginas principais
 
-A fundação inicial inclui:
-- interface adaptável a computador e telemóvel;
-- autenticação Firebase para a Direção (e-mail/palavra-passe) e entrada anónima para participantes;
-- criação/encerramento de sessões musicais;
-- link de entrada partilhável;
-- lista de participantes em tempo real;
-- apontamentos textuais sincronizados e avisos da Direção.
+- `index.html`: página principal de identificação antes de entrar.
+- `quadro.html`: quadro virtual interativo.
+- `direcao.html`: painel da Direção.
+- `entrada.html`: página auxiliar de entrada.
+- `avaliacao.html` e `fazer-avaliacao.html`: páginas auxiliares de avaliação.
+- `data/provincias-municipios.json`: lista das 21 províncias e 326 municípios de Angola, com base no conjunto de dados Angola DPA 2025 (Lei 14/24).
+- `portal-inicial.html` e `portal.html`: versões anteriores preservadas.
 
-Ainda **não** estão implementados nem validados: vídeo/áudio em direto, gravação, partilha de ecrã, piano interativo completo, editor de partitura, uploads de PDF/Word, avaliações completas, modo PWA e testes de carga para 500 participantes. Não anunciar esta versão como pronta para ensaios reais até esses itens e a segurança serem concluídos e testados.
+## Fluxo de entrada
 
-## Publicação GitHub Pages
+1. O utilizador informa o nome, função (Diretor, Dirigente ou Corista), província, município e atividade.
+2. Para coristas num ensaio, também seleciona a voz (Soprano, Mezzo-soprano, Contralto, Tenor, Barítono, Baixo, Voz infantil ou Outra voz).
+3. Um Diretor ou Dirigente pode iniciar uma sessão; os participantes devem abrir o link de convite partilhado pela Direção.
+4. O quadro apresenta a identidade de quem dirige a sessão e a identidade do participante no modo de participação.
 
-Em Settings → Pages, selecionar **Deploy from a branch**, branch `main` (depois da revisão/merge) e pasta `/(root)`. Os módulos JavaScript são servidos diretamente a partir de `app.js`.
-
-## Configuração Firebase necessária
+## Firebase
 
 Projeto: `direcao-nacional-da-musica`.
 
-1. Em Authentication → Sign-in method, ativar **Anonymous** e **Email/Password**.
-2. Criar um utilizador de Direção em Authentication → Users. Não colocar a palavra-passe no código nem no GitHub.
-3. Em Realtime Database → Rules, rever e aplicar as regras do ficheiro `database.rules.example.json`.
-4. Testar com uma conta de Direção e dois participantes anónimos, em dispositivos/navegadores separados.
-5. Configurar Storage apenas quando for implementado o envio de partituras e gravações.
+O quadro utiliza Firebase Realtime Database e autenticação anónima, herdados da estrutura do quadro original e configurados para o projeto institucional. Antes de utilização pública, rever as regras da base de dados e configurar autenticação/permissões adequadas para o perfil da Direção. A presença de uma configuração Firebase no código do navegador não é, por si só, uma barreira de segurança.
 
-A configuração web do Firebase incluída no cliente identifica o projeto, mas **não** substitui autenticação nem regras de segurança. Nunca colocar service-account keys, tokens privados ou palavras-passe neste repositório.
+## Limitações a validar
 
-## Escala de 500 participantes
+Esta alteração implementa a página principal, o formulário de identidade, a seleção de localização, a escolha de voz para ensaios e o fluxo de links. É necessário testar a publicação, entrada de participantes, sincronização, permissões, câmaras, gravações e materiais em dispositivos reais. A capacidade para 500 participantes em áudio/vídeo não está garantida e exige arquitetura de mídia e testes de carga.
 
-O Realtime Database pode sincronizar metadados e texto, mas não transporta os fluxos de áudio/vídeo. Para sessões com centenas de pessoas será necessária uma arquitetura de mídia adequada (por exemplo, SFU/WebRTC ou serviço equivalente), limites de microfone/câmara e testes reais de carga. Não há garantia de 500 participantes até a arquitetura ser escolhida e validada.
-
-## Próximas etapas
-
-1. Confirmar autenticação e regras de segurança.
-2. Construir o quadro de escrita/desenho com sincronização multiutilizador.
-3. Integrar materiais musicais, partituras e piano virtual.
-4. Implementar avaliações e gestão de sessões.
-5. Integrar áudio/vídeo e gravação com infraestrutura apropriada.
-6. Realizar testes de segurança, telemóvel/PC e carga antes de disponibilizar ao coro.
+A lista de municípios foi derivada de um conjunto público baseado na divisão político-administrativa de 2025. Deve ser comparada com a versão oficial mais recente antes de uso administrativo formal.
