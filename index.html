@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#123b2d">
+<title>Departamento Nacional da Música | Quadro Virtual</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1512;--panel:#14241e;--panel2:#1a3027;--line:#2c493c;--green:#28664a;--gold:#d7b66b;--text:#f4f5ef;--muted:#b8c8bd;--danger:#a73d3d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#17372a 0,#0b1512 60%);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}button,input{font:inherit}button{cursor:pointer;border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:#214c38;color:white;font-weight:650}button:hover{filter:brightness(1.12)}button:disabled{opacity:.5;cursor:not-allowed}.secondary{background:transparent}.danger{background:#762e2e}.gold{color:#17170f;background:var(--gold);border-color:var(--gold)}input{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0b1711;color:white}.wrap{max-width:1180px;margin:auto;padding:22px}.top{display:flex;align-items:center;gap:14px;border-bottom:1px solid var(--line);padding:8px 0 20px}.emblem{width:52px;height:52px;display:grid;place-items:center;border:1px solid var(--gold);border-radius:50%;color:var(--gold);font-size:24px}.top h1{font-size:clamp(19px,3vw,28px);margin:0}.top p{margin:2px 0;color:var(--muted)}.status{margin-left:auto;color:var(--muted);font-size:13px}.hero{padding:28px 0 18px}.hero h2{font-size:clamp(25px,4vw,38px);line-height:1.12;margin:0 0 12px}.hero p{max-width:760px;color:var(--muted);margin:0}.grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px}.panel{background:linear-gradient(150deg,#182b22,#101d17);border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}.span7{grid-column:span 7}.span5{grid-column:span 5}.span12{grid-column:span 12}.panel h3{margin:0 0 12px;font-size:19px}.field{display:grid;gap:7px;margin:12px 0}.field label{color:var(--muted);font-size:14px}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.note{font-size:13px;color:var(--muted)}.hidden{display:none!important}.session-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}.pill{display:inline-block;padding:4px 9px;border:1px solid var(--line);border-radius:999px;color:var(--gold);font-size:12px}.board{min-height:300px;border-radius:12px;background:#173f2d;border:8px solid #694b2c;box-shadow:inset 0 0 0 1px #a17a4c;padding:18px;position:relative}.board-tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}.board textarea{width:100%;min-height:220px;resize:vertical;background:transparent;border:0;color:#fff;font:20px/1.8 Georgia,serif;outline:none}.list{display:grid;gap:8px}.person{display:flex;justify-content:space-between;gap:8px;padding:9px 11px;border-radius:9px;background:#0d1a13;border:1px solid var(--line)}.message{padding:10px 12px;border-radius:10px;background:#0c1912;color:var(--muted);white-space:pre-wrap}.footer{padding:24px 0;color:var(--muted);font-size:12px;text-align:center}.toast{margin:12px 0;padding:10px 12px;border-radius:10px;background:#244d37;border:1px solid #477b59}.toast.error{background:#512525;border-color:#8c4444}
+@media(max-width:760px){.wrap{padding:14px}.span7,.span5{grid-column:span 12}.status{max-width:100px;text-align:right}.panel{padding:14px}.board{padding:10px;border-width:5px}.board textarea{font-size:17px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="emblem" aria-hidden="true">♫</div><div><h1>Departamento Nacional da Música</h1><p>Igreja da Fé Apostólica Americana</p></div><div class="status" id="connectionStatus">A iniciar ligação…</div></header>
+<section class="hero"><h2>Quadro Virtual de Música</h2><p>Espaço institucional para aulas de piano e solfejo, leitura de pautas, ensaios de coral, materiais musicais e avaliações. Acesso gratuito para os participantes.</p></section>
+<div id="notice" aria-live="polite"></div>
+<main class="grid">
+<section class="panel span5" id="entryPanel">
+<h3>Entrar numa sessão</h3><p class="note">Abra o link recebido da Direção ou introduza o código da sessão. Não é necessário criar uma conta pessoal.</p>
+<form id="joinForm"><div class="field"><label for="participantName">Nome do participante</label><input id="participantName" maxlength="80" autocomplete="name" required placeholder="O seu nome"/></div><div class="field"><label for="sessionCode">Código da sessão</label><input id="sessionCode" maxlength="40" required placeholder="Código recebido"/></div><button class="gold" type="submit">Entrar na sessão</button></form>
+<hr style="border:0;border-top:1px solid var(--line);margin:22px 0">
+<h3>Acesso da Direção</h3><p class="note">O painel de direção deve ser ativado com autenticação segura antes da utilização pública.</p>
+<div class="field"><label for="directorKey">Código de acesso da Direção</label><input id="directorKey" type="password" autocomplete="current-password" placeholder="Código configurado pelo administrador"/></div>
+<button id="directorMode" class="secondary" type="button">Abrir painel da Direção</button>
+<p class="note">A proteção definitiva do painel depende de configurar Firebase Authentication e regras de segurança. Não publiques um código de acesso no HTML.</p>
+</section>
+<section class="panel span7" id="directorPanel">
+<div class="session-head"><div><h3>Painel da Direção</h3><p class="note">Criar e gerir uma sessão musical.</p></div><span class="pill">Sem pagamentos</span></div>
+<div class="field"><label for="sessionTitle">Nome da aula ou ensaio</label><input id="sessionTitle" maxlength="120" placeholder="Ex.: Ensaio do Coral Gosen"/></div>
+<div class="field"><label for="sessionType">Tipo de atividade</label><select id="sessionType" style="width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#0b1711;color:white"><option>Aula de solfejo</option><option>Aula de piano</option><option>Leitura de pautas musicais</option><option>Ensaio de coral</option><option>Avaliação musical</option><option>Reunião da Direção</option></select></div>
+<div class="actions"><button id="createSession" class="gold" type="button">Criar sessão</button><button id="copyInvite" class="secondary" type="button" disabled>Copiar link de entrada</button><button id="endSession" class="danger" type="button" disabled>Encerrar sessão</button></div>
+<div id="sessionDetails" class="message" style="margin-top:14px">Nenhuma sessão selecionada.</div>
+</section>
+<section class="panel span12 hidden" id="workspace">
+<div class="session-head"><div><h3 id="activeTitle">Sessão musical</h3><p class="note" id="activeMeta"></p></div><span class="pill" id="activeState">Sessão ativa</span></div>
+<div class="grid" style="margin-top:14px">
+<div class="span7">
+<h3>Quadro musical partilhado</h3>
+<div class="board"><div class="board-tools"><button type="button" data-insert="𝄞  ─────────────────────">Inserir pauta</button><button type="button" data-insert="Dó  Ré  Mi  Fá  Sol  Lá  Si">Notas musicais</button><button type="button" data-insert="Compasso: 4/4">Compasso</button><button type="button" id="saveBoard">Guardar apontamentos</button></div><textarea id="boardText" aria-label="Apontamentos musicais partilhados" placeholder="Escreva aqui apontamentos de solfejo, exercícios ou orientações…"></textarea></div><p class="note">Os apontamentos são sincronizados com os participantes desta sessão. Ferramentas gráficas, partitura interativa e piano serão integrados em etapas seguintes.</p>
+</div>
+<div class="span5">
+<h3>Participantes (<span id="participantCount">0</span>)</h3><div id="participants" class="list"><div class="message">Ainda não há participantes.</div></div>
+<div style="margin-top:18px"><h3>Materiais e avisos</h3><div class="field"><label for="announcement">Aviso para os participantes</label><input id="announcement" maxlength="300" placeholder="Escrever aviso…"/></div><button id="sendAnnouncement" type="button">Publicar aviso</button><div id="announcementView" class="message" style="margin-top:10px">Sem avisos.</div></div>
+</div>
+</div>
+</section>
+</main>
+<footer class="footer">Departamento Nacional da Música · Igreja da Fé Apostólica Americana<br>Versão institucional independente do Quadro Virtual AZNY.</footer>
+</div>
+<script type="module" src="./app.js"></script>
+</body></html>
