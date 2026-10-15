@@ -1,18 +1,18 @@
 {
   "id": "./index.html",
   "name": "Departamento Nacional da Música — Quadro Virtual",
-  "short_name": "DNM Quadro",
+  "short_name": "DNM Música",
   "description": "Quadro virtual interativo para aulas, ensaios e avaliações musicais da Igreja da Fé Apostólica Americana.",
   "lang": "pt-AO",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#eef2f7",
+  "background_color": "#ffffff",
   "theme_color": "#071b33",
   "icons": [
     {
-      "src": "icons/dnm-board.svg?v=1",
+      "src": "icons/logo-jesus-luz.svg?v=2",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
