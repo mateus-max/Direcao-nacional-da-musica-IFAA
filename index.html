@@ -11,46 +11,116 @@
 <style>
 :root{--navy:#071b33;--navy2:#103456;--blue:#1e73be;--gold:#d6b56d;--bg:#f1f5f9;--text:#172538;--muted:#64748b;--line:#d8e1eb;--white:#fff;--green:#1d684c}
 *{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,Segoe UI,Arial,sans-serif;background:linear-gradient(140deg,#eaf1f8 0%,#f7f9fc 55%,#e5edf5 100%);color:var(--text)}button,input,select{font:inherit}button{cursor:pointer}.shell{max-width:1180px;margin:auto;padding:24px}.header{display:flex;align-items:center;gap:14px;padding:12px 0 20px;border-bottom:1px solid var(--line)}.logo{width:72px;height:72px;border-radius:50%;display:grid;place-items:center;background:#fff;border:1px solid var(--gold);overflow:hidden;flex-shrink:0}.logo img{width:100%;height:100%;object-fit:cover}.brand h1{font-size:clamp(18px,2.7vw,26px);margin:0;color:var(--navy);line-height:1.2}.brand p{margin:5px 0 0;color:var(--muted);font-size:14px}.tag{margin-left:auto;background:#e2ecf6;color:var(--navy);border:1px solid #cfdeed;padding:7px 11px;border-radius:99px;font-size:12px;font-weight:750;white-space:nowrap}.hero{padding:36px 0 24px;display:grid;grid-template-columns:1.1fr .9fr;gap:24px;align-items:center}.eyebrow{color:var(--green);font-weight:800;letter-spacing:.1em;text-transform:uppercase;font-size:12px}.hero h2{font-size:clamp(30px,5vw,48px);line-height:1.05;letter-spacing:-.035em;color:var(--navy);margin:12px 0}.hero p{font-size:17px;line-height:1.7;color:#526174;max-width:650px;margin:0}.hero-card{background:var(--navy);color:white;border-radius:20px;padding:24px;box-shadow:0 18px 45px #071b331a;position:relative;overflow:hidden}.hero-card:after{content:"♫";position:absolute;right:14px;bottom:-50px;font-size:180px;color:#ffffff0d;line-height:1}.hero-card h3{margin:0 0 8px;font-size:20px;position:relative;z-index:1}.hero-card p{font-size:14px;color:#d5e2ef;line-height:1.7;position:relative;z-index:1}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:17px;position:relative;z-index:1}.chip{border:1px solid #ffffff32;border-radius:99px;padding:7px 10px;font-size:12px;color:#f4f7fb}.form-wrap{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:20px;align-items:start}.form-card,.info-card{background:var(--white);border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 10px 28px #1534560a}.form-card h3{margin:0;color:var(--navy);font-size:23px}.sub{margin:7px 0 22px;color:var(--muted);font-size:14px;line-height:1.6}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}.field{display:grid;gap:7px;min-width:0}.field.full{grid-column:1/-1}.field label{font-size:13px;font-weight:750;color:#334155}.field input,.field select{width:100%;min-height:46px;padding:11px 12px;border:1px solid #cbd6e2;border-radius:10px;background:#fff;color:var(--text);outline:none}.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #1e73be1c}.hint{font-size:12px;color:var(--muted);line-height:1.5}.primary{width:100%;margin-top:20px;border:0;border-radius:11px;background:var(--navy);color:#fff;font-weight:800;padding:14px 18px;box-shadow:0 7px 16px #071b3322}.primary:hover{background:#123c64}.alert{padding:12px 14px;background:#eaf3fb;border:1px solid #c9dff2;color:#17476d;border-radius:10px;font-size:13px;line-height:1.55;margin:0 0 18px}.alert.error{background:#fff0ef;border-color:#f0c8c5;color:#8e2823}.info-card h4{margin:0 0 12px;color:var(--navy);font-size:16px}.step{display:flex;gap:10px;margin:15px 0}.num{width:27px;height:27px;border-radius:50%;background:#e7eef6;color:var(--navy);display:grid;place-items:center;font-size:12px;font-weight:850;flex-shrink:0}.step strong{display:block;font-size:13px;margin:1px 0 4px}.step span{display:block;color:var(--muted);font-size:12px;line-height:1.5}.footer{text-align:center;padding:26px 0 12px;color:#738195;font-size:12px}.hidden{display:none!important}.loading{font-size:12px;color:var(--muted)}@media(max-width:850px){.hero{grid-template-columns:1fr;padding:26px 0 20px}.hero-card{display:none}.form-wrap{grid-template-columns:1fr}.info-card{order:2}.shell{padding:15px}.form-card,.info-card{padding:18px}}@media(max-width:520px){.header{gap:10px}.logo{width:54px;height:54px}.tag{display:none}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.hero h2{font-size:34px}.hero p{font-size:15px}.form-card h3{font-size:21px}}
+
+/* DNM modern landing page */
+:root{--navy:#03172f;--navy2:#082746;--gold:#e8b653;--green:#1d684c}
+body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-serif}
+.shell{max-width:none;padding:0}.hero-stage{position:relative;isolation:isolate}
+.header{position:relative;z-index:2;max-width:none;padding:14px clamp(18px,5vw,78px);min-height:96px;gap:18px;background:linear-gradient(110deg,#031326,#08284a);border-bottom:1px solid #d7ad55;color:#fff}
+.logo{width:88px;height:88px;box-shadow:0 5px 24px #0005;position:relative;margin-bottom:-35px;z-index:3}
+.brand{min-width:260px}.brand h1{color:#fff;font-size:clamp(15px,1.6vw,23px);letter-spacing:.015em;text-transform:uppercase}.brand p{color:#f1c76e;font-size:clamp(11px,1.1vw,15px);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
+.tag{margin-left:auto;background:#ffffff0d;border:1px solid #ffffff35;color:#f6d17f}
+.header:after{content:"INÍCIO     ♪     SOBRE     ♫     MATERIAIS     ▦     CALENDÁRIO     ?";font-size:12px;letter-spacing:.08em;color:#d8e8f8;margin-left:auto;white-space:pre;display:none}
+.hero{position:relative;isolation:isolate;min-height:540px;padding:48px clamp(18px,4vw,64px);display:grid;grid-template-columns:minmax(0,1.15fr) minmax(420px,.85fr);gap:clamp(20px,4vw,60px);align-items:center;background:radial-gradient(ellipse at 18% 55%,#164b70 0%,#092b4a 33%,#03172f 72%);overflow:hidden}
+.hero:before{content:"";position:absolute;z-index:-1;inset:0;background:linear-gradient(90deg,#03172f33,#03172f0d 55%,#03172f55),radial-gradient(circle at 18% 35%,#ffffff12 0 1px,transparent 2px);background-size:auto,24px 24px;opacity:.9}
+.hero:after{content:"𝄞";position:absolute;z-index:-1;left:2%;bottom:-120px;font-family:Georgia,serif;font-size:420px;line-height:1;color:#e8b65322;transform:rotate(-10deg)}
+.hero>div:first-child{max-width:750px;color:#fff;padding:12px 0}
+.eyebrow{color:#f5ca6b;font-size:clamp(12px,1.2vw,16px);letter-spacing:.17em}
+.hero h2{color:#fff;font-family:Georgia,"Times New Roman",serif;font-weight:700;font-size:clamp(34px,4.4vw,66px);line-height:.99;letter-spacing:-.025em;text-transform:uppercase;margin:14px 0 20px;text-shadow:0 5px 18px #0005}
+.hero>div:first-child>p{color:#e2ebf5;font-size:clamp(15px,1.3vw,18px);max-width:630px}
+.hero-card{background:linear-gradient(135deg,#fff,#f7f8fb);color:#071b33;border:1px solid #e8b653;border-radius:22px;padding:clamp(20px,2.5vw,32px);box-shadow:0 22px 65px #0006;z-index:1}
+.hero-card h3{font-size:clamp(20px,2vw,27px);color:#071b33}
+.hero-card p{color:#42546a;font-size:14px}
+.chip{color:#173a5c;border-color:#e3d2a9;background:#fff8e9}
+.form-wrap{position:absolute;right:clamp(18px,3.5vw,54px);top:50%;transform:translateY(-50%);width:min(44%,610px);display:block;z-index:2}
+.form-card{background:#fff;border:1px solid #e5b54f;border-radius:22px;padding:clamp(20px,2vw,30px);box-shadow:0 20px 65px #0005}
+.form-card h3{font-size:clamp(21px,2vw,27px);color:#071b33}
+.sub{font-size:14px;margin:7px 0 20px}
+.grid{grid-template-columns:1fr;gap:10px}
+.field{grid-template-columns:minmax(100px,.48fr) minmax(0,1fr);align-items:center;gap:12px;background:#f8fafc;border:1px solid #edf0f5;border-radius:12px;padding:7px 10px}
+.field label{font-size:13px;color:#102746}
+.field input,.field select{min-height:42px;border-radius:11px;border-color:#d7dee8;padding:9px 12px}
+.field .hint{grid-column:2}
+.field.full{grid-column:auto}
+.field.full:has(#voice){grid-template-columns:1fr minmax(0,1fr)}
+.field.full:has(#voice) label,.field.full:has(#voice) .hint{grid-column:1/-1}
+.primary{background:linear-gradient(100deg,#ffdf8b,#c27a1b);color:#fff;text-shadow:0 1px 2px #6e3a08;border:1px solid #dca33e;border-radius:13px;padding:15px 18px;font-size:16px}
+.primary:hover{background:linear-gradient(100deg,#f7ce70,#a95d0d)}
+.info-card{display:none}
+.services{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:14px clamp(18px,3.5vw,54px) 28px;background:linear-gradient(#dce9f4,#fff)}
+.service{overflow:hidden;border-radius:14px;background:#fff;border:1px solid #e7edf4;box-shadow:0 8px 22px #0a23400d}
+.service-art{height:92px;display:grid;place-items:center;color:#f8d47d;font-size:45px;background:linear-gradient(135deg,#06182d,#174566 60%,#b47a2c)}
+.service:nth-child(2) .service-art{background:linear-gradient(135deg,#291d17,#a66b30,#f2d7a1)}
+.service:nth-child(3) .service-art{background:linear-gradient(135deg,#04172d,#4d6574)}
+.service:nth-child(4) .service-art{background:linear-gradient(135deg,#382619,#d7b36c)}
+.service:nth-child(5) .service-art{background:linear-gradient(135deg,#071b33,#9a6a2d)}
+.service-copy{padding:12px 14px 15px}.service-copy strong{display:block;font-size:14px;color:#071b33;margin-bottom:4px}.service-copy span{font-size:12px;line-height:1.45;color:#526174}
+.trust-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;padding:22px clamp(18px,5vw,76px);background:#fff;border-top:1px solid #e7edf4}
+.trust-item{display:flex;align-items:center;gap:13px;border-right:1px solid #d4deea;padding:5px 18px}.trust-item:last-child{border:0}.trust-icon{font-size:28px;color:#bd8126}.trust-item strong{display:block;font-size:14px;color:#071b33}.trust-item span{display:block;font-size:12px;color:#627086;margin-top:4px}
+.footer{display:flex;justify-content:space-between;align-items:center;gap:20px;text-align:left;padding:24px clamp(18px,5vw,76px);background:#03172f;color:#e9c777;font-size:13px}
+.footer strong{display:block;color:#fff;font-size:14px;margin-bottom:4px}.footer span{color:#d3dfed}
+@media(min-width:1200px){.header:after{display:block}.hero{padding-right:48%;}.hero-card{max-width:620px}.form-wrap{width:34%;right:3.5%}}
+@media(max-width:1050px){.hero{grid-template-columns:1fr;min-height:auto;padding:38px 22px 24px}.hero>div:first-child{max-width:100%;padding-right:0}.hero h2{max-width:700px}.hero-card{display:none}.form-wrap{position:relative;top:auto;right:auto;transform:none;width:auto;margin:0 18px 22px}.services{grid-template-columns:repeat(3,minmax(0,1fr))}.header:after{display:none}.tag{display:none}}
+@media(max-width:650px){.header{padding:12px 16px;min-height:80px;gap:12px}.logo{width:62px;height:62px;margin-bottom:-18px}.brand{min-width:0}.brand h1{font-size:13px;line-height:1.25}.brand p{font-size:10px;letter-spacing:.03em}.hero{padding:32px 18px 28px;gap:10px}.hero h2{font-size:37px}.hero>div:first-child>p{font-size:14px;line-height:1.6}.form-wrap{margin:0 12px 16px}.form-card{padding:18px;border-radius:17px}.form-card h3{font-size:21px}.field{grid-template-columns:1fr;gap:5px;padding:8px}.field .hint{grid-column:1}.field.full:has(#voice){grid-template-columns:1fr}.services{grid-template-columns:repeat(2,minmax(0,1fr));padding:10px 12px 20px;gap:9px}.service-art{height:76px}.service-copy{padding:10px}.service-copy strong{font-size:13px}.trust-strip{grid-template-columns:1fr;gap:8px;padding:16px}.trust-item{border-right:0;border-bottom:1px solid #e4eaf1;padding:10px 4px}.footer{display:block;text-align:center;line-height:1.6}.footer div+div{margin-top:12px}}
+
 </style>
 </head>
 <body>
 <div class="shell">
 <header class="header">
   <div class="logo" aria-label="Jesus — A Luz do Mundo"><img src="icons/logo-jesus-luz.svg" alt="Jesus — A Luz do Mundo"></div>
-  <div class="brand"><h1>Departamento Nacional da Música</h1><p>Igreja da Fé Apostólica Americana</p></div>
-  <div class="tag">PLATAFORMA INSTITUCIONAL</div>
+  <div class="brand"><h1>Igreja da Fé Apostólica Americana</h1><p>Departamento Nacional da Música</p></div>
+  <div class="tag">ENSINO · ENSAIO · COMUNHÃO · EXCELÊNCIA</div>
 </header>
-<section class="hero">
-  <div><div class="eyebrow">Aprender · Ensaiar · Servir</div><h2>Bem-vindo ao espaço musical da Igreja.</h2><p>Identifique-se para entrar no quadro virtual. Aqui realizamos aulas de piano e solfejo, leitura de pautas, ensaios de coral, avaliações musicais e reuniões da Direção.</p></div>
-  <aside class="hero-card"><h3>Um espaço para toda a música</h3><p>O quadro mantém as ferramentas interativas para quem dirige a atividade e para os participantes que entram através do convite.</p><div class="chips"><span class="chip">Aulas musicais</span><span class="chip">Ensaios de coral</span><span class="chip">Reuniões</span><span class="chip">Avaliações</span></div></aside>
+<div class="hero-stage"><section class="hero">
+  <div>
+    <div class="eyebrow">QUADRO VIRTUAL · DEPARTAMENTO NACIONAL DA MÚSICA</div>
+    <h2>Uma só voz.<br>Uma só missão.<br>Louvar ao Senhor.</h2>
+    <p>Um espaço digital para aulas de piano, solfejo, leitura de pautas, ensaios de coral, avaliações musicais e reuniões do Departamento.</p>
+    <div class="chips" style="margin-top:22px"><span class="chip">♪ Aulas musicais</span><span class="chip">♬ Ensaios virtuais</span><span class="chip">♫ Avaliações</span><span class="chip">♩ Reuniões</span></div>
+  </div>
+  <aside class="hero-card"><h3>“Tudo quanto tem fôlego louve ao Senhor.”</h3><p>Salmos 150:6</p><div class="chips"><span class="chip">Aulas de piano</span><span class="chip">Solfejo e pautas</span><span class="chip">Ensaios de coral</span></div></aside>
 </section>
 <div class="form-wrap">
 <section class="form-card">
-<h3 id="formTitle">Identificação do participante</h3>
-<p class="sub" id="formSubtitle">Preencha os seus dados para entrar no quadro virtual.</p>
+<h3 id="formTitle">Identifique-se para entrar</h3>
+<p class="sub" id="formSubtitle">Preencha os seus dados para aceder à atividade.</p>
 <div id="alert" class="alert hidden" role="status"></div>
 <form id="profileForm">
 <div class="grid">
-  <div class="field full"><label for="fullName">Nome completo</label><input id="fullName" name="fullName" maxlength="100" autocomplete="name" required placeholder="Escreva o seu nome completo"></div>
-  <div class="field"><label for="role">Função na Igreja</label><select id="role" name="role" required><option value="">Selecionar função</option><option value="director">Diretor</option><option value="dirigente">Dirigente</option><option value="corista">Corista</option></select></div>
-  <div class="field"><label for="activity">Tipo de atividade</label><select id="activity" name="activity" required><option value="">Selecionar atividade</option><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
-  <div class="field"><label for="province">Província</label><select id="province" name="province" required><option value="">A carregar províncias…</option></select><span class="hint">Lista das 21 províncias de Angola.</span></div>
+  <div class="field full"><label for="fullName">Nome completo</label><input id="fullName" name="fullName" maxlength="100" autocomplete="name" required placeholder="Digite o seu nome completo"></div>
+  <div class="field"><label for="role">Função</label><select id="role" name="role" required><option value="">Selecione a sua função</option><option value="director">Diretor</option><option value="dirigente">Dirigente</option><option value="corista">Corista</option></select></div>
+  <div class="field"><label for="province">Província</label><select id="province" name="province" required><option value="">A carregar províncias…</option></select></div>
   <div class="field"><label for="municipality">Município</label><select id="municipality" name="municipality" required disabled><option value="">Escolha primeiro a província</option></select><span class="hint" id="municipalityCount">Municípios de Angola.</span></div>
-  <div class="field full hidden" id="voiceField"><label for="voice">Voz no coral</label><select id="voice" name="voice"><option value="">Selecione a sua voz</option><option value="Soprano">Soprano</option><option value="Mezzo-soprano">Mezzo-soprano</option><option value="Contralto">Contralto</option><option value="Tenor">Tenor</option><option value="Barítono">Barítono</option><option value="Baixo">Baixo</option><option value="Voz infantil">Voz infantil</option><option value="Outra voz">Outra voz</option></select><span class="hint">Esta opção aparece para coristas que entram num ensaio de coral.</span></div>
+  <div class="field"><label for="activity">Tipo de atividade</label><select id="activity" name="activity" required><option value="">Selecione uma atividade</option><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
+  <div class="field full hidden" id="voiceField"><label for="voice">Se for corista, escolha a sua voz</label><select id="voice" name="voice"><option value="">Selecione a sua voz</option><option value="Soprano">Soprano</option><option value="Mezzo-soprano">Mezzo-soprano</option><option value="Contralto">Contralto</option><option value="Tenor">Tenor</option><option value="Barítono">Barítono</option><option value="Baixo">Baixo</option><option value="Voz infantil">Voz infantil</option><option value="Outra voz">Outra voz</option></select><span class="hint">Esta opção aparece para coristas que entram num ensaio de coral.</span></div>
 </div>
-<button class="primary" id="enterButton" type="submit">Continuar para o quadro →</button>
-<p class="hint" style="margin:12px 0 0">Os dados acima identificam a sua participação nesta sessão. Não introduza palavras-passe neste formulário.</p>
+<button class="primary" id="enterButton" type="submit">↪ Entrar no Quadro Virtual　›</button>
+<p class="hint" style="margin:12px 0 0">Os seus dados identificam a participação nesta sessão. Não introduza palavras-passe neste formulário.</p>
 </form>
-</section>
 <aside class="info-card">
 <h4>Como funciona</h4>
 <div class="step"><div class="num">1</div><div><strong>Identifique-se</strong><span>Informe o seu nome, função e localização em Angola.</span></div></div>
-<div class="step"><div class="num">2</div><div><strong>Escolha a atividade</strong><span>Se for um ensaio e for corista, selecione também a sua voz.</span></div></div>
-<div class="step"><div class="num">3</div><div><strong>Entre no quadro</strong><span>A sua identificação será apresentada na interface da sessão.</span></div></div>
-<div class="alert" id="inviteInfo" style="margin-top:18px">Se recebeu um link de convite, use esta página para confirmar a sua identificação antes de entrar.</div>
+<div class="step"><div class="num">2</div><div><strong>Escolha a atividade</strong><span>Se for corista num ensaio, selecione também a sua voz.</span></div></div>
+<div class="step"><div class="num">3</div><div><strong>Entre no quadro</strong><span>A sua identificação será apresentada na sessão.</span></div></div>
+<div class="alert" id="inviteInfo" style="margin-top:18px">Se recebeu um link de convite, confirme aqui a sua identificação antes de entrar.</div>
 </aside>
+</section>
 </div>
-<footer class="footer">Departamento Nacional da Música · Igreja da Fé Apostólica Americana</footer>
+</div>
+<section class="services" aria-label="Atividades do departamento">
+  <article class="service"><div class="service-art">♬</div><div class="service-copy"><strong>Aulas de Piano</strong><span>Formação prática para todos os níveis.</span></div></article>
+  <article class="service"><div class="service-art">♫</div><div class="service-copy"><strong>Solfejo e Pauta</strong><span>Teoria e leitura musical com acompanhamento.</span></div></article>
+  <article class="service"><div class="service-art">♬</div><div class="service-copy"><strong>Ensaios Virtuais</strong><span>Participe nos ensaios do seu coro.</span></div></article>
+  <article class="service"><div class="service-art">✓</div><div class="service-copy"><strong>Avaliações Musicais</strong><span>Testes e exercícios para o seu desenvolvimento.</span></div></article>
+  <article class="service"><div class="service-art">♧</div><div class="service-copy"><strong>Reuniões</strong><span>Encontros e coordenação do Departamento.</span></div></article>
+</section>
+<section class="trust-strip" aria-label="Informações da plataforma">
+  <div class="trust-item"><div class="trust-icon">♟</div><div><strong>Para todos os membros</strong><span>Diretores, dirigentes e coristas de todas as províncias.</span></div></div>
+  <div class="trust-item"><div class="trust-icon">⌖</div><div><strong>21 Províncias e municípios</strong><span>Selecione a sua localização em Angola.</span></div></div>
+  <div class="trust-item"><div class="trust-icon">♢</div><div><strong>Ambiente institucional</strong><span>Espaço dedicado à música e ao serviço da Igreja.</span></div></div>
+</section>
+<footer class="footer"><div><strong>Igreja da Fé Apostólica Americana</strong><span>Departamento Nacional da Música · Jesus — A Luz do Mundo</span></div><div>“Cantai-lhe um cântico novo; louvai-o bem com júbilo.”<br><span>Salmos 33:3</span></div></footer>
 </div>
 <script>
 const $=id=>document.getElementById(id);
