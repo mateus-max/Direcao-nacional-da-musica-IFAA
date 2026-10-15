@@ -100,6 +100,20 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 
 /* Login-only landing page and two-step access */
 body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b33 58%,#03101f 100%);display:flex;flex-direction:column}
+/* Subtle musical score motif behind the login card */
+body{position:relative;isolation:isolate;overflow-x:hidden}
+body:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;opacity:.24;
+ background:
+  repeating-linear-gradient(to bottom,transparent 0 13px,#e8b653 13px 14px,transparent 14px 27px),
+  repeating-linear-gradient(to bottom,transparent 0 13px,#e8b653 13px 14px,transparent 14px 27px);
+ background-size:220px 140px,280px 140px;
+ background-position:4% 24%,96% 72%;
+ background-repeat:no-repeat}
+body:after{content:"𝄞  ♫  ♪     ♬     ♩";position:fixed;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:space-around;
+ font-family:Georgia,"Times New Roman",serif;font-size:clamp(48px,9vw,120px);letter-spacing:.12em;color:#e8b653;opacity:.15;transform:rotate(-7deg);white-space:pre-wrap}
+@media(max-width:650px){body:before{opacity:.18;background-size:150px 110px,170px 110px;background-position:0 20%,100% 78%}body:after{font-size:clamp(40px,12vw,75px);letter-spacing:.02em;line-height:2}}
+.form-card{position:relative;z-index:1}
+
 .shell{width:100%;max-width:100%;padding:0;display:flex;flex-direction:column;flex:1}
 .header{background:#031326;border-bottom:1px solid #d7ad55;padding:15px clamp(16px,4vw,52px);min-height:92px}
 .header .tag{display:none}
@@ -162,7 +176,7 @@ body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b
   </div>
   <div id="credentialsStep" class="login-step">
     <div class="step-indicator">Passo 2 · Acesso institucional</div>
-    <div class="field full" id="hostUsernameField"><label for="hostUsername">E-mail institucional</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="lideres@gmail.com" aria-describedby="hostAccessHint"></div>
+    <div class="field full" id="hostUsernameField"><label for="hostUsername">E-mail institucional</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="" aria-describedby="hostAccessHint"></div>
     <div class="field full" id="hostPasswordField"><label for="hostPassword">Palavra-passe</label><input id="hostPassword" name="hostPassword" type="password" autocomplete="current-password" placeholder="Introduza a palavra-passe" aria-describedby="hostAccessHint"></div>
     <div class="field full" id="hostAccessHint"><span class="hint">Utilize o e-mail e a palavra-passe registados no Firebase.</span></div>
   </div>
