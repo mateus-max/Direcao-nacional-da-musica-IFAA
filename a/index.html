@@ -12,13 +12,22 @@
 </style>
 </head>
 <body>
-<iframe id="board" title="Quadro Virtual — Departamento Nacional da Música"
+<iframe id="board" title="Identificação para entrar na aula — Departamento Nacional da Música"
  allow="camera; microphone; fullscreen; display-capture; autoplay; clipboard-read; clipboard-write"
  allowfullscreen referrerpolicy="same-origin"></iframe>
 <script>
-/* Endereço público limpo: os parâmetros de sala/sessão são preservados dentro do quadro. */
-const frame=document.getElementById("board");
-frame.src="../quadro.html"+location.search+location.hash;
+/* Mantém o convite curto no endereço público, mas apresenta o formulário institucional antes de abrir o quadro. */
+const incoming=new URLSearchParams(location.search);
+const entry=new URL("../entrar.html",location.href);
+entry.searchParams.set("sala",incoming.get("r")||"");
+entry.searchParams.set("sess",incoming.get("s")||"");
+entry.searchParams.set("aluno","1");
+if(incoming.has("a"))entry.searchParams.set("atividade",incoming.get("a"));
+if(incoming.has("dn"))entry.searchParams.set("dirNome",incoming.get("dn"));
+if(incoming.has("df"))entry.searchParams.set("dirFuncao",incoming.get("df"));
+if(incoming.has("dp"))entry.searchParams.set("dirProvincia",incoming.get("dp"));
+if(incoming.has("dm"))entry.searchParams.set("dirMunicipio",incoming.get("dm"));
+document.getElementById("board").src=entry.href;
 </script>
 </body>
 </html>
