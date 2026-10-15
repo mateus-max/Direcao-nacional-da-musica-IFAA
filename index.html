@@ -189,7 +189,7 @@ $("profileForm").addEventListener("submit",e=>{
  if(role==="corista"&&activity==="ensaio"&&!voice){notice("Selecione a sua voz no coral para entrar no ensaio.",true);return;}
  if(role==="instrumentista"&&!instrument){notice("Selecione o instrumento musical que toca.",true);return;}
  if(inviteRoom&&(!inviteSession)){notice("O convite não contém o identificador da sessão. Peça à Direção para gerar e enviar novamente o link.",true);return;}
- const next=new URL("./quadro.html",location.href);
+ const next=new URL("./aula/",location.href);
  next.searchParams.set("nome",name);next.searchParams.set("funcao",role);next.searchParams.set("provincia",province);next.searchParams.set("municipio",municipality);next.searchParams.set("atividade",activity);
  if(voice)next.searchParams.set("voz",voice);
  if(instrument)next.searchParams.set("instrumento",instrument);
