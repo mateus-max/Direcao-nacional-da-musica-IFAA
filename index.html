@@ -138,6 +138,12 @@ body:after{display:none!important;content:"𝄞";position:fixed;z-index:0;pointe
 .brand h1{font-size:clamp(13px,2vw,20px)}
 .brand p{font-size:11px}
 @media(max-width:650px){.header{min-height:78px}.logo{width:56px;height:56px;margin:0}.brand{min-width:0}.hero-stage{padding:22px 12px}.form-card{padding:22px 18px}.field.full{grid-column:auto}}
+.install-row{display:flex;align-items:center;justify-content:flex-end;gap:10px;padding:12px 0 0;flex-wrap:wrap}
+.install-app-button{border:1px solid #c99b42;border-radius:999px;background:linear-gradient(135deg,#ffe49a,#c78924);color:#172538;font-weight:800;padding:11px 18px;box-shadow:0 5px 16px #0002}
+.install-app-button[hidden]{display:none!important}
+.install-app-hint{font-size:12px;color:var(--muted);max-width:100%;text-align:right}
+@media(max-width:650px){.install-row{justify-content:center;padding:12px 0}.install-app-button{width:100%;max-width:360px;min-height:46px}.install-app-hint{text-align:center}}
+
 </style>
 </head>
 <body>
@@ -147,6 +153,7 @@ body:after{display:none!important;content:"𝄞";position:fixed;z-index:0;pointe
   <div class="brand"><h1>Igreja da Fé Apostólica Americana</h1><p>Departamento Nacional da Música</p></div>
   <div class="tag">ENSINO · ENSAIO · COMUNHÃO · EXCELÊNCIA</div>
 </header>
+<div class="install-row"><button type="button" id="installAppButton" class="install-app-button" hidden>⬇ Instalar aplicação</button><span id="installAppHint" class="install-app-hint" aria-live="polite"></span></div>
 <div class="hero-stage"><section class="hero">
   <div>
     <div class="eyebrow">QUADRO VIRTUAL · DEPARTAMENTO NACIONAL DA MÚSICA</div>
@@ -231,6 +238,26 @@ $("activity").addEventListener("change",updateVoiceVisibility);
 function fillMunicipalities(province,selected=""){const select=$("municipality");select.innerHTML="";const list=divisions[province]||[];select.add(new Option(list.length?"Selecionar município":"Selecione uma província", ""));list.forEach(name=>select.add(new Option(name,name)));select.disabled=!list.length;$("municipalityCount").textContent=list.length?list.length+" municípios disponíveis.":"Escolha primeiro a província.";if(selected&&list.includes(selected))select.value=selected;}
 $("province").addEventListener("change",()=>fillMunicipalities($("province").value));
 async function loadDivisions(){try{const response=await fetch("./data/provincias-municipios.json");if(!response.ok)throw new Error("HTTP "+response.status);const data=await response.json();data.provincias.forEach(p=>divisions[p.nome]=p.municipios);const sel=$("province");sel.innerHTML="";sel.add(new Option("Selecionar província",""));data.provincias.forEach(p=>sel.add(new Option(p.nome,p.nome)));if(params.get("provincia")&&divisions[params.get("provincia")])sel.value=params.get("provincia");fillMunicipalities(sel.value,params.get("municipio")||"");}catch(e){$("province").innerHTML='<option value="">Não foi possível carregar a lista</option>';notice("A lista de províncias e municípios não carregou. Atualize a página e tente novamente.",true);}}
+
+// Instalação PWA: botão para Android/Chrome e computadores compatíveis.
+let dnmInstallPrompt=null;
+const dnmInstallButton=$("installAppButton"),dnmInstallHint=$("installAppHint");
+function showInstallButton(){dnmInstallButton.hidden=false;}
+window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();dnmInstallPrompt=event;showInstallButton();dnmInstallHint.textContent="Instale no seu dispositivo para abrir como aplicação.";});
+dnmInstallButton.addEventListener("click",async()=>{
+ if(dnmInstallPrompt){
+   dnmInstallPrompt.prompt();
+   const choice=await dnmInstallPrompt.userChoice;
+   if(choice&&choice.outcome==="accepted"){dnmInstallButton.hidden=true;dnmInstallHint.textContent="Instalação iniciada."; }
+   dnmInstallPrompt=null;
+ }else{
+   dnmInstallHint.textContent=/iphone|ipad|ipod/i.test(navigator.userAgent)?"No Safari, toque em Partilhar e escolha “Adicionar ao ecrã principal”.":"No menu do navegador, escolha “Instalar aplicação” ou “Adicionar ao ecrã inicial”.";
+ }
+});
+window.addEventListener("appinstalled",()=>{dnmInstallButton.hidden=true;dnmInstallHint.textContent="Aplicação instalada com sucesso.";});
+if("serviceWorker" in navigator && location.protocol.startsWith("http")){
+ window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(err=>console.warn("Não foi possível ativar o modo instalável:",err)));
+}
 loadDivisions();
 if(inviteRoom){
   $("role").add(new Option("Instrumentista","instrumentista"));
