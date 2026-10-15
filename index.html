@@ -100,19 +100,17 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 
 /* Login-only landing page and two-step access */
 body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b33 58%,#03101f 100%);display:flex;flex-direction:column}
-/* Fundo musical decorativo, visível atrás do formulário */
-body{position:relative;isolation:isolate;overflow-x:hidden}
-body:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;opacity:.72;
- background:
-  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px),
-  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px),
-  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px);
- background-size:250px 100px,290px 100px,220px 100px;
- background-position:left 30% top 26%,right 4% top 42%,left 12% bottom 9%;
+/* Fundo musical decorativo — preserva o logótipo e o formulário existentes */
+body{position:relative;isolation:isolate;overflow-x:hidden;background:radial-gradient(ellipse at 50% 20%,#123b5c 0%,#071b33 48%,#03101f 100%)}
+body:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;opacity:.95;
+ background-image:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='300' viewBox='0 0 680 300'%3E%3Cg fill='none' stroke='%23e8b653' stroke-width='1.6' opacity='.82'%3E%3Cpath d='M0 72 Q170 42 340 76 T680 55 M0 86 Q170 56 340 90 T680 69 M0 100 Q170 70 340 104 T680 83 M0 114 Q170 84 340 118 T680 97 M0 128 Q170 98 340 132 T680 111'/%3E%3C/g%3E%3Cg fill='%23e8b653' opacity='.92' font-family='Georgia,serif' font-size='58'%3E%3Ctext x='20' y='130'%3E%E2%99%AB%3C/text%3E%3Ctext x='155' y='84'%3E%E2%99%AA%3C/text%3E%3Ctext x='285' y='128'%3E%E2%99%AC%3C/text%3E%3Ctext x='420' y='70'%3E%E2%99%AB%3C/text%3E%3Ctext x='565' y='112'%3E%E2%99%AA%3C/text%3E%3C/g%3E%3C/svg%3E"),
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='680' height='300' viewBox='0 0 680 300'%3E%3Cg fill='none' stroke='%23e8b653' stroke-width='1.5' opacity='.72'%3E%3Cpath d='M0 72 Q170 42 340 76 T680 55 M0 86 Q170 56 340 90 T680 69 M0 100 Q170 70 340 104 T680 83 M0 114 Q170 84 340 118 T680 97 M0 128 Q170 98 340 132 T680 111'/%3E%3C/g%3E%3Cg fill='%23e8b653' opacity='.85' font-family='Georgia,serif' font-size='58'%3E%3Ctext x='20' y='130'%3E%E2%99%AC%3C/text%3E%3Ctext x='155' y='84'%3E%E2%99%AB%3C/text%3E%3Ctext x='285' y='128'%3E%E2%99%AA%3C/text%3E%3Ctext x='420' y='70'%3E%E2%99%AC%3C/text%3E%3Ctext x='565' y='112'%3E%E2%99%AB%3C/text%3E%3C/g%3E%3C/svg%3E");
+ background-size:min(82vw,680px) 300px,min(82vw,680px) 300px;
+ background-position:left -65px top 20%,right -90px bottom 7%;
  background-repeat:no-repeat}
-body:after{content:"𝄞     ♫     ♪     ♬     ♩     ♭     ♯";position:fixed;z-index:-1;pointer-events:none;left:-2%;right:-2%;top:0;bottom:0;display:flex;align-items:center;justify-content:space-around;flex-wrap:wrap;gap:18px;
- font-family:Georgia,"Times New Roman",serif;font-size:clamp(44px,8vw,105px);letter-spacing:.08em;color:#e8b653;opacity:.3;transform:rotate(-5deg);white-space:pre-wrap}
-@media(max-width:650px){body:before{opacity:.6;background-size:160px 80px,180px 80px,140px 80px;background-position:left top 18%,right top 35%,left bottom 8%}body:after{font-size:clamp(38px,10vw,65px);letter-spacing:0;line-height:2;opacity:.28}}
+body:after{content:"𝄞";position:fixed;z-index:-1;pointer-events:none;left:-18px;top:25%;font-family:Georgia,"Times New Roman",serif;font-size:clamp(140px,24vw,290px);line-height:1;color:#e8b653;opacity:.42;text-shadow:0 0 24px #e8b65325}
+@media(max-width:650px){body:before{opacity:.85;background-size:300px 190px,300px 190px;background-position:left -100px top 17%,right -115px bottom 5%}body:after{font-size:clamp(115px,28vw,180px);left:-12px;top:28%;opacity:.3}}
 .form-card{position:relative;z-index:1}
 
 .shell{width:100%;max-width:100%;padding:0;display:flex;flex-direction:column;flex:1}
