@@ -2106,7 +2106,7 @@ function saveRecording(){
  const blob=new Blob(chunks,{type:recorder?.mimeType||"video/webm"}),box=document.getElementById(recorder?._aznyBoxId||"recordDownload"),btn=document.getElementById(recorder?._aznyButtonId||"recordClassBtn");
  if(btn){btn.textContent="⏺ Gravar aula";btn.classList.remove("recording")}screenRecorder=null;recordedChunks=[];
  if(!blob.size){toast("A gravação ficou vazia. Tente novamente e permita a captura do ecrã.");return}
- const url=URL.createObjectURL(blob),name="quadro-azny-"+(recorder?._aznyForStudent?"aluno-":"aula-")+new Date().toISOString().slice(0,10)+"-"+new Date().toTimeString().slice(0,8).replace(/:/g,"-")+".webm";
+ const url=URL.createObjectURL(blob),name="dnm-musica-"+(recorder?._aznyForStudent?"aluno-":"aula-")+new Date().toISOString().slice(0,10)+"-"+new Date().toTimeString().slice(0,8).replace(/:/g,"-")+".webm";
  if(box){box.style.display="block";box.innerHTML="";const label=document.createElement("div");label.textContent="Gravação pronta ("+Math.round(blob.size/1024/1024*10)/10+" MB).";box.appendChild(label);const link=document.createElement("a");link.href=url;link.download=name;link.textContent="⬇ Baixar gravação para o dispositivo";link.style.cssText="display:inline-block;padding:8px 10px;margin-top:6px;background:#e8f2ff;border-radius:7px;color:#075ecf;font-weight:800;text-decoration:none";box.appendChild(link);const open=document.createElement("button");open.type="button";open.textContent="Abrir vídeo";open.style.marginLeft="6px";open.onclick=()=>window.open(url,"_blank","noopener");box.appendChild(open);box.scrollIntoView?.({block:"nearest",behavior:"smooth"})}
  toast("Gravação guardada. Use «Baixar gravação para o dispositivo» para a guardar no telefone ou computador.");
 }
