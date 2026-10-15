@@ -11,6 +11,11 @@
 <title>Quadro Virtual — Departamento Nacional da Música</title>
 <style>
 *{box-sizing:border-box}
+/* Identidade da igreja; esta versão institucional não inclui gráficos. */
+.church-logo{width:52px!important;height:52px!important;max-width:52px!important;min-width:52px!important;flex:0 0 52px!important;overflow:hidden!important;border-radius:50%;background:#fff!important;padding:0!important}
+.church-logo img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+#chartsBtn,.chart-music-modal,.chartobj{display:none!important;visibility:hidden!important;pointer-events:none!important}
+
 /* AZNY touch drawing: stop browser gestures from stealing pen/lupa strokes. */
 #stage,#board,#drawLayer{touch-action:none}
 #drawLayer{pointer-events:none}
@@ -946,7 +951,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="logo">Departamento Nacional da Música <span>IFAA</span></div><div id="institutionalIdentity" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#e6edf5;border-left:1px solid #ffffff33;padding-left:12px" aria-live="polite"></div>
+  <div class="logo church-logo"><img src="icons/logo-jesus-luz.svg" alt="Jesus — A Luz do Mundo"></div><div id="institutionalIdentity" style="max-width:360px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#e6edf5;border-left:1px solid #ffffff33;padding-left:12px" aria-live="polite"></div>
   <div class="title"><input id="boardTitle" value="Nova aula" aria-label="Nome da aula"></div>
   <div class="class-controls" id="classControlsTop">
     <div class="class-timer" id="classTimer">00:00:00</div>
