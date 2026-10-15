@@ -2613,7 +2613,7 @@ function setupRoomChannel(){if(!roomChannel)return;roomChannel.onmessage=e=>{con
 function getClassLink(){
   /* O link partilhado durante a aula abre diretamente o quadro em modo aluno.
      Não passa pela página de escolha (aulas/avaliações). */
-  const link=new URL("index.html",location.href);
+  const link=new URL("entrar.html",location.href);
   const permanentSession="ROOM-"+String(roomId).replace(/[.#$\/\[\]]/g,"_");
   link.searchParams.set("sala",roomId);
   link.searchParams.set("sess",permanentSession);
