@@ -15,7 +15,7 @@
 /* DNM modern landing page */
 :root{--navy:#03172f;--navy2:#082746;--gold:#e8b653;--green:#1d684c}
 body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-serif}
-.shell{max-width:none;padding:0}
+.shell{max-width:none;padding:0}.hero-stage{position:relative;isolation:isolate}
 .header{position:relative;z-index:2;max-width:none;padding:14px clamp(18px,5vw,78px);min-height:96px;gap:18px;background:linear-gradient(110deg,#031326,#08284a);border-bottom:1px solid #d7ad55;color:#fff}
 .logo{width:88px;height:88px;box-shadow:0 5px 24px #0005;position:relative;margin-bottom:-35px;z-index:3}
 .brand{min-width:260px}.brand h1{color:#fff;font-size:clamp(15px,1.6vw,23px);letter-spacing:.015em;text-transform:uppercase}.brand p{color:#f1c76e;font-size:clamp(11px,1.1vw,15px);text-transform:uppercase;letter-spacing:.07em;margin-top:4px}
@@ -72,7 +72,7 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
   <div class="brand"><h1>Igreja da Fé Apostólica Americana</h1><p>Departamento Nacional da Música</p></div>
   <div class="tag">ENSINO · ENSAIO · COMUNHÃO · EXCELÊNCIA</div>
 </header>
-<section class="hero">
+<div class="hero-stage"><section class="hero">
   <div>
     <div class="eyebrow">QUADRO VIRTUAL · DEPARTAMENTO NACIONAL DA MÚSICA</div>
     <h2>Uma só voz.<br>Uma só missão.<br>Louvar ao Senhor.</h2>
@@ -106,6 +106,7 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 <div class="alert" id="inviteInfo" style="margin-top:18px">Se recebeu um link de convite, confirme aqui a sua identificação antes de entrar.</div>
 </aside>
 </section>
+</div>
 </div>
 <section class="services" aria-label="Atividades do departamento">
   <article class="service"><div class="service-art">♬</div><div class="service-copy"><strong>Aulas de Piano</strong><span>Formação prática para todos os níveis.</span></div></article>
