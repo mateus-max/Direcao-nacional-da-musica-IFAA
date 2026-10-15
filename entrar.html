@@ -100,7 +100,11 @@ body.invite-mode .shell{width:100%;max-width:900px;margin:auto;padding:24px}
 body.invite-mode .header,body.invite-mode .hero-stage,body.invite-mode .services,body.invite-mode .trust-strip,body.invite-mode footer{display:none!important}
 body.invite-mode .form-wrap{position:relative!important;top:auto!important;right:auto!important;transform:none!important;width:100%!important;max-width:760px!important;margin:0 auto!important;display:block!important}
 body.invite-mode .form-card{padding:clamp(22px,4vw,38px)!important;border-radius:22px!important;box-shadow:0 24px 70px #0006!important}
-body.invite-mode .form-card:before{content:"IGREJA DA FÉ APOSTÓLICA AMERICANA · DEPARTAMENTO NACIONAL DA MÚSICA";display:block;color:#a66f19;font-size:12px;font-weight:800;letter-spacing:.08em;margin-bottom:14px}
+
+body.invite-mode .form-card:before{content:none!important;display:none!important}
+body.invite-mode .form-card .invite-logo{display:flex;justify-content:center;align-items:center;margin:0 auto 22px}
+body.invite-mode .form-card .invite-logo img{display:block;width:104px;height:104px;max-width:32vw;max-height:32vw;object-fit:contain;border-radius:50%;background:#fff;box-shadow:0 5px 18px #071b3320}
+
 body.invite-mode .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 body.invite-mode .field.full{grid-column:1/-1}
 body.invite-mode .info-card{display:none!important}
@@ -134,6 +138,7 @@ body.invite-mode .form-card{display:block!important;visibility:visible!important
 </section>
 <div class="form-wrap">
 <section class="form-card">
+<div class="invite-logo"><img src="icons/logo-jesus-luz.svg" alt="Jesus — A Luz do Mundo"></div>
 <h3 id="formTitle">Identifique-se para entrar</h3>
 <p class="sub" id="formSubtitle">Preencha os seus dados para aceder à atividade.</p>
 <div id="alert" class="alert hidden" role="status"></div>
