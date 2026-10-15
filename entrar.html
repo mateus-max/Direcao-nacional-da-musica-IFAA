@@ -107,6 +107,13 @@ body.invite-mode .info-card{display:none!important}
 body.invite-mode .primary{margin-top:22px}
 @media(max-width:600px){body.invite-mode .shell{padding:14px}body.invite-mode .form-wrap{margin:0 auto!important}body.invite-mode .form-card{padding:20px!important}body.invite-mode .grid{grid-template-columns:1fr}body.invite-mode .field.full{grid-column:auto}}
 
+
+/* Fix invite form visibility: the form shares a wrapper with the home hero. */
+body.invite-mode .hero-stage{display:block!important;position:static!important;min-height:0!important;background:transparent!important;overflow:visible!important;padding:0!important}
+body.invite-mode .hero-stage>.hero{display:none!important}
+body.invite-mode .hero-stage>.form-wrap{display:block!important;position:relative!important;top:auto!important;right:auto!important;left:auto!important;bottom:auto!important;transform:none!important;visibility:visible!important;opacity:1!important}
+body.invite-mode .form-card{display:block!important;visibility:visible!important;opacity:1!important}
+
 </style>
 </head>
 <body>
