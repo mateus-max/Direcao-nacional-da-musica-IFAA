@@ -945,6 +945,21 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .student-mode .student-video-pair .student-video-card{min-width:0}
 
 .azny-audio-output-picker{display:flex;align-items:center;gap:8px;margin:8px 0;font-size:12px;color:inherit;flex-wrap:wrap}.azny-audio-output-picker select{max-width:100%;min-width:0;flex:1;padding:7px;border:1px solid #8a9aab;border-radius:7px;background:#fff;color:#15263a}
+
+/* Orientation guidance for both teacher/director and student on phones */
+#dnmOrientationGuide{display:none;position:fixed;inset:0;z-index:999999;background:rgba(2,13,29,.94);color:#fff;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:Inter,Segoe UI,Arial,sans-serif}
+#dnmOrientationGuide .orientation-card{width:min(520px,100%);padding:28px 22px;border:1px solid #e8b653;border-radius:22px;background:linear-gradient(145deg,#082746,#031326);box-shadow:0 20px 70px #0009}
+#dnmOrientationGuide .orientation-icon{font-size:64px;line-height:1.2;margin-bottom:12px;color:#f2c56d}
+#dnmOrientationGuide h2{font-size:clamp(25px,6vw,36px);line-height:1.1;margin:0 0 14px;color:#ffe0a0}
+#dnmOrientationGuide p{font-size:clamp(16px,4vw,20px);line-height:1.5;margin:0 auto 18px;max-width:420px;color:#f0f5fb}
+#dnmOrientationGuide .orientation-illustration{display:flex;justify-content:center;align-items:center;gap:16px;margin:20px auto}
+#dnmOrientationGuide .phone-shape{border:3px solid #f2c56d;border-radius:12px;width:42px;height:68px;display:grid;place-items:center;color:#f2c56d;font-size:22px}
+#dnmOrientationGuide .phone-shape.horizontal{width:76px;height:44px}
+#dnmOrientationGuide button{width:100%;border:0;border-radius:12px;padding:14px 16px;font-size:16px;font-weight:800;cursor:pointer;background:linear-gradient(100deg,#ffdf8b,#c27a1b);color:#172338}
+#dnmOrientationGuide .orientation-small{font-size:12px;color:#c8d6e6;margin-top:12px}
+@media(orientation:portrait) and (max-width:900px){#dnmOrientationGuide{display:flex}}
+@media(orientation:landscape),(min-width:901px){#dnmOrientationGuide{display:none!important}}
+
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -3169,6 +3184,32 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  document.addEventListener("selectionchange",()=>{if(active&&document.activeElement===active)saveSelection()});
  window.addEventListener("resize",()=>{if(active)openKeyboard(active)},{passive:true});
  window.addEventListener("orientationchange",()=>{if(active)closeKeyboard(false)},{passive:true});
+})();
+</script>
+
+<div id="dnmOrientationGuide" role="dialog" aria-modal="true" aria-labelledby="dnmOrientationTitle">
+ <div class="orientation-card">
+  <div class="orientation-icon" aria-hidden="true">↻</div>
+  <h2 id="dnmOrientationTitle">Rode o telefone para a horizontal</h2>
+  <p>Para utilizar melhor o Quadro Virtual, coloque o telefone na posição <strong>horizontal (modo paisagem)</strong>. Assim verá o quadro e as ferramentas com mais espaço.</p>
+  <div class="orientation-illustration" aria-hidden="true"><div class="phone-shape">↕</div><span style="font-size:28px;color:#f2c56d">→</span><div class="phone-shape horizontal">↔</div></div>
+  <button type="button" id="dnmOrientationContinue">Entendi, continuar</button>
+  <div class="orientation-small">Esta orientação aplica-se ao professor e ao aluno.</div>
+ </div>
+</div>
+<script>
+(function(){
+ const guide=document.getElementById("dnmOrientationGuide");
+ const button=document.getElementById("dnmOrientationContinue");
+ if(!guide||!button)return;
+ const isPhone=()=>window.matchMedia("(max-width: 900px)").matches&&("ontouchstart" in window||navigator.maxTouchPoints>0);
+ const isPortrait=()=>window.matchMedia("(orientation: portrait)").matches;
+ const update=()=>{if(isPhone()&&isPortrait()&&!sessionStorage.getItem("dnmOrientationDismissed")){guide.style.display="flex";}else{guide.style.display="none";}};
+ button.addEventListener("click",()=>{sessionStorage.setItem("dnmOrientationDismissed","1");guide.style.display="none";});
+ window.addEventListener("orientationchange",()=>setTimeout(update,250),{passive:true});
+ window.addEventListener("resize",update,{passive:true});
+ document.addEventListener("visibilitychange",()=>{if(!document.hidden)update()});
+ update();
 })();
 </script>
 </body>
