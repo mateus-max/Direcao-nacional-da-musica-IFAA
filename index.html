@@ -97,6 +97,34 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 .footer strong{font-size:15px!important;letter-spacing:.02em}
 .footer span{display:block;margin-top:4px}.footer .copyright{display:block;margin-top:10px;color:#d3dfed;font-size:12px;letter-spacing:.02em}
 
+
+/* Login-only landing page and two-step access */
+body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b33 58%,#03101f 100%);display:flex;flex-direction:column}
+.shell{width:100%;max-width:100%;padding:0;display:flex;flex-direction:column;flex:1}
+.header{background:#031326;border-bottom:1px solid #d7ad55;padding:15px clamp(16px,4vw,52px);min-height:92px}
+.header .tag{display:none}
+.hero-stage{min-height:0;flex:1;display:flex;align-items:center;justify-content:center;padding:34px 16px}
+.hero{display:none!important}
+.form-wrap{position:static!important;transform:none!important;width:min(100%,520px)!important;max-width:520px!important;margin:0!important;display:block!important}
+.form-card{width:100%;border:1px solid #e8b653;border-radius:22px;padding:clamp(22px,5vw,38px);box-shadow:0 24px 80px #0006}
+.form-card h3{text-align:center;font-size:clamp(23px,4vw,30px);margin-bottom:8px}
+.sub{text-align:center;margin:0 0 24px}
+.grid{display:grid;grid-template-columns:1fr;gap:12px}
+.field{display:grid;grid-template-columns:1fr!important;gap:7px;background:transparent;border:0;padding:0}
+.field label{font-size:13px}
+.field input,.field select{min-height:48px}
+.primary{margin-top:18px}
+.info-card,.services,.trust-strip,.footer,.hero-card{display:none!important}
+.login-step{display:none}
+.login-step.active{display:block}
+#roleField{margin-bottom:16px}
+#roleField label{font-size:14px}
+#role{font-weight:650}
+.step-indicator{text-align:center;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#a16a18;font-weight:800;margin-bottom:12px}
+.back-button{display:block;width:100%;margin-top:10px;padding:11px;border:1px solid #d7dee8;border-radius:11px;background:#fff;color:#31445a;font-weight:650}
+.brand h1{font-size:clamp(13px,2vw,20px)}
+.brand p{font-size:11px}
+@media(max-width:650px){.header{min-height:78px}.logo{width:56px;height:56px;margin:0}.brand{min-width:0}.hero-stage{padding:22px 12px}.form-card{padding:22px 18px}.field.full{grid-column:auto}}
 </style>
 </head>
 <body>
@@ -122,16 +150,27 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 <div id="alert" class="alert hidden" role="status"></div>
 <form id="profileForm">
 <div class="grid">
-  <div class="field full"><label for="fullName">Nome completo</label><input id="fullName" name="fullName" maxlength="100" autocomplete="name" required placeholder="Digite o seu nome completo"></div>
-  <div class="field"><label for="role">Função</label><select id="role" name="role" required><option value="">Selecione a sua função</option><option value="ministro-musica">Ministro da Música</option><option value="diretor-musica">Diretor da Música</option><option value="director">Diretor</option><option value="dirigente">Dirigente</option><option value="instrumentista">Instrumentista</option><option value="corista">Corista</option></select></div>
-  <div class="field"><label for="province">Província</label><select id="province" name="province" required><option value="">A carregar províncias…</option></select></div>
-  <div class="field"><label for="municipality">Município</label><select id="municipality" name="municipality" required disabled><option value="">Escolha primeiro a província</option></select><span class="hint" id="municipalityCount">Municípios de Angola.</span></div>
-  <div class="field"><label for="activity">Tipo de atividade</label><select id="activity" name="activity" required><option value="">Selecione uma atividade</option><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
-  <div class="field full hidden" id="voiceField"><label for="voice">Se for corista, escolha a sua voz</label><select id="voice" name="voice"><option value="">Selecione a sua voz</option><option value="Soprano">Soprano</option><option value="Mezzo-soprano">Mezzo-soprano</option><option value="Contralto">Contralto</option><option value="Tenor">Tenor</option><option value="Barítono">Barítono</option><option value="Baixo">Baixo</option><option value="Voz infantil">Voz infantil</option><option value="Outra voz">Outra voz</option></select><span class="hint">Esta opção aparece para coristas que entram num ensaio de coral.</span></div>
-  <div class="field full hidden" id="instrumentField"><label for="instrument">Instrumento musical</label><select id="instrument" name="instrument"><option value="">Selecione o seu instrumento</option><optgroup label="Teclas"><option>Órgão</option><option>Piano</option><option>Teclado eletrónico</option><option>Acordeão</option><option>Cravo</option><option>Harmónio</option></optgroup><optgroup label="Cordas"><option>Violino</option><option>Viola de arco</option><option>Violoncelo</option><option>Contrabaixo</option><option>Guitarra clássica</option><option>Guitarra elétrica</option><option>Guitarra baixo</option><option>Harpa</option><option>Bandolim</option><option>Banjo</option><option>Cavaquinho</option><option>Ukulele</option><option>Violão de 7 cordas</option><option>Viola caipira</option><option>Saltério</option></optgroup><optgroup label="Metais"><option>Trombeta</option><option>Trompete</option><option>Trompa</option><option>Trombone</option><option>Tuba</option><option>Eufónio</option><option>Fliscorne</option><option>Sousafone</option><option>Barítono de metal</option></optgroup><optgroup label="Madeiras"><option>Flauta transversal</option><option>Flauta de bisel / doce</option><option>Flautim (piccolo)</option><option>Clarinete</option><option>Clarinete baixo</option><option>Oboé</option><option>Corne inglês</option><option>Fagote</option><option>Contrafagote</option><option>Saxofone soprano</option><option>Saxofone alto</option><option>Saxofone tenor</option><option>Saxofone barítono</option><option>Harmónica</option></optgroup><optgroup label="Percussão"><option>Bateria</option><option>Tímpanos</option><option>Caixa</option><option>Bombo</option><option>Pratos</option><option>Pandeireta</option><option>Congas</option><option>Bongós</option><option>Cajón</option><option>Djembê</option><option>Atabaque</option><option>Marimba</option><option>Xilofone</option><option>Vibrafone</option><option>Glockenspiel</option><option>Metalofone</option><option>Triângulo</option><option>Agogô</option><option>Reco-reco</option><option>Chocalho</option><option>Ganzá</option><option>Clavas</option><option>Castanholas</option><option>Tamborim</option><option>Timba</option><option>Surdo</option><option>Cuíca</option><option>Berimbau</option></optgroup><optgroup label="Voz e outros"><option>Voz / canto</option><option>Instrumento tradicional</option><option>Outro instrumento</option></optgroup></select><span class="hint">Escolha o instrumento que toca. Se não estiver na lista, selecione “Outro instrumento”.</span></div>
+  <div class="field full" id="roleField"><label for="role">Função</label><select id="role" name="role" required><option value="">Escolha a sua função</option><option value="ministro-musica">Ministro da Música</option><option value="diretor-musica">Diretor da Música</option><option value="director">Diretor</option><option value="dirigente">Dirigente</option></select></div>
+  <div id="profileStep" class="login-step">
+    <div class="step-indicator">Passo 1 · Os seus dados</div>
+    <div class="field full"><label for="fullName">Nome completo</label><input id="fullName" name="fullName" maxlength="100" autocomplete="name" required placeholder="Digite o seu nome completo"></div>
+    <div class="field"><label for="province">Província</label><select id="province" name="province" required><option value="">A carregar províncias…</option></select></div>
+    <div class="field"><label for="municipality">Município</label><select id="municipality" name="municipality" required disabled><option value="">Escolha primeiro a província</option></select><span class="hint" id="municipalityCount">Municípios de Angola.</span></div>
+    <div class="field hidden"><label for="activity">Atividade</label><select id="activity" name="activity"><option value="ensaio">Ensaio de coral</option><option value="aula-piano">Aula de piano</option><option value="solfejo">Aula de solfejo</option><option value="pautas">Leitura de pautas musicais</option><option value="avaliacao">Avaliação musical</option><option value="reuniao">Reunião</option></select></div>
+    <div class="field full hidden" id="voiceField"><label for="voice">Voz no coral</label><select id="voice" name="voice"><option value="">Selecione a sua voz</option><option value="Soprano">Soprano</option><option value="Mezzo-soprano">Mezzo-soprano</option><option value="Contralto">Contralto</option><option value="Tenor">Tenor</option><option value="Barítono">Barítono</option><option value="Baixo">Baixo</option><option value="Voz infantil">Voz infantil</option><option value="Outra voz">Outra voz</option></select></div>
+    <div class="field full hidden" id="instrumentField"><label for="instrument">Instrumento musical</label><select id="instrument" name="instrument"><option value="">Selecione o seu instrumento</option><option>Órgão</option><option>Piano</option><option>Teclado eletrónico</option><option>Violino</option><option>Guitarra</option><option>Bateria</option><option>Outro instrumento</option></select></div>
+  </div>
+  <div id="credentialsStep" class="login-step">
+    <div class="step-indicator">Passo 2 · Acesso institucional</div>
+    <div class="field full" id="hostUsernameField"><label for="hostUsername">E-mail institucional</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="lideres@gmail.com" aria-describedby="hostAccessHint"></div>
+    <div class="field full" id="hostPasswordField"><label for="hostPassword">Palavra-passe</label><input id="hostPassword" name="hostPassword" type="password" autocomplete="current-password" placeholder="Introduza a palavra-passe" aria-describedby="hostAccessHint"></div>
+    <div class="field full" id="hostAccessHint"><span class="hint">Utilize o e-mail e a palavra-passe registados no Firebase.</span></div>
+  </div>
 </div>
-<button class="primary" id="enterButton" type="submit">↪ Entrar no Quadro Virtual　›</button>
-<p class="hint" style="margin:12px 0 0">Os seus dados identificam a participação nesta sessão. Não introduza palavras-passe neste formulário.</p>
+<button class="primary" id="advanceButton" type="button">Avançar ›</button>
+<button class="primary hidden" id="enterButton" type="submit">Entrar no Quadro Virtual ›</button>
+<button class="back-button hidden" id="backButton" type="button">← Voltar aos dados</button>
+<p class="hint" id="loginFootnote" style="text-align:center;margin:14px 0 0">Acesso reservado aos responsáveis autorizados.</p>
 </form>
 <aside class="info-card">
 <h4>Como funciona</h4>
@@ -157,6 +196,13 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 </section>
 <footer class="footer"><div><strong>Igreja da Fé Apostólica Americana</strong><span>Departamento Nacional da Música · Jesus — A Luz do Mundo</span><small class="copyright">© 2026 · Todos os direitos reservados.</small></div></footer>
 </div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+const DNM_LOGIN_FIREBASE_CONFIG={apiKey:"AIzaSyDMXIMLiGh4uH4OP8mb6yd-7Ls_xsk5xIs",authDomain:"direcao-nacional-da-musica.firebaseapp.com",databaseURL:"https://direcao-nacional-da-musica-default-rtdb.firebaseio.com",projectId:"direcao-nacional-da-musica",storageBucket:"direcao-nacional-da-musica.firebasestorage.app",messagingSenderId:"669596496467",appId:"1:669596496467:web:b5ccd86ca14eaf82734ca6",measurementId:"G-1WTSR5P2DL"};
+if(!firebase.apps.length)firebase.initializeApp(DNM_LOGIN_FIREBASE_CONFIG);
+const DNM_LOGIN_AUTH=firebase.auth();
+</script>
 <script>
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
@@ -165,23 +211,46 @@ const inviteSession=params.get("sess")||"";
 const inviteActivity=params.get("atividade")||"";
 let divisions={};
 function notice(text,error=false){const el=$("alert");el.textContent=text;el.classList.remove("hidden","error");if(error)el.classList.add("error");}
+function updateAccessFields(){const invited=!!inviteRoom;$("hostUsername").required=!invited;$("hostPassword").required=!invited;if(invited){$("hostUsername").value="";$("hostPassword").value="";}}
 function updateVoiceVisibility(){const show=$("role").value==="corista"&&$("activity").value==="ensaio";$("voiceField").classList.toggle("hidden",!show);$("voice").required=show;if(!show)$("voice").value="";const instrumentShow=$("role").value==="instrumentista";$("instrumentField").classList.toggle("hidden",!instrumentShow);$("instrument").required=instrumentShow;if(!instrumentShow)$("instrument").value="";}
-$("role").addEventListener("change",updateVoiceVisibility);
+$("role").addEventListener("change",()=>{updateVoiceVisibility();if(!inviteRoom){$("profileStep").classList.toggle("active",!!$("role").value);$("formTitle").textContent=$("role").value?"Os seus dados":"Acesso institucional";$("formSubtitle").textContent=$("role").value?"Informe o seu nome e a sua localização.":"Escolha a sua função para começar.";}});
 $("activity").addEventListener("change",updateVoiceVisibility);
 function fillMunicipalities(province,selected=""){const select=$("municipality");select.innerHTML="";const list=divisions[province]||[];select.add(new Option(list.length?"Selecionar município":"Selecione uma província", ""));list.forEach(name=>select.add(new Option(name,name)));select.disabled=!list.length;$("municipalityCount").textContent=list.length?list.length+" municípios disponíveis.":"Escolha primeiro a província.";if(selected&&list.includes(selected))select.value=selected;}
 $("province").addEventListener("change",()=>fillMunicipalities($("province").value));
 async function loadDivisions(){try{const response=await fetch("./data/provincias-municipios.json");if(!response.ok)throw new Error("HTTP "+response.status);const data=await response.json();data.provincias.forEach(p=>divisions[p.nome]=p.municipios);const sel=$("province");sel.innerHTML="";sel.add(new Option("Selecionar província",""));data.provincias.forEach(p=>sel.add(new Option(p.nome,p.nome)));if(params.get("provincia")&&divisions[params.get("provincia")])sel.value=params.get("provincia");fillMunicipalities(sel.value,params.get("municipio")||"");}catch(e){$("province").innerHTML='<option value="">Não foi possível carregar a lista</option>';notice("A lista de províncias e municípios não carregou. Atualize a página e tente novamente.",true);}}
 loadDivisions();
 if(inviteRoom){
+  $("role").add(new Option("Instrumentista","instrumentista"));
+  $("role").add(new Option("Corista","corista"));
+  updateAccessFields();
   $("formTitle").textContent="Identifique-se para entrar";
   $("formSubtitle").textContent="Recebeu um convite para uma sessão. Preencha os seus dados antes de entrar no quadro.";
   $("inviteInfo").textContent="Convite detetado. Depois de preencher o formulário, será encaminhado para esta sessão.";
   if(inviteActivity){$("activity").value=inviteActivity;$("activity").disabled=true;}
   updateVoiceVisibility();
 }else{
-  $("inviteInfo").textContent="Se é Diretor ou Dirigente e vai iniciar uma atividade, preencha os dados e escolha o tipo de atividade. Os coristas devem entrar através do link partilhado pela Direção.";
+  updateAccessFields();
+  $("inviteInfo").textContent="Para iniciar uma atividade como anfitrião, selecione a função, preencha os seus dados e introduza as credenciais institucionais. Os participantes entram pelo link da sessão.";
 }
-$("profileForm").addEventListener("submit",e=>{
+
+$("advanceButton").addEventListener("click",()=>{
+ const role=$("role").value;
+ if(!role){notice("Escolha primeiro a sua função.",true);return;}
+ if(!$("fullName").value.trim()||!$("province").value||!$("municipality").value){notice("Preencha o nome, a província e o município.",true);return;}
+ $("alert").classList.add("hidden");
+ $("profileStep").classList.remove("active");$("roleField").classList.add("hidden");
+ $("credentialsStep").classList.add("active");$("hostUsernameField").classList.remove("hidden");$("hostPasswordField").classList.remove("hidden");$("hostAccessHint").classList.remove("hidden");
+ $("advanceButton").classList.add("hidden");$("enterButton").classList.remove("hidden");$("backButton").classList.remove("hidden");
+ $("formTitle").textContent="Iniciar sessão";$("formSubtitle").textContent="Introduza as credenciais institucionais para continuar.";
+ $("hostUsername").focus();
+});
+$("backButton").addEventListener("click",()=>{
+ $("credentialsStep").classList.remove("active");$("profileStep").classList.add("active");$("roleField").classList.remove("hidden");
+ $("advanceButton").classList.remove("hidden");$("enterButton").classList.add("hidden");$("backButton").classList.add("hidden");
+ $("hostUsernameField").classList.add("hidden");$("hostPasswordField").classList.add("hidden");$("hostAccessHint").classList.add("hidden");
+ $("formTitle").textContent="Os seus dados";$("formSubtitle").textContent="Confirme o seu nome e a sua localização.";
+});
+$("profileForm").addEventListener("submit",async e=>{
  e.preventDefault();
  const name=$("fullName").value.trim(),role=$("role").value,activity=inviteActivity||$("activity").value,province=$("province").value,municipality=$("municipality").value,voice=$("voice").value,instrument=$("instrument").value;
  if(!name||!role||!activity||!province||!municipality){notice("Preencha todos os campos obrigatórios antes de continuar.",true);return;}
@@ -189,7 +258,22 @@ $("profileForm").addEventListener("submit",e=>{
  if(role==="corista"&&activity==="ensaio"&&!voice){notice("Selecione a sua voz no coral para entrar no ensaio.",true);return;}
  if(role==="instrumentista"&&!instrument){notice("Selecione o instrumento musical que toca.",true);return;}
  if(inviteRoom&&(!inviteSession)){notice("O convite não contém o identificador da sessão. Peça à Direção para gerar e enviar novamente o link.",true);return;}
- const next=new URL("./aula/",location.href);
+ if(!inviteRoom){
+    const username=$("hostUsername").value.trim().toLowerCase(),password=$("hostPassword").value;
+    if(username!=="lideres@gmail.com"){notice("E-mail incorreto. Introduza o e-mail institucional autorizado.",true);return;}
+    if(!password){notice("Introduza a palavra-passe para iniciar a sessão.",true);return;}
+    $("enterButton").disabled=true;$("enterButton").textContent="A verificar credenciais…";
+    try{
+      await DNM_LOGIN_AUTH.signInWithEmailAndPassword("lideres@gmail.com",password);
+      if(!DNM_LOGIN_AUTH.currentUser||DNM_LOGIN_AUTH.currentUser.isAnonymous)throw new Error("Conta institucional não autenticada.");
+    }catch(authError){
+      console.warn("Falha no acesso institucional:",authError);
+      $("enterButton").disabled=false;$("enterButton").textContent="↪ Entrar no Quadro Virtual　›";
+      notice("Não foi possível autenticar. A conta institucional precisa de estar criada no Firebase Authentication e a palavra-passe deve estar correta.",true);
+      return;
+    }
+  }
+  const next=new URL("./aula/",location.href);
  next.searchParams.set("nome",name);next.searchParams.set("funcao",role);next.searchParams.set("provincia",province);next.searchParams.set("municipio",municipality);next.searchParams.set("atividade",activity);
  if(voice)next.searchParams.set("voz",voice);
  if(instrument)next.searchParams.set("instrumento",instrument);
