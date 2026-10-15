@@ -1136,7 +1136,7 @@ let studentName="",studentApproved=false,studentRequestId="",studentPeer=null,st
 let studentCameraOn=false,studentMicOn=false,sessionRealtimeBound=false,studentBoardChannel=null,studentBoardChunks=new Map();
 const roomChannel="BroadcastChannel" in window ? new BroadcastChannel("azny-room-"+roomId) : null;
 const DNM_FIREBASE_CONFIG={apiKey:"AIzaSyDMXIMLiGh4uH4OP8mb6yd-7Ls_xsk5xIs",authDomain:"direcao-nacional-da-musica.firebaseapp.com",databaseURL:"https://direcao-nacional-da-musica-default-rtdb.firebaseio.com",projectId:"direcao-nacional-da-musica",storageBucket:"direcao-nacional-da-musica.firebasestorage.app",messagingSenderId:"669596496467",appId:"1:669596496467:web:b5ccd86ca14eaf82734ca6",measurementId:"G-1WTSR5P2DL"};const AZNY_ACCESS_TOKEN=AZNY_URL_PARAMS.get("acesso")||"";
-if(!isStudent&&!AZNY_ACCESS_TOKEN){location.replace("index.html?acesso=necessario");throw new Error("Acesso de professor não autorizado sem sessão.");}
+if(!isStudent&&!AZNY_ACCESS_TOKEN){location.replace("../index.html?acesso=necessario");throw new Error("Acesso de professor não autorizado sem sessão.");}
 
 let AZNY_DB=null,AZNY_AUTH=null,aznyUid="";
 const aznyRoomKey=()=>String(roomId).replace(/[.#$\[\]\/]/g,"_");
@@ -2624,7 +2624,7 @@ function setupRoomChannel(){if(!roomChannel)return;roomChannel.onmessage=e=>{con
 function getClassLink(){
   /* O link partilhado durante a aula abre diretamente o quadro em modo aluno.
      Não passa pela página de escolha (aulas/avaliações). */
-  const link=new URL("entrar.html",location.href);
+  const link=new URL("aula/",location.href);
   link.searchParams.set("sala",roomId);
   /* Partilhar sempre o identificador exclusivo desta atividade. */
   link.searchParams.set("sess",classSessionId||("DNM-"+String(roomId).replace(/[^a-zA-Z0-9_-]/g,"_")+"-"+Date.now().toString(36)));
