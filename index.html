@@ -100,18 +100,19 @@ body{background:#f4f7fb;color:#071b33;font-family:Inter,"Segoe UI",Arial,sans-se
 
 /* Login-only landing page and two-step access */
 body{min-height:100vh;background:radial-gradient(ellipse at top,#153c60 0%,#071b33 58%,#03101f 100%);display:flex;flex-direction:column}
-/* Subtle musical score motif behind the login card */
+/* Fundo musical decorativo, visível atrás do formulário */
 body{position:relative;isolation:isolate;overflow-x:hidden}
-body:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;opacity:.24;
+body:before{content:"";position:fixed;z-index:-1;inset:0;pointer-events:none;opacity:.72;
  background:
-  repeating-linear-gradient(to bottom,transparent 0 13px,#e8b653 13px 14px,transparent 14px 27px),
-  repeating-linear-gradient(to bottom,transparent 0 13px,#e8b653 13px 14px,transparent 14px 27px);
- background-size:220px 140px,280px 140px;
- background-position:4% 24%,96% 72%;
+  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px),
+  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px),
+  repeating-linear-gradient(to bottom,transparent 0 10px,#e8b653 10px 11px,transparent 11px 20px);
+ background-size:250px 100px,290px 100px,220px 100px;
+ background-position:left 30% top 26%,right 4% top 42%,left 12% bottom 9%;
  background-repeat:no-repeat}
-body:after{content:"𝄞  ♫  ♪     ♬     ♩";position:fixed;z-index:-1;pointer-events:none;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:space-around;
- font-family:Georgia,"Times New Roman",serif;font-size:clamp(48px,9vw,120px);letter-spacing:.12em;color:#e8b653;opacity:.15;transform:rotate(-7deg);white-space:pre-wrap}
-@media(max-width:650px){body:before{opacity:.18;background-size:150px 110px,170px 110px;background-position:0 20%,100% 78%}body:after{font-size:clamp(40px,12vw,75px);letter-spacing:.02em;line-height:2}}
+body:after{content:"𝄞     ♫     ♪     ♬     ♩     ♭     ♯";position:fixed;z-index:-1;pointer-events:none;left:-2%;right:-2%;top:0;bottom:0;display:flex;align-items:center;justify-content:space-around;flex-wrap:wrap;gap:18px;
+ font-family:Georgia,"Times New Roman",serif;font-size:clamp(44px,8vw,105px);letter-spacing:.08em;color:#e8b653;opacity:.3;transform:rotate(-5deg);white-space:pre-wrap}
+@media(max-width:650px){body:before{opacity:.6;background-size:160px 80px,180px 80px,140px 80px;background-position:left top 18%,right top 35%,left bottom 8%}body:after{font-size:clamp(38px,10vw,65px);letter-spacing:0;line-height:2;opacity:.28}}
 .form-card{position:relative;z-index:1}
 
 .shell{width:100%;max-width:100%;padding:0;display:flex;flex-direction:column;flex:1}
@@ -178,7 +179,7 @@ body:after{content:"𝄞  ♫  ♪     ♬     ♩";position:fixed;z-index:-1;po
     <div class="step-indicator">Passo 2 · Acesso institucional</div>
     <div class="field full" id="hostUsernameField"><label for="hostUsername">E-mail institucional</label><input id="hostUsername" name="hostUsername" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="" aria-describedby="hostAccessHint"></div>
     <div class="field full" id="hostPasswordField"><label for="hostPassword">Palavra-passe</label><input id="hostPassword" name="hostPassword" type="password" autocomplete="current-password" placeholder="Introduza a palavra-passe" aria-describedby="hostAccessHint"></div>
-    <div class="field full" id="hostAccessHint"><span class="hint">Utilize o e-mail e a palavra-passe registados no Firebase.</span></div>
+    <div class="field full" id="hostAccessHint"><span class="hint">Introduza as suas credenciais institucionais para continuar.</span></div>
   </div>
 </div>
 <button class="primary" id="advanceButton" type="button">Avançar ›</button>
