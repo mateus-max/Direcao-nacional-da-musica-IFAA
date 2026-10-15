@@ -2,6 +2,15 @@
 <html lang="pt">
 <head>
 <meta charset="UTF-8">
+<script>
+/* Se o quadro for aberto diretamente pelo endereço antigo, troca o URL público para a rota limpa. Dentro do iframe /aula/, mantém o ficheiro interno sem redirecionar. */
+if (window.top === window.self && /\/quadro\.html$/.test(window.location.pathname)) {
+  const cleanUrl = new URL("aula/", window.location.href);
+  cleanUrl.search = window.location.search;
+  cleanUrl.hash = window.location.hash;
+  window.location.replace(cleanUrl.href);
+}
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#071b33">
 <meta name="description" content="Quadro Virtual — Departamento Nacional da Música para aulas online interativas.">
