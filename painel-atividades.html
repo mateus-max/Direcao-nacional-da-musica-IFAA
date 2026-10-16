@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="pt-AO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071b33">
+<meta name="description" content="Escolha o tipo de atividade no Quadro Virtual da Direção Nacional da Música.">
+<link rel="manifest" href="manifest-dnm.webmanifest?v=6">
+<link rel="icon" href="icons/logo-jesus-luz.svg?v=4" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/logo-jesus-luz.svg?v=2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="DNM Música">
+<title>Escolher atividade | Direção Nacional da Música</title>
+<style>
+:root{--navy:#071b33;--navy2:#103456;--gold:#e8b653;--bg:#eef3f8;--text:#172538;--muted:#65758a;--line:#d9e2ec}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;font-family:Inter,"Segoe UI",Arial,sans-serif;color:var(--text);background:radial-gradient(ellipse at top right,#214f70 0,#0b2a48 38%,#031326 85%);padding:24px}
+button,select{font:inherit}button{cursor:pointer}
+.page{max-width:1180px;margin:0 auto}
+header{display:flex;align-items:center;gap:15px;padding:8px 0 24px;color:white}
+.logo{width:68px;height:68px;flex:0 0 68px;border-radius:50%;overflow:hidden;border:2px solid var(--gold);background:#fff}
+.logo img{width:100%;height:100%;object-fit:cover}
+.brand h1{font-size:clamp(16px,2.5vw,23px);margin:0;text-transform:uppercase;letter-spacing:.025em}
+.brand p{margin:5px 0 0;color:#f0ca75;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+.account{margin-left:auto;text-align:right;font-size:13px;color:#e2ebf5;line-height:1.5}
+.account strong{display:block;color:#fff;font-size:14px}
+.signout{margin-top:5px;background:transparent;border:1px solid #ffffff55;color:#fff;border-radius:8px;padding:6px 10px;font-size:12px}
+.intro{padding:25px 0 28px;color:#fff}
+.eyebrow{font-size:12px;letter-spacing:.16em;color:#f0c66b;font-weight:800;text-transform:uppercase}
+h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,4vw,46px);line-height:1.08;margin:12px 0}
+.intro p{max-width:740px;color:#dce7f2;line-height:1.7;margin:0;font-size:16px}
+.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:8px 0 26px}
+.card{background:#fff;border:1px solid #d8e2ed;border-radius:18px;overflow:hidden;box-shadow:0 18px 42px #0002;display:flex;flex-direction:column;min-width:0}
+.art{height:125px;display:grid;place-items:center;background:linear-gradient(135deg,#071b33,#174b70);color:#f1c96d;font-size:58px;position:relative}
+.card:nth-child(2) .art{background:linear-gradient(135deg,#102e50,#326c91)}
+.card:nth-child(3) .art{background:linear-gradient(135deg,#241d25,#7d552d)}
+.card-body{padding:22px;display:flex;flex-direction:column;flex:1}
+.kicker{font-size:11px;font-weight:850;letter-spacing:.12em;color:#9a6b1c;text-transform:uppercase}
+h3{font-size:22px;color:var(--navy);margin:8px 0 10px}
+.card p{font-size:14px;color:#58687b;line-height:1.65;margin:0 0 17px}
+.features{list-style:none;padding:0;margin:0 0 20px;display:grid;gap:8px;color:#34475c;font-size:13px}
+.features li:before{content:"✓";color:#a87420;font-weight:900;margin-right:8px}
+select{width:100%;padding:12px;border:1px solid #cbd6e2;border-radius:10px;background:#fff;color:#1b2d42;margin:0 0 13px;min-height:46px}
+.open{margin-top:auto;width:100%;border:0;border-radius:11px;background:var(--navy);color:#fff;font-weight:800;padding:14px}
+.open:hover{background:#16466f}.open:disabled{opacity:.65;cursor:wait}
+.note{border:1px solid #d8e2ed;background:#ffffffed;border-radius:12px;padding:14px 16px;color:#526174;font-size:13px;line-height:1.6}
+footer{text-align:center;color:#d2dfec;font-size:12px;padding:24px 0 5px}
+@media(max-width:850px){body{padding:16px}.cards{grid-template-columns:1fr;gap:14px}.card{display:grid;grid-template-columns:130px minmax(0,1fr)}.art{height:100%;min-height:100%;font-size:48px}.card-body{padding:18px}.intro{padding-top:12px}.card p{margin-bottom:12px}.features{margin-bottom:15px}}
+@media(max-width:520px){body{padding:12px}.logo{width:52px;height:52px;flex-basis:52px}.brand h1{font-size:13px}.brand p{font-size:9px;letter-spacing:.04em}.account{font-size:11px}.account strong{font-size:12px}.signout{font-size:11px;padding:5px 7px}.intro p{font-size:14px}.card{display:flex}.art{height:88px;min-height:88px}.card-body{padding:18px}.cards{margin-top:2px}h3{font-size:20px}}
+</style>
+</head>
+<body>
+<div class="page">
+<header>
+ <div class="logo"><img src="icons/logo-jesus-luz.svg" alt="Logótipo da Direção Nacional da Música"></div>
+ <div class="brand"><h1>Direção Nacional da Música</h1><p>Jesus — A Luz do Mundo</p></div>
+ <div class="account"><strong id="welcomeName">Responsável institucional</strong><span id="welcomeRole">Acesso institucional</span><br><button class="signout" id="signOutBtn" type="button">Terminar sessão</button></div>
+</header>
+<section class="intro">
+ <div class="eyebrow">Quadro Virtual · Área institucional</div>
+ <h2>Que atividade vamos realizar?</h2>
+ <p>Escolha a área adequada à atividade que pretende dirigir. Cada opção abrirá o quadro virtual configurado para esse contexto e criará uma nova sala para a atividade.</p>
+</section>
+<main class="cards" aria-label="Escolher tipo de atividade">
+ <article class="card">
+  <div class="art" aria-hidden="true">♫</div>
+  <div class="card-body">
+   <div class="kicker">Música e preparação</div><h3>Ensaios virtuais</h3>
+   <p>Para ensaios online do coral e trabalho musical em conjunto, com acesso por link para os participantes.</p>
+   <ul class="features"><li>Ensaio de coral</li><li>Piano, solfejo e leitura de pautas</li><li>Quadro colaborativo em tempo real</li></ul>
+   <label for="rehearsalType" class="kicker">Tipo de ensaio</label>
+   <select id="rehearsalType">
+    <option value="ensaio">Ensaio de coral</option>
+    <option value="aula-piano">Piano</option>
+    <option value="solfejo">Solfejo</option>
+    <option value="pautas">Leitura de pautas musicais</option>
+   </select>
+   <button class="open" type="button" data-mode="rehearsal">Abrir quadro de ensaios ›</button>
+  </div>
+ </article>
+ <article class="card">
+  <div class="art" aria-hidden="true">✓</div>
+  <div class="card-body">
+   <div class="kicker">Verificação de conhecimentos</div><h3>Avaliações e testes</h3>
+   <p>Para organizar uma sessão de avaliação musical ou teste. O contexto da atividade será identificado no quadro e no convite.</p>
+   <ul class="features"><li>Sessão identificada como avaliação</li><li>Link próprio para cada sessão</li><li>Participantes entram por convite</li></ul>
+   <button class="open" type="button" data-mode="evaluation">Abrir quadro de avaliações ›</button>
+  </div>
+ </article>
+ <article class="card">
+  <div class="art" aria-hidden="true">♧</div>
+  <div class="card-body">
+   <div class="kicker">Coordenação e organização</div><h3>Reuniões</h3>
+   <p>Para reuniões virtuais da Direção, coordenação de líderes e encontros de organização do Departamento.</p>
+   <ul class="features"><li>Quadro para pautas e anotações</li><li>Sala própria para cada reunião</li><li>Convite exclusivo para participantes</li></ul>
+   <button class="open" type="button" data-mode="meeting">Abrir quadro de reuniões ›</button>
+  </div>
+ </article>
+</main>
+<div class="note"><strong>Importante:</strong> cada vez que abrir uma atividade será criada uma sala nova. Quando iniciar a sessão no quadro, partilhe o link dessa sessão com os participantes. Os links de convite não devem ser reutilizados para atividades futuras.</div>
+<footer>© 2026 · Departamento Nacional da Música · Todos os direitos reservados.</footer>
+</div>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+const DNM_FIREBASE_CONFIG={apiKey:"AIzaSyDMXIMLiGh4uH4OP8mb6yd-7Ls_xsk5xIs",authDomain:"direcao-nacional-da-musica.firebaseapp.com",databaseURL:"https://direcao-nacional-da-musica-default-rtdb.firebaseio.com",projectId:"direcao-nacional-da-musica",storageBucket:"direcao-nacional-da-musica.firebasestorage.app",messagingSenderId:"669596496467",appId:"1:669596496467:web:b5ccd86ca14eaf82734ca6",measurementId:"G-1WTSR5P2DL"};
+if(!firebase.apps.length)firebase.initializeApp(DNM_FIREBASE_CONFIG);
+const auth=firebase.auth();
+const params=new URLSearchParams(location.search);
+const profile={nome:params.get("nome")||"",funcao:params.get("funcao")||"",provincia:params.get("provincia")||"",municipio:params.get("municipio")||""};
+const roleLabels={"ministro-musica":"Ministro da Música","diretor-musica":"Diretor da Música","director":"Diretor","dirigente":"Dirigente"};
+document.getElementById("welcomeName").textContent=profile.nome||"Responsável institucional";
+document.getElementById("welcomeRole").textContent=roleLabels[profile.funcao]||profile.funcao||"Acesso institucional";
+function goToBoard(activity,button){
+ if(!profile.nome||!profile.funcao||!profile.provincia||!profile.municipio){alert("Os dados do responsável não foram encontrados. Volte à página de entrada e identifique-se novamente.");location.href="./";return;}
+ const room="DNM-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
+ const next=new URL("./aula/",location.href);
+ next.searchParams.set("nome",profile.nome);next.searchParams.set("funcao",profile.funcao);next.searchParams.set("provincia",profile.provincia);next.searchParams.set("municipio",profile.municipio);
+ next.searchParams.set("atividade",activity);next.searchParams.set("sala",room);next.searchParams.set("acesso","institucional");
+ button.disabled=true;button.textContent="A preparar o quadro…";location.href=next.href;
+}
+document.querySelectorAll("[data-mode]").forEach(button=>button.addEventListener("click",()=>{
+ const mode=button.dataset.mode;
+ const activity=mode==="evaluation"?"avaliacao":mode==="meeting"?"reuniao":document.getElementById("rehearsalType").value;
+ goToBoard(activity,button);
+}));
+document.getElementById("signOutBtn").addEventListener("click",async()=>{try{await auth.signOut()}finally{location.href="./"}});
+auth.onAuthStateChanged(user=>{
+ if(!user||user.isAnonymous){location.replace("./");return;}
+});
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(()=>{}));
+</script>
+</body>
+</html>

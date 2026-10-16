@@ -313,6 +313,16 @@ $("profileForm").addEventListener("submit",async e=>{
       return;
     }
   }
+  if(!inviteRoom){
+    const dashboard=new URL("./painel-atividades.html",location.href);
+    dashboard.searchParams.set("nome",name);
+    dashboard.searchParams.set("funcao",role);
+    dashboard.searchParams.set("provincia",province);
+    dashboard.searchParams.set("municipio",municipality);
+    $("enterButton").disabled=true;$("enterButton").textContent="A abrir as atividades…";
+    location.href=dashboard.href;
+    return;
+  }
   const next=new URL("./aula/",location.href);
  next.searchParams.set("nome",name);next.searchParams.set("funcao",role);next.searchParams.set("provincia",province);next.searchParams.set("municipio",municipality);next.searchParams.set("atividade",activity);
  if(voice)next.searchParams.set("voz",voice);
