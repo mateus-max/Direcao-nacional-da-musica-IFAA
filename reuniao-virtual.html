@@ -13,7 +13,7 @@ else{for(const k of ["nome","funcao","provincia","municipio","sala","acesso"])if
 frame.src=target.href;
 const keys=["meetingTitle","meetingAgenda","meetingNotes"];const storageKey="dnm-meeting-"+room;function load(){try{const v=JSON.parse(localStorage.getItem(storageKey)||"{}");keys.forEach(k=>{if(v[k]!==undefined)document.getElementById(k).value=v[k]});document.getElementById("status").textContent="Pauta carregada neste dispositivo."}catch(e){}}
 document.getElementById("save").addEventListener("click",()=>{try{const v={};keys.forEach(k=>v[k]=document.getElementById(k).value);localStorage.setItem(storageKey,JSON.stringify(v));document.getElementById("status").textContent="Pauta guardada neste dispositivo."}catch(e){document.getElementById("status").textContent="Não foi possível guardar a pauta."}});
-document.getElementById("share").addEventListener("click",async()=>{try{await navigator.clipboard.writeText(location.href);document.getElementById("status").textContent="Link da reunião copiado."}catch(e){prompt("Copie o link da reunião:",location.href)}});
+document.getElementById("share").addEventListener("click",()=>{try{const d=frame.contentDocument||frame.contentWindow.document;const b=d&&d.getElementById("copyClassLink");if(b)b.click();else document.getElementById("status").textContent="O quadro ainda está a carregar. Tente novamente."}catch(e){document.getElementById("status").textContent="Não foi possível copiar o convite agora."}});
 document.getElementById("fullscreen").addEventListener("click",()=>{if(frame.requestFullscreen)frame.requestFullscreen().catch(()=>{});});
 load();
 </script></body></html>
