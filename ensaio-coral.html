@@ -36,5 +36,5 @@ let timer=null;let beatNo=0;let audio=null;function tick(){try{audio=audio||new(
 document.getElementById("metroToggle").addEventListener("click",async()=>{const b=document.getElementById("metroToggle");if(timer){clearInterval(timer);timer=null;b.textContent="▶ Iniciar";return}const bpm=Math.max(40,Math.min(220,Number(document.getElementById("bpm").value)||80));if(audio&&audio.state==="suspended")await audio.resume();tick();timer=setInterval(tick,60000/bpm);b.textContent="Ⅱ Parar";});
 document.getElementById("bpm").addEventListener("change",()=>{if(timer){clearInterval(timer);timer=setInterval(tick,60000/Math.max(40,Math.min(220,Number(document.getElementById("bpm").value)||80)));}});
 document.getElementById("fullscreen").addEventListener("click",()=>{if(frame.requestFullscreen)frame.requestFullscreen().catch(()=>{});});
-document.getElementById("copyLink").addEventListener("click",async()=>{let url=location.href;try{await navigator.clipboard.writeText(url);alert("Link da sala copiado.")}catch(e){prompt("Copie o link da sala:",url)}});
+document.getElementById("copyLink").addEventListener("click",()=>{const d=safeDoc();const b=d&&d.getElementById("copyClassLink");if(b)b.click();else alert("O quadro ainda está a carregar. Aguarde e tente novamente.");});
 </script></body></html>
