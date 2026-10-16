@@ -2631,13 +2631,10 @@ function showClassEnded(){if(!isStudent)return;let endedNotice=document.getEleme
 function setupRoomChannel(){if(!roomChannel)return;roomChannel.onmessage=e=>{const m=e.data||{};if(isStudent&&m.type==="join-response"&&m.name===studentName){if(m.approved){studentApproved=true;const endedNotice=document.getElementById("aznyClassEndedNotice");if(endedNotice)endedNotice.style.display="none";document.getElementById("studentNameModal").classList.remove("show");document.getElementById("studentControls").style.display="flex";toast("Entrada aprovada pelo professor");startStudentWebRTC()}else{document.getElementById("studentWaiting").textContent="O professor rejeitou o pedido de entrada.";document.getElementById("studentWaiting").style.display="block";document.getElementById("studentJoinBtn").disabled=false}}if(isStudent&&m.type==="class-ended"&&m.session===classSessionId)showClassEnded()}}
 function getClassLink(){
   /* Convite curto: primeiro mostra o formulário de identificação, depois abre esta sessão. */
-  const activityCode=DNM_PROFILE.activity||"";
-  const customRoute=activityCode==="ensaio"?"ensaio-coral.html":activityCode==="reuniao"?"reuniao-virtual.html":"";
-  const link=new URL(customRoute||"a/",location.href);
+  const link=new URL("a/",location.href);
   link.searchParams.set("r",roomId);
   link.searchParams.set("s",classSessionId||("DNM-"+String(roomId).replace(/[^a-zA-Z0-9_-]/g,"_")+"-"+Date.now().toString(36)));
   link.searchParams.set("p","1");
-  if(customRoute)link.searchParams.set("atividade",activityCode);
   if(DNM_PROFILE.activity)link.searchParams.set("a",DNM_PROFILE.activity);
   if(DNM_PROFILE.hostName)link.searchParams.set("dn",DNM_PROFILE.hostName);
   if(DNM_PROFILE.hostRole)link.searchParams.set("df",DNM_PROFILE.hostRole);
