@@ -28,7 +28,7 @@ header{display:flex;align-items:center;gap:15px;padding:8px 0 24px;color:white}
 .eyebrow{font-size:12px;letter-spacing:.16em;color:#f0c66b;font-weight:800;text-transform:uppercase}
 h2{font-family:Georgia,"Times New Roman",serif;font-size:clamp(30px,4vw,46px);line-height:1.08;margin:12px 0}
 .intro p{max-width:740px;color:#dce7f2;line-height:1.7;margin:0;font-size:16px}
-.cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin:8px 0 26px}
+.cards{display:grid;grid-template-columns:minmax(0,560px);justify-content:center;gap:18px;margin:8px 0 26px}
 .card{background:#fff;border:1px solid #d8e2ed;border-radius:18px;overflow:hidden;box-shadow:0 18px 42px #0002;display:flex;flex-direction:column;min-width:0}
 .art{height:125px;display:grid;place-items:center;background:linear-gradient(135deg,#071b33,#174b70);color:#f1c96d;font-size:58px;position:relative}
 .card:nth-child(2) .art{background:linear-gradient(135deg,#102e50,#326c91)}
@@ -58,7 +58,7 @@ footer{text-align:center;color:#d2dfec;font-size:12px;padding:24px 0 5px}
 <section class="intro">
  <div class="eyebrow">Quadro Virtual · Área institucional</div>
  <h2>Que atividade vamos realizar?</h2>
- <p>Escolha a área adequada à atividade que pretende dirigir. Cada opção abrirá o quadro virtual configurado para esse contexto e criará uma nova sala para a atividade.</p>
+ <p>Escolha a atividade musical que pretende realizar. O quadro virtual habitual será aberto numa nova sala.</p>
 </section>
 <main class="cards" aria-label="Escolher tipo de atividade">
  <article class="card">
@@ -77,24 +77,8 @@ footer{text-align:center;color:#d2dfec;font-size:12px;padding:24px 0 5px}
    <button class="open" type="button" data-mode="rehearsal">Abrir quadro de ensaios ›</button>
   </div>
  </article>
- <article class="card">
-  <div class="art" aria-hidden="true">✓</div>
-  <div class="card-body">
-   <div class="kicker">Verificação de conhecimentos</div><h3>Avaliações e testes</h3>
-   <p>Para organizar uma sessão de avaliação musical ou teste. O contexto da atividade será identificado no quadro e no convite.</p>
-   <ul class="features"><li>Sessão identificada como avaliação</li><li>Link próprio para cada sessão</li><li>Participantes entram por convite</li></ul>
-   <button class="open" type="button" data-mode="evaluation">Abrir quadro de avaliações ›</button>
-  </div>
- </article>
- <article class="card">
-  <div class="art" aria-hidden="true">♧</div>
-  <div class="card-body">
-   <div class="kicker">Coordenação e organização</div><h3>Reuniões</h3>
-   <p>Para reuniões virtuais da Direção, coordenação de líderes e encontros de organização do Departamento.</p>
-   <ul class="features"><li>Quadro para pautas e anotações</li><li>Sala própria para cada reunião</li><li>Convite exclusivo para participantes</li></ul>
-   <button class="open" type="button" data-mode="meeting">Abrir quadro de reuniões ›</button>
-  </div>
- </article>
+
+
 </main>
 <div class="note"><strong>Importante:</strong> cada vez que abrir uma atividade será criada uma sala nova. Quando iniciar a sessão no quadro, partilhe o link dessa sessão com os participantes. Os links de convite não devem ser reutilizados para atividades futuras.</div>
 <footer>© 2026 · Departamento Nacional da Música · Todos os direitos reservados.</footer>
@@ -113,7 +97,7 @@ document.getElementById("welcomeRole").textContent=roleLabels[profile.funcao]||p
 function goToBoard(activity,button){
  if(!profile.nome||!profile.funcao||!profile.provincia||!profile.municipio){alert("Os dados do responsável não foram encontrados. Volte à página de entrada e identifique-se novamente.");location.href="./";return;}
  const room="DNM-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
- const route=activity==="avaliacao"?"./avaliacao-musical.html":"./aula/";
+ const route="./aula/";
  const next=new URL(route,location.href);
  next.searchParams.set("nome",profile.nome);next.searchParams.set("funcao",profile.funcao);next.searchParams.set("provincia",profile.provincia);next.searchParams.set("municipio",profile.municipio);
  next.searchParams.set("atividade",activity);next.searchParams.set("sala",room);next.searchParams.set("acesso","institucional");
