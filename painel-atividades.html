@@ -113,7 +113,8 @@ document.getElementById("welcomeRole").textContent=roleLabels[profile.funcao]||p
 function goToBoard(activity,button){
  if(!profile.nome||!profile.funcao||!profile.provincia||!profile.municipio){alert("Os dados do responsável não foram encontrados. Volte à página de entrada e identifique-se novamente.");location.href="./";return;}
  const room="DNM-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
- const next=new URL("./aula/",location.href);
+ const route=activity==="ensaio"?"./ensaio-coral.html":activity==="reuniao"?"./reuniao-virtual.html":"./aula/";
+ const next=new URL(route,location.href);
  next.searchParams.set("nome",profile.nome);next.searchParams.set("funcao",profile.funcao);next.searchParams.set("provincia",profile.provincia);next.searchParams.set("municipio",profile.municipio);
  next.searchParams.set("atividade",activity);next.searchParams.set("sala",room);next.searchParams.set("acesso","institucional");
  button.disabled=true;button.textContent="A preparar o quadro…";location.href=next.href;
