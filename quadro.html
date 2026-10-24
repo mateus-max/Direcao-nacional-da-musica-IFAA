@@ -982,7 +982,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 @media(orientation:landscape),(min-width:901px){#dnmOrientationGuide{display:none!important}}
 
 </style>
-<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -1647,7 +1647,11 @@ function resizeStart(e){
  function up(ev){if(ev.pointerId!==pointerId)return;removeEventListener("pointermove",move);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);localBoardEditing=false;scheduleSave();publishLiveBoardState()}
  addEventListener("pointermove",move);addEventListener("pointerup",up);addEventListener("pointercancel",up)
 }
-function addImage(file){
+ async function addImage(file){
+  if(!file)return;if(file.size>20971520){toast("A imagem excede 20 MB.");return}
+  let src;try{src=await uploadBoardFile(file)}catch(err){console.warn("Storage da imagem:",err);try{src=await fileAsDataUrl(file)}catch(_){toast("Falha ao ler a imagem.");return}}
+  pushHistory();const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;const img=document.createElement("img");img.src=src;img.alt=file.name||"Imagem";el.appendChild(img);Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Imagem carregada e partilhada")
+ }
  const reader=new FileReader();reader.onload=()=>{pushHistory();const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;const img=document.createElement("img");img.src=reader.result;el.appendChild(img);Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Imagem adicionada")};reader.readAsDataURL(file)
 }
 
@@ -1657,8 +1661,7 @@ async function renderAZNYPdfViewer(viewer,dataUrl){
  if(!window.pdfjsLib){pages.innerHTML='<div class="docpdf-loading">Não foi possível carregar o leitor de PDF. Verifique a ligação à Internet.</div>';return}
  try{
   pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  const comma=String(dataUrl||'').indexOf(',');if(comma<0)throw new Error('Formato PDF inválido');
-  const binary=atob(String(dataUrl).slice(comma+1)),bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);
+  let bytes;const source=String(dataUrl||'');if(source.startsWith('http://')||source.startsWith('https://')){const response=await fetch(source);if(!response.ok)throw new Error('Falha ao descarregar PDF: '+response.status);bytes=new Uint8Array(await response.arrayBuffer())}else{const comma=source.indexOf(',');if(comma<0)throw new Error('Formato PDF inválido');const binary=atob(source.slice(comma+1));bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i)}
   const pdf=await pdfjsLib.getDocument({data:bytes}).promise;
   let pageNum=Math.max(1,Math.min(pdf.numPages,Number(viewer.dataset.initialPage)||1));
   let scale=Math.max(.5,Math.min(2.5,Number(viewer.dataset.initialScale)||1));
@@ -1689,7 +1692,22 @@ async function renderAZNYPdfViewer(viewer,dataUrl){
  }catch(err){pages.innerHTML='<div class="docpdf-loading">Não foi possível abrir este documento. Verifique se o ficheiro PDF é válido.</div>';console.warn('AZNY PDF load:',err)}
 }
 function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=document.createElement('div');viewer.className='docpdf-viewer';viewer.dataset.initialPage=String(initialPage);viewer.dataset.initialScale=String(initialScale);viewer.innerHTML='<div class="docpdf-toolbar"><button type="button" class="docpdf-prev" aria-label="Página anterior">◀</button><span class="docpdf-status">1 / 1</span><button type="button" class="docpdf-next" aria-label="Página seguinte">▶</button><span style="margin:0 3px;color:#c2cad3">|</span><button type="button" class="docpdf-zoom-out" aria-label="Reduzir">−</button><span class="docpdf-zoom-label">100%</span><button type="button" class="docpdf-zoom-in" aria-label="Ampliar">+</button></div><div class="docpdf-pages"><div class="docpdf-loading">A carregar documento…</div></div>';renderAZNYPdfViewer(viewer,dataUrl);return viewer}
-function addDoc(file){
+ async function uploadBoardFile(file){
+  if(!window.firebase||!firebase.storage)throw new Error("Firebase Storage indisponível");
+  const safeName=String(file.name||"ficheiro").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-90);
+  const room=String(roomId||"sala").replace(/[^a-zA-Z0-9_-]/g,"");
+  const task=firebase.storage().ref("board-media/"+room+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"-"+safeName).put(file,{contentType:file.type||"application/octet-stream"});
+  await task;return await task.snapshot.ref.getDownloadURL();
+ }
+ async function fileAsDataUrl(file){return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
+ async function addDoc(file){
+  if(!file)return;if(file.size>20971520){toast("O documento excede 20 MB.");return}
+  if(file.type==="application/pdf"||file.name.toLowerCase().endsWith(".pdf")){
+   let source;try{source=await uploadBoardFile(file)}catch(err){console.warn("Storage do PDF:",err);try{source=await fileAsDataUrl(file)}catch(_){toast("Não foi possível ler este PDF.");return}}
+   pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.pdf=source;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div>';el.appendChild(createAZNYPdfViewer(source));Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("PDF carregado no quadro");return
+  }
+  try{const content=await file.text();pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div><div class="docbody"></div>';el.querySelector(".docbody").textContent=content;Object.assign(el.style,{left:"100px",top:"80px",width:"500px",height:"350px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Documento aberto no quadro")}catch(_){toast("Não foi possível abrir este documento.")}
+ }
  if(file.type==="application/pdf"||/\.pdf$/i.test(file.name)){
   const reader=new FileReader();reader.onload=()=>{pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.pdf=reader.result;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div>';el.appendChild(createAZNYPdfViewer(reader.result));Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("PDF aberto no quadro")};reader.readAsDataURL(file);return
  }
