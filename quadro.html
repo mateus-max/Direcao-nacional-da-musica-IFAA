@@ -1425,7 +1425,7 @@ let firebaseBoardWriteTimer=null;
 /* Migração única: retirar documentos antigos que ficaram gravados no quadro antes da correção.
    Mantém textos, desenhos, imagens, músicas e gráficos. Documentos novos só entram por carregamento explícito. */
 function aznyRemoveLegacyPinnedDocuments(){
- const marker="azny-clean-legacy-documents-v1-"+String(roomId||"default");
+ const marker="azny-clean-legacy-documents-local-v1-"+String(roomId||"default");
  try{
   if(localStorage.getItem(marker)==="1")return;
   const raw=localStorage.getItem(STORAGE);
@@ -1442,6 +1442,7 @@ function aznyRemoveLegacyPinnedDocuments(){
  }catch(err){console.warn("Limpeza de documentos antigos:",err)}
 }
 function setupBoardRealtime(){
+ aznyRemoveLegacyPinnedDocuments();
  if(!AZNY_DB)return;
  const ref=aznyRoomRef().child("board");
  const cleanupMarker="azny-clean-legacy-documents-v1-"+String(roomId||"default");
