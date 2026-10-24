@@ -1303,6 +1303,31 @@ function aznyStableValue(value){
 function aznySameBoardPage(a,b){
  try{return JSON.stringify(aznyStableValue(a))===JSON.stringify(aznyStableValue(b))}catch(_){return false}
 }
+function aznySameObjectsExceptGeometry(a,b){
+ try{
+  const clean=items=>(items||[]).map(o=>{const x={...o};delete x.left;delete x.top;delete x.width;delete x.height;return x}).sort((x,y)=>String(x.id).localeCompare(String(y.id)));
+  return aznySameBoardPage({objects:clean(a?.objects)},{objects:clean(b?.objects)})&&((a?.objects||[]).length===(b?.objects||[]).length);
+ }catch(_){return false}
+}
+function aznyPatchObjectGeometry(page){
+ const data=page?.objects||[],nodes=[...board.querySelectorAll(".object")];
+ if(data.length!==nodes.length)return false;
+ const byId=new Map(nodes.map(el=>[String(el.dataset.id),el]));
+ if(data.some(o=>!byId.has(String(o.id))))return false;
+ data.forEach(o=>{
+  const el=byId.get(String(o.id));
+  el.style.left=(Number(o.left)||0)+"px";el.style.top=(Number(o.top)||0)+"px";
+  if(Number(o.width)>0)el.style.width=Number(o.width)+"px";
+  if(Number(o.height)>0)el.style.height=Number(o.height)+"px";
+  if(el.classList.contains("docobj")){
+   if(o.pdfPage)el.dataset.pdfPage=String(o.pdfPage);
+   if(o.pdfScale)el.dataset.pdfScale=String(o.pdfScale);
+  }
+  updateAnchoredTextsFor(el);
+ });
+ strokes=page?.strokes||[];redraw();updateHint();return true;
+}
+
 function applyRemoteBoardState(d){
  if(!d||remoteBoardApplying)return;
  try{
@@ -1314,6 +1339,15 @@ function applyRemoteBoardState(d){
    const localPage=snapshot();
    /* Never tear down and recreate objects just because a Firebase/WebRTC echo
       arrived. That was removing the blue selection outline immediately. */
+   /* During a drag/resize, patch only geometry so the existing PDF canvas and controls
+      remain mounted. Recreating the document on every pointer event made it flicker/close. */
+   if(incomingPage===currentPage&&aznySameObjectsExceptGeometry(localPage,incomingPages[incomingPage-1])){
+    if(aznyPatchObjectGeometry(incomingPages[incomingPage-1])){
+     pageStates=incomingPages;
+     document.getElementById("boardTitle").value=incomingPages[incomingPage-1]?.title||d.title||"Nova aula";
+     return;
+    }
+   }
    if(incomingPage===currentPage&&aznySameBoardPage(localPage,incomingPages[incomingPage-1]))return;
    /* Preserve the teacher active object only during an actual local gesture.
       A selected object must not block edits arriving from the student board. */
