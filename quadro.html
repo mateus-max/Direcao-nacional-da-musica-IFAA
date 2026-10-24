@@ -981,6 +981,13 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 @media(orientation:portrait) and (max-width:900px){#dnmOrientationGuide{display:flex}}
 @media(orientation:landscape),(min-width:901px){#dnmOrientationGuide{display:none!important}}
 
+
+/* Controlos de zoom diretamente sobre cada imagem do quadro. */
+.mediaobj{overflow:visible!important}
+.mediaobj .media-zoom-controls{position:absolute;top:6px;right:6px;z-index:50;display:flex;gap:5px;padding:4px;border-radius:10px;background:rgba(5,18,32,.82);box-shadow:0 2px 8px #0005}
+.mediaobj .media-zoom-controls button{width:34px;height:34px;border:0;border-radius:7px;background:#fff;color:#071b33;font-size:25px;font-weight:800;line-height:1;cursor:pointer;touch-action:manipulation}
+.mediaobj .media-zoom-controls button:active{transform:scale(.94)}
+.mediaobj .media-zoom-controls button:focus-visible{outline:2px solid #55c7ff;outline-offset:2px}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
@@ -1688,7 +1695,19 @@ function createResourceObject(type,lang){
 function addResource(type,lang){pushHistory();const el=createResourceObject(type,lang);board.appendChild(el);makeInteractive(el);selectObject(el);updateHint();scheduleSave();toast(type==='bible'?'Bíblia aberta no quadro':'Gramática aberta no quadro')}
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+function bindMediaZoomControls(el){
+ if(!el||!el.classList.contains("mediaobj")||el.querySelector(".media-zoom-controls"))return;
+ const controls=document.createElement("div");controls.className="media-zoom-controls";controls.setAttribute("aria-label","Ampliar ou reduzir imagem");
+ const minus=document.createElement("button");minus.type="button";minus.textContent="−";minus.title="Diminuir imagem";minus.setAttribute("aria-label","Diminuir imagem");
+ const plus=document.createElement("button");plus.type="button";plus.textContent="+";plus.title="Aumentar imagem";plus.setAttribute("aria-label","Aumentar imagem");
+ const resizeBy=factor=>{if(isStudent&&!studentApproved){toast("Aguarde a autorização do diretor.");return}const w=parseFloat(el.style.width)||el.offsetWidth||360,h=parseFloat(el.style.height)||el.offsetHeight||260;pushHistory();el.style.width=Math.max(80,Math.min(2400,w*factor))+"px";el.style.height=Math.max(60,Math.min(1800,h*factor))+"px";updateAnchoredTextsFor(el);scheduleSave();publishLiveBoardState()};
+ minus.addEventListener("pointerdown",e=>e.stopPropagation());plus.addEventListener("pointerdown",e=>e.stopPropagation());
+ minus.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();resizeBy(.8)});
+ plus.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();resizeBy(1.25)});
+ controls.append(minus,plus);el.appendChild(controls);
+}
 function makeInteractive(el){
+ bindMediaZoomControls(el);
  if(!el.querySelector(".resize")){const h=document.createElement("div");h.className="resize";el.appendChild(h);h.addEventListener("pointerdown",resizeStart)}
  /* Mobile pinch-to-zoom: two fingers on the same object resize it without changing the selected tool. */
  if(!el.dataset.aznyPinchBound){el.dataset.aznyPinchBound="1";const touches=new Map();let pinch=null;el.addEventListener("pointerdown",e=>{if(!isStudent||e.pointerType!=="touch"||tool!=="select"||e.target.closest?.("button,input,select,textarea,.docpdf,.docpdf-viewer,.docpdf-pages,.docpdf-toolbar,.docpdf-page,.resize"))return;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size===2){const pts=[...touches.values()];pinch={distance:Math.max(1,Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)),width:el.offsetWidth,height:el.offsetHeight,left:parseFloat(el.style.left)||0,top:parseFloat(el.style.top)||0};try{pushHistory();el.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();e.stopPropagation()}},{passive:false});el.addEventListener("pointermove",e=>{if(!pinch||!touches.has(e.pointerId))return;touches.set(e.pointerId,{x:e.clientX,y:e.clientY});if(touches.size<2)return;const pts=[...touches.values()],dist=Math.max(1,Math.hypot(pts[0].x-pts[1].x,pts[0].y-pts[1].y)),scale=Math.max(.2,Math.min(5,dist/pinch.distance));el.style.width=Math.max(40,pinch.width*scale)+"px";el.style.height=Math.max(28,pinch.height*scale)+"px";updateAnchoredTextsFor(el);publishLiveBoardState();e.preventDefault();e.stopPropagation()},{passive:false});const endPinch=e=>{touches.delete(e.pointerId);if(touches.size<2&&pinch){pinch=null;scheduleSave();publishLiveBoardState()}};el.addEventListener("pointerup",endPinch);el.addEventListener("pointercancel",endPinch)}
