@@ -1249,7 +1249,7 @@ function serializeObject(el){
 function pushHistory(){undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack=[]}
 function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());scheduleSave()}
 function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());scheduleSave()}
-function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(save,250);if(!isStudent&&!remoteBoardApplying){clearTimeout(remoteSaveTimer);remoteSaveTimer=setTimeout(publishLiveBoardState,8)}}
+function scheduleSave(){localBoardMutationAt=Date.now();clearTimeout(saveTimer);saveTimer=setTimeout(save,250);if(!isStudent&&!remoteBoardApplying){clearTimeout(remoteSaveTimer);remoteSaveTimer=setTimeout(publishLiveBoardState,8)}}
 function save(){try{pageStates[currentPage-1]=snapshot();localStorage.setItem(STORAGE,JSON.stringify({version:2,currentPage,pages:pageStates}));document.getElementById("storageState").textContent="● Guardado"}catch(e){toast("Limite do Local Storage atingido")}}
 function publishBoardState(){if(remoteBoardApplying||!AZNY_DB)return;try{const ref=aznyRoomRef().child("board");ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds]}).catch(e=>console.warn("AZNY board sync:",e))}catch(e){console.warn("AZNY board sync:",e)}}
 function sendBoardSnapshotToChannel(ch){
@@ -1429,6 +1429,7 @@ function publishLiveBoardState(){
  },30)
 }
 let firebaseBoardWriteTimer=null;
+let localBoardMutationAt=0;
 /* Migração única: retirar documentos antigos que ficaram gravados no quadro antes da correção.
    Mantém textos, desenhos, imagens, músicas e gráficos. Documentos novos só entram por carregamento explícito. */
 function aznyRemoveLegacyPinnedDocuments(){
@@ -1472,6 +1473,8 @@ function setupBoardRealtime(){
   }
   const d=snap.val();
   if(remoteBoardApplying)return;
+  /* Não deixar um snapshot antigo do Firebase apagar imediatamente um objeto acabado de carregar. */
+  if(localBoardMutationAt&&Date.now()-localBoardMutationAt<2500)return;
   if(!d){if(!isStudent)setTimeout(publishBoardState,150);return;}
   if(Number.isFinite(Number(d.zoom))&&Number(d.zoom)>=0.5&&Number(d.zoom)<=2&&Math.abs(Number(d.zoom)-zoom)>0.001)setZoom(Number(d.zoom),false);if(d.pan)applyBoardPan(d.pan);
   const activeText=document.activeElement?.closest?.(".textobj");
