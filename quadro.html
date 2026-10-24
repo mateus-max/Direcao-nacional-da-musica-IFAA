@@ -1684,7 +1684,7 @@ function resizeStart(e){
  async function addImage(file){
   if(!file)return;
   if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
-  if(!/^image\\//i.test(file.type||"")){toast("Escolha um ficheiro de imagem válido.");return}
+  if(!/^image\//i.test(file.type||"")){toast("Escolha um ficheiro de imagem válido.");return}
   let src;try{src=await fileAsDataUrl(file)}catch(err){console.error("Leitura da imagem:",err);toast("Não foi possível ler esta imagem.");return}
   /* Mostrar imediatamente no quadro; nunca esperar pelo Firebase Storage para criar o objeto. */
   pushHistory();const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;const img=document.createElement("img");img.src=src;img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";el.appendChild(img);Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Imagem adicionada ao quadro; a sincronizar…");
@@ -1738,7 +1738,7 @@ function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=
  async function fileAsDataUrl(file){return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
  async function addDoc(file){
   if(!file)return;if(file.size>20*1024*1024){toast("O documento excede 20 MB.");return}
-  const isPdf=file.type==="application/pdf"||/\\.pdf$/i.test(file.name||"");
+  const isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");
   if(isPdf){
    let source;try{source=await fileAsDataUrl(file)}catch(err){console.error("Leitura do PDF:",err);toast("Não foi possível ler este PDF.");return}
    pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.pdf=source;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div>';el.appendChild(createAZNYPdfViewer(source));Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("PDF aberto no quadro; a sincronizar…");
