@@ -1422,10 +1422,46 @@ function publishLiveBoardState(){
  },30)
 }
 let firebaseBoardWriteTimer=null;
+/* Migração única: retirar documentos antigos que ficaram gravados no quadro antes da correção.
+   Mantém textos, desenhos, imagens, músicas e gráficos. Documentos novos só entram por carregamento explícito. */
+function aznyRemoveLegacyPinnedDocuments(){
+ const marker="azny-clean-legacy-documents-v1-"+String(roomId||"default");
+ try{
+  if(localStorage.getItem(marker)==="1")return;
+  const raw=localStorage.getItem(STORAGE);
+  if(raw){
+   const saved=JSON.parse(raw);
+   if(Array.isArray(saved.pages)){
+    saved.pages=saved.pages.map(page=>{if(!page)return page;const copy=JSON.parse(JSON.stringify(page));copy.objects=(copy.objects||[]).filter(o=>o.kind!=="doc");return copy});
+    localStorage.setItem(STORAGE,JSON.stringify(saved));
+   }else if(Array.isArray(saved.objects)){saved.objects=saved.objects.filter(o=>o.kind!=="doc");localStorage.setItem(STORAGE,JSON.stringify(saved))}
+  }
+  pageStates=pageStates.map(page=>{if(!page)return page;const copy=JSON.parse(JSON.stringify(page));copy.objects=(copy.objects||[]).filter(o=>o.kind!=="doc");return copy});
+  board.querySelectorAll(".object.docobj").forEach(el=>el.remove());
+  localStorage.setItem(marker,"1");
+ }catch(err){console.warn("Limpeza de documentos antigos:",err)}
+}
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
  const ref=aznyRoomRef().child("board");
+ const cleanupMarker="azny-clean-legacy-documents-v1-"+String(roomId||"default");
+ let cleanupStarted=false;
  ref.on("value",snap=>{
+  /* Executa uma única limpeza da cópia antiga no Firebase; os documentos carregados depois continuam permitidos. */
+  if(!cleanupStarted&&!isStudent){
+   cleanupStarted=true;
+   try{
+    if(localStorage.getItem(cleanupMarker)!=="1"){
+     const data=snap.val();
+     if(data&&Array.isArray(data.pages)){
+      const cleaned=data.pages.map(page=>{if(!page)return page;const copy=JSON.parse(JSON.stringify(page));copy.objects=(copy.objects||[]).filter(o=>o.kind!=="doc");return copy});
+      const hasLegacy=cleaned.some((page,index)=>page&&Array.isArray(data.pages[index]?.objects)&&cleaned[index].objects.length!==data.pages[index].objects.length);
+      if(hasLegacy)ref.update({pages:cleaned}).catch(e=>console.warn("Não foi possível limpar documentos antigos do quadro:",e));
+     }
+     try{localStorage.setItem(cleanupMarker,"1")}catch(_){}
+    }
+   }catch(err){console.warn("Limpeza de documentos antigos no quadro:",err)}
+  }
   const d=snap.val();
   if(remoteBoardApplying)return;
   if(!d){if(!isStudent)setTimeout(publishBoardState,150);return;}
