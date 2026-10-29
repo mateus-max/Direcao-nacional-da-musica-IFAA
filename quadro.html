@@ -1735,6 +1735,17 @@ function handleBoardChannelMessage(raw){
    return;
   }
   if(m.type==="board-zoom"){if(Number.isFinite(Number(m.zoom)))setZoom(Number(m.zoom),false);return}if(m.type==="board-pan"){applyBoardPan(m.pan);return}
+  if(m.type==="media-ready"){
+   const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,"");
+   const src=String(m.src||"");
+   const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
+   if(host&&img&&/^https?:\/\//i.test(src)){
+    host.dataset.mediaUrl=src;delete host.dataset.uploadPending;img.src=src;
+    if(!remoteBoardApplying){scheduleSave();}
+   }
+   if(!isStudent){const packet=JSON.stringify(m);Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(packet)}catch(_){}}})}
+   return;
+  }
   if(m.type==="media-scroll"){
    const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,"");
    const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
@@ -2185,7 +2196,13 @@ function resizeStart(e){
   const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);
   if(!el.isConnected)return;
   el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;
-  scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),250);setTimeout(()=>publishLiveBoardState(),900);
+  /* Publicar também o URL como evento pequeno e directo: não depender apenas do snapshot completo do quadro, que pode ficar atrasado em ligações lentas. */
+  const mediaReady={type:"media-ready",id:el.dataset.id,src:remoteUrl};
+  publishViewportSync(mediaReady);
+  const mediaPacket=JSON.stringify(mediaReady);
+  if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}}
+  else{Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}})}
+  scheduleSave();publishLiveBoardState();setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},250);setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},900);
   toast("Imagem disponível para todos os participantes.");
  }catch(err){
   console.warn("Falha ao partilhar imagem:",err);
