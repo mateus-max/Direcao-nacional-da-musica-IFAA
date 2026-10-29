@@ -2933,30 +2933,54 @@ setupAznyContextMenu();
 try{const raw=sessionStorage.getItem("dnacNetworkRecoveryPending");if(raw){const rec=JSON.parse(raw);if(Date.now()-(rec.at||0)<60000){sessionStorage.removeItem("dnacNetworkRecoveryPending");window.addEventListener("load",()=>setTimeout(()=>{if(navigator.onLine)toast("Página actualizada. A restabelecer a ligação do ensaio e a sincronização.");else toast("Página actualizada, mas o dispositivo continua sem Internet.")},1200))}else sessionStorage.removeItem("dnacNetworkRecoveryPending")}}catch(_){}
 async function forceRefreshBoard(forStudent){
  const btn=document.getElementById(forStudent?"studentRefreshBoardBtn":"refreshBoardBtn");
- if(btn){btn.disabled=true;btn.dataset.previousText=btn.textContent;btn.textContent="A actualizar…"}
+ const original=btn?.textContent|| (forStudent?"⟳ Atualizar":"⟳");
+ if(btn){btn.disabled=true;btn.dataset.previousText=original;btn.textContent="A recuperar…"}
  try{
-  if(!navigator.onLine)throw new Error("Sem Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
-  if(!forStudent){
-   pageStates[currentPage-1]=snapshot();
-   save();
+  if(!navigator.onLine)throw new Error("Sem Internet. Active os dados móveis ou o Wi-Fi e tente novamente.");
+  /* Recuperação em aplicação: não recarregar o documento, pois isso destruiria
+     as ligações WebRTC e faria as câmaras dos participantes desaparecerem. */
+  if(!forStudent){pageStates[currentPage-1]=snapshot();save();}
+  if(AZNY_DB&&typeof AZNY_DB.goOnline==="function")AZNY_DB.goOnline();
+  await ensureAZNYRealtime();
+  if(AZNY_DB){
+   for(let attempt=0;attempt<8;attempt++){
+    const connected=await AZNY_DB.ref(".info/connected").once("value").then(s=>s.val()===true).catch(()=>false);
+    if(connected)break;
+    await new Promise(resolve=>setTimeout(resolve,350));
+   }
   }
-  /* Guarda a identidade da sessão e o estado dos dispositivos antes do reload.
-     O URL original mantém nome, função, actividade, sala e sessão. */
-  sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({
-   at:Date.now(),roomId:String(roomId||""),sessionId:String(classSessionId||""),
-   wasClassStarted:!!classStarted,
-   wasTeacherCameraOn:!!teacherStream?.getVideoTracks?.().some(t=>t.readyState==="live"),
-   wasTeacherMicOn:!!teacherAudioStream?.getAudioTracks?.().some(t=>t.readyState==="live"),
-   student:!!forStudent,wasStudentCameraOn:!!studentCameraOn,wasStudentMicOn:!!studentMicOn
-  }));
-  const next=new URL(window.location.href);
-  next.searchParams.set("__dnac_refresh",String(Date.now()));
-  window.location.replace(next.href);
+  if(!AZNY_DB)throw new Error("O serviço em tempo real ainda não está disponível.");
+  if(forStudent){
+   if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
+   bindClassSessionRealtime();
+   if(studentApproved){
+    const state=studentPeer?.connectionState||studentPeer?.iceConnectionState||"";
+    if(["failed","disconnected","closed"].includes(state))await startStudentWebRTC({reconnect:true});
+   }else await restoreStudentSessionIfApproved();
+  }else{
+   const activeSnap=await aznyRoomRef().child("activeSessionId").once("value");
+   const activeId=activeSnap.val();
+   if(activeId){
+    const statusSnap=await AZNY_DB.ref("aznyRooms/"+aznyRoomKey()+"/sessions/"+activeId+"/status").once("value").catch(()=>null);
+    if(statusSnap?.val()==="active"&&classSessionId!==activeId){
+     classSessionId=activeId;sessionRealtimeBound=false;aznyObservedClassStatus="active";
+    }
+   }
+   if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
+   if(classSessionId&&!sessionRealtimeBound)bindClassSessionRealtime();
+   bindTeacherPresenceWatch();
+   if(!classStarted)await restoreActiveTeacherSession();
+   Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{
+    const channel=pc?._aznyBoardChannel;
+    if(channel?.readyState==="open")try{sendBoardSnapshotToChannel(channel)}catch(_){}
+   });
+   if(classStarted)publishTeacherPresence(true,"online");
+  }
+  if(typeof toast==="function")toast("Ligação e sincronização verificadas. A actividade e os participantes foram mantidos.");
  }catch(e){
-  console.warn("DNAC browser refresh:",e);
-  if(btn){btn.disabled=false;btn.textContent=btn.dataset.previousText||(forStudent?"⟳ Atualizar":"⟳")}
-  toast("Não foi possível actualizar: "+(e?.message||"tente novamente."));
- }
+  console.warn("DNAC recuperação de ligação:",e);
+  if(typeof toast==="function")toast("Não foi possível recuperar totalmente a ligação: "+(e?.message||"tente novamente."));
+ }finally{if(btn){btn.disabled=false;btn.textContent=original}}
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
 document.getElementById("studentRefreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(true)});
