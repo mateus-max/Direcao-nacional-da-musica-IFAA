@@ -1605,7 +1605,7 @@ function serializeObject(el){
  if(el.classList.contains("chartobj"))return{kind:"chart",...b,chartType:el.dataset.chartType||"bar",title:el.dataset.title||"Gráfico",values:el.dataset.values||"12,19,8,15,10"};
  if(el.classList.contains("musicobj"))return{kind:"music",...b,musicType:el.dataset.musicType||"blank",title:el.dataset.title||"Música"};
  if(el.classList.contains("resourceobj"))return{kind:"resource",...b,resourceType:el.dataset.resourceType||"bible",language:el.dataset.language||"pt",title:el.dataset.title||"Recurso"};
- return{kind:"doc",...b,name:el.dataset.name||"Documento",pdf:el.dataset.pdf||"",pdfPage:+el.dataset.pdfPage||1,pdfScale:+el.dataset.pdfScale||1,content:el.querySelector(".docbody")?.textContent||""};
+ return{kind:"doc",...b,name:el.dataset.name||"Documento",pdf:el.dataset.pdf||"",fileType:el.dataset.fileType||"",pdfPage:+el.dataset.pdfPage||1,pdfScale:+el.dataset.pdfScale||1,content:el.querySelector(".docbody")?.textContent||""};
 }
 function pushHistory(){undoStack.push(snapshot());if(undoStack.length>60)undoStack.shift();redoStack=[]}
 function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(undoStack.pop());scheduleSave()}
@@ -2126,9 +2126,9 @@ function createFromData(o){
  else if(o.kind==="music"){ el=createMusicObject(o.musicType||"blank",o.title||"Música"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="resource"){ el=createResourceObject(o.resourceType||"bible",o.language||"pt"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else{
-  el=document.createElement("div");el.className="object docobj";el.dataset.name=o.name||"Documento";el.dataset.pdf=o.pdf||"";el.dataset.pdfPage=String(o.pdfPage||1);el.dataset.pdfScale=String(o.pdfScale||1);
+  el=document.createElement("div");el.className="object docobj";el.dataset.name=o.name||"Documento";el.dataset.pdf=o.pdf||"";el.dataset.fileType=o.fileType||"";el.dataset.pdfPage=String(o.pdfPage||1);el.dataset.pdfScale=String(o.pdfScale||1);
   el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(o.name||"Documento")+'</span></div>';
-  if(o.pdf){el.appendChild(createAZNYPdfViewer(o.pdf,+o.pdfPage||1,+o.pdfScale||1))}else{const body=document.createElement("div");body.className="docbody";body.textContent=o.content||"";el.appendChild(body)}
+  if(o.pdf&&(!o.fileType||String(o.fileType).toLowerCase()==="application/pdf"||/\\.pdf$/i.test(o.name||""))){el.appendChild(createAZNYPdfViewer(o.pdf,+o.pdfPage||1,+o.pdfScale||1))}else if(o.pdf){const body=document.createElement("div");body.className="docbody";body.style.cssText="display:flex;align-items:center;justify-content:center";const link=document.createElement("a");link.href=o.pdf;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Abrir / descarregar documento";link.style.cssText="padding:10px 16px;border-radius:8px;background:#173b60;color:#fff;text-decoration:none;font-weight:700";body.appendChild(link);el.appendChild(body)}else{const body=document.createElement("div");body.className="docbody";body.textContent=o.content||"";el.appendChild(body)}
   Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
  }
  el.dataset.id=o.id||"o"+(++objectId);if(o.createdBy)el.dataset.createdBy=String(o.createdBy);if(o.aznyMinimized){el.dataset.aznyMinimized="1";el.dataset.aznyOldWidth=o.aznyOldWidth||"360px";el.dataset.aznyOldHeight=o.aznyOldHeight||"260px"}board.appendChild(el);makeInteractive(el);
