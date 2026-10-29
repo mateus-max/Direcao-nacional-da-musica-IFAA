@@ -3868,5 +3868,28 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  new MutationObserver(sync).observe(sourceMic,{attributes:true,childList:true,characterData:true,subtree:true});
  sync();setInterval(sync,1200);
 })();
-</script></body>
+</script>
+<style id="dnac-phone-install-button-spacing">
+/* No telefone: reservar espaço para o nome completo do coral e colocar Instalar junto ao cronómetro. */
+@media (max-width:900px) and (orientation:landscape){
+ body:not(.student-mode) .topbar{
+  display:flex!important;gap:6px!important;padding-left:6px!important;padding-right:6px!important;
+ }
+ body:not(.student-mode) .topbar>.church-logo{flex:0 0 36px!important;width:36px!important;height:36px!important;min-width:36px!important;max-width:36px!important}
+ body:not(.student-mode) #dnacProvinceIdentity{
+  flex:0 1 auto!important;min-width:max-content!important;max-width:none!important;
+  white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;
+  font-size:clamp(10px,1.35vw,14px)!important;letter-spacing:0!important;
+ }
+ body:not(.student-mode) #classControlsTop{display:contents!important}
+ body:not(.student-mode) #classTimer{order:3!important;flex:0 0 auto!important;min-width:max-content!important;margin-left:3px!important}
+ body:not(.student-mode) #installAppHeaderBtn{order:4!important;flex:0 0 auto!important;margin:0 3px!important;padding:4px 6px!important;font-size:10px!important}
+ body:not(.student-mode) #startClassBtn{order:5!important}
+ body:not(.student-mode) #endClassBtn{order:6!important}
+ body:not(.student-mode) #recordClassBtn{order:7!important}
+ body:not(.student-mode) #teacherScreenShareBtn{order:8!important}
+ body:not(.student-mode) .top-actions{order:9!important}
+}
+</style>
+</body>
 </html>
