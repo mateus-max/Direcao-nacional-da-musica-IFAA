@@ -62,8 +62,7 @@ async function start(){
   function showActive(d){
    if(!d||!d.roomId||!d.sessionId||d.status!=="active")return false;
    active=d;enter.classList.remove("hidden");
-   const title=d.title||"Ensaio musical";
-   setStatus("🔴 "+title+" está a decorrer"+(d.director?" com "+d.director:"")+". Toque abaixo para pedir entrada.",true);
+   setStatus("🔴 Ensaio de coral a decorrer"+(d.director?" com "+d.director:"")+". Toque abaixo para pedir entrada.",true);
    return true;
   }
   async function recoverActiveSession(lastKnown){
