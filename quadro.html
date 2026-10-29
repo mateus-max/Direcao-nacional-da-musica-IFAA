@@ -1814,7 +1814,13 @@ function aznyRemoveLegacyPinnedDocuments(){
 }
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
- const ref=aznyRoomRef().child("board");
+ const roomRef=aznyRoomRef();
+ roomRef.child("viewSync").on("value",snap=>{
+  const event=snap.val();
+  if(!event||!event.type||event.sender===(aznyUid||studentRequestId))return;
+  handleBoardChannelMessage(JSON.stringify(event));
+ });
+ const ref=roomRef.child("board");
  ref.on("value",snap=>{
   const d=snap.val();
   if(remoteBoardApplying)return;
@@ -2058,9 +2064,16 @@ function bindMediaZoomControls(el){
  plus.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();resizeBy(1.25)});
  controls.append(minus,plus);el.appendChild(controls);
 }
+let aznyLastViewportWrite=0;
+function publishViewportSync(data){
+ const now=Date.now();if(now-aznyLastViewportWrite<70)return;aznyLastViewportWrite=now;
+ try{if(AZNY_DB&&aznyRoomRef())aznyRoomRef().child("viewSync").set({...data,sender:aznyUid||studentRequestId||"participant",updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(e=>console.warn("Sincronização remota do deslocamento:",e))}
+ catch(e){console.warn("Sincronização remota do deslocamento:",e)}
+}
 function publishMediaScroll(el,x,y){
  if(!el||remoteBoardApplying||el.dataset.aznyRemoteMediaScroll==="1")return;
- const packet=JSON.stringify({type:"media-scroll",id:el.dataset.id,x:Number(x)||0,y:Number(y)||0});
+ const data={type:"media-scroll",id:el.dataset.id,x:Number(x)||0,y:Number(y)||0};publishViewportSync(data);
+ const packet=JSON.stringify(data);
  if(isStudent){
   const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(packet)}catch(e){console.warn("Sincronização do scroll da imagem:",e)}}
  }else{
@@ -2160,7 +2173,7 @@ function resizeStart(e){
  async function addImage(file){
  if(!file)return;
  if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
- if(!/^image\//i.test(file.type||"")){toast("Escolha um ficheiro de imagem válido.");return}
+ if(!/^image\//i.test(file.type||"")&&!/\.(jpe?g|png|gif|webp|bmp|svg|heic|heif)$/i.test(file.name||"")){toast("Escolha um ficheiro de imagem válido.");return}
  pushHistory();
  const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
  const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";
@@ -2176,7 +2189,14 @@ function resizeStart(e){
   toast("Imagem disponível para todos os participantes.");
  }catch(err){
   console.warn("Falha ao partilhar imagem:",err);
-  toast("A imagem está aberta neste dispositivo, mas o envio falhou. Verifique a ligação ao servidor e tente novamente.");
+  /* Fallback limitado a ficheiros pequenos: evita deixar a imagem presa no dispositivo de origem. */
+  try{
+   if(file.size<=1024*1024){
+    const dataUrl=await fileAsDataUrl(file);
+    if(el.isConnected){el.dataset.mediaUrl=dataUrl;delete el.dataset.uploadPending;img.src=dataUrl;scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),250);toast("Imagem partilhada através da ligação alternativa.");return}
+   }
+  }catch(fallbackError){console.warn("Fallback de partilha da imagem:",fallbackError)}
+  toast("A imagem abriu neste dispositivo, mas não foi possível partilhá-la. Verifique as permissões do servidor.");
  }
 }
 async function renderAZNYPdfViewer(viewer,dataUrl){
@@ -2217,7 +2237,8 @@ async function renderAZNYPdfViewer(viewer,dataUrl){
    const host=viewer.closest(".docobj");if(!host||pages.dataset.aznyRemoteScroll==="1")return;
    clearTimeout(pages._aznyScrollTimer);
    pages._aznyScrollTimer=setTimeout(()=>{
-    const packet=JSON.stringify({type:"doc-scroll",id:host.dataset.id,top:pages.scrollTop});
+    const data={type:"doc-scroll",id:host.dataset.id,top:pages.scrollTop};publishViewportSync(data);
+    const packet=JSON.stringify(data);
     if(isStudent){
      const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<524288){try{ch.send(packet)}catch(e){console.warn("Sincronização do scroll do documento:",e)}}
     }else{
@@ -2233,8 +2254,13 @@ function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=
   if(!window.firebase||!firebase.storage)throw new Error("Firebase Storage indisponível");
   const safeName=String(file.name||"ficheiro").replace(/[^a-zA-Z0-9._-]/g,"_").slice(-90);
   const room=String(roomId||"sala").replace(/[^a-zA-Z0-9_-]/g,"");
-  const task=firebase.storage().ref("board-media/"+room+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"-"+safeName).put(file,{contentType:file.type||"application/octet-stream"});
-  await task;return await task.snapshot.ref.getDownloadURL();
+  const ext=(safeName.split(".").pop()||"").toLowerCase();
+  const inferredType=({jpg:"image/jpeg",jpeg:"image/jpeg",png:"image/png",gif:"image/gif",webp:"image/webp",bmp:"image/bmp",svg:"image/svg+xml",heic:"image/heic",heif:"image/heif",pdf:"application/pdf"})[ext]||"application/octet-stream";
+  const contentType=file.type||inferredType;
+  const ref=firebase.storage().ref("board-media/"+room+"/"+Date.now()+"-"+Math.random().toString(36).slice(2,9)+"-"+safeName);
+  const task=ref.put(file,{contentType:contentType,cacheControl:"public,max-age=3600"});
+  await new Promise((resolve,reject)=>{task.on("state_changed",()=>{},reject,resolve)});
+  return await task.snapshot.ref.getDownloadURL();
  }
  async function fileAsDataUrl(file){return await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result));reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file)})}
  async function addDoc(file){
