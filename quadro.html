@@ -1843,8 +1843,42 @@ function handleBoardChannelMessage(raw){
   }
  }catch(e){console.warn("AZNY board packet:",e)}
 }
+/* Recupera imagens antigas que ficaram guardadas como dataURL apenas no dispositivo do director.
+   URLs base64 tornam o snapshot enorme e impedem a sincronização com os coristas; migrá-las
+   para Firebase Storage antes de publicar o estado do quadro. */
+let aznyInlineMediaRepairRunning=false,aznyInlineMediaRepairNeeded=false;
+async function aznyRepairInlineImages(){
+ if(isStudent||!AZNY_DB||!window.firebase?.storage||aznyInlineMediaRepairRunning)return false;
+ const imgs=[...board.querySelectorAll(".mediaobj")].filter(el=>{
+  const img=el.querySelector("img"),src=String(el.dataset.mediaUrl||img?.getAttribute("src")||"");
+  return src.startsWith("data:image/");
+ });
+ if(!imgs.length)return false;
+ aznyInlineMediaRepairRunning=true;let repaired=false;
+ try{
+  for(const el of imgs){
+   const img=el.querySelector("img");if(!img)continue;
+   const src=String(el.dataset.mediaUrl||img.getAttribute("src")||"");if(!src.startsWith("data:image/"))continue;
+   try{
+    const response=await fetch(src);const blob=await response.blob();
+    const name=String(el.dataset.name||"imagem-partilhada.png").replace(/[^a-zA-Z0-9._-]/g,"_");
+    const file=new File([blob],name,{type:blob.type||"image/png"});
+    const remoteUrl=await uploadBoardFile(file);
+    el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;
+    aznySetSharedImageSource(img,remoteUrl);
+    const stored=await aznyPublishSharedMediaAsset(el,remoteUrl);
+    if(stored)repaired=true;
+   }catch(err){console.warn("DNAC: não foi possível recuperar uma imagem antiga para partilha:",err)}
+  }
+ }finally{aznyInlineMediaRepairRunning=false}
+ return repaired;
+}
 function publishLiveBoardState(){
  if(remoteBoardApplying)return;
+ if(!isStudent&&!aznyInlineMediaRepairRunning&&[...board.querySelectorAll(".mediaobj")].some(el=>String(el.dataset.mediaUrl||el.querySelector("img")?.getAttribute("src")||"").startsWith("data:image/"))){
+  if(!aznyInlineMediaRepairNeeded){aznyInlineMediaRepairNeeded=true;aznyRepairInlineImages().then(repaired=>{aznyInlineMediaRepairNeeded=false;if(repaired){scheduleSave();publishBoardState();publishLiveBoardState()}}).catch(err=>{aznyInlineMediaRepairNeeded=false;console.warn("DNAC: recuperação das imagens:",err)})}
+  return;
+ }
  clearTimeout(liveBoardTimer);
  /* Coalesce rapid pointer events into a steady frame rate instead of flooding
     WebRTC with a complete board snapshot for every pointer movement. */
