@@ -1284,7 +1284,7 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
   </div>
   <div class="top-actions"><button class="iconbtn" id="aznyFullscreenBtn" title="Ecrã inteiro" aria-label="Ecrã inteiro">⛶</button><button class="iconbtn" id="teacherDashboardBtn" title="Painel do professor">⌂</button>
     <button class="iconbtn" id="saveBtn" title="Guardar">💾</button>
-    <button class="iconbtn" id="refreshBoardBtn" title="Atualizar quadro e restabelecer ligação">⟳</button>
+    <button class="iconbtn" id="refreshBoardBtn" title="Atualizar ligação e sincronização sem encerrar o ensaio" aria-label="Restabelecer ligação do quadro sem encerrar o ensaio">⟳</button>
     <button class="iconbtn" id="clearBtn" title="Limpar quadro">🗑</button>
     <button class="iconbtn" id="helpBtn" title="Ajuda">?</button>
   </div>
@@ -1377,7 +1377,7 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
 </div>
 
 <div class="student-controls" id="studentControls">
-    <button id="studentPointerBtn" type="button" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Atualizar e reconectar ao quadro">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
+    <button id="studentPointerBtn" type="button" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Restabelecer ligação e sincronizar sem sair do ensaio" aria-label="Restabelecer ligação sem sair do ensaio">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
 </div>
 <div class="student-live" id="studentLive"><div class="student-video-pair"><div class="student-video-card"><video id="studentTeacherVideo" autoplay playsinline></video><span id="studentTeacherNameLabel">Director</span></div><div class="student-video-card azny-self-video-card"><video id="studentSelfVideo" autoplay muted playsinline></video><span>Você</span><b id="studentSelfRaisedHand" class="azny-self-raised-hand" aria-live="polite" hidden>✋</b><div class="azny-self-media-overlay" aria-label="Controlos da sua câmera e microfone"><button type="button" id="studentSelfCameraOverlay" title="Ligar ou desligar a sua câmera" aria-label="Ligar ou desligar a sua câmera">📷</button><button type="button" id="studentSelfMicOverlay" title="Ligar ou desligar o seu microfone" aria-label="Ligar ou desligar o seu microfone">🎙</button></div></div></div></div>
 <div class="modal student-name-modal" id="studentNameModal"><div class="card">
@@ -3174,8 +3174,9 @@ async function forceRefreshBoard(forStudent){
  if(btn){btn.disabled=true;btn.dataset.previousText=original;btn.textContent="A recuperar…"}
  try{
   if(!navigator.onLine)throw new Error("Sem Internet. Active os dados móveis ou o Wi-Fi e tente novamente.");
-  /* Recuperação em aplicação: não recarregar o documento, pois isso destruiria
-     as ligações WebRTC e faria as câmaras dos participantes desaparecerem. */
+  /* Atualização segura, equivalente a atualizar o navegador para efeitos de recuperação:
+     restabelece a ligação e a sincronização sem recarregar o documento, encerrar a sessão,
+     remover participantes ou destruir as ligações WebRTC activas. */
   if(!forStudent){pageStates[currentPage-1]=snapshot();save();}
   if(AZNY_DB&&typeof AZNY_DB.goOnline==="function")AZNY_DB.goOnline();
   await ensureAZNYRealtime();
@@ -3213,7 +3214,7 @@ async function forceRefreshBoard(forStudent){
    });
    if(classStarted)publishTeacherPresence(true,"online");
   }
-  if(typeof toast==="function")toast("Ligação e sincronização verificadas. A actividade e os participantes foram mantidos.");
+  if(typeof toast==="function")toast("Atualização concluída: ligação e sincronização recuperadas. O ensaio e os participantes foram mantidos.");
  }catch(e){
   console.warn("DNAC recuperação de ligação:",e);
   if(typeof toast==="function")toast("Não foi possível recuperar totalmente a ligação: "+(e?.message||"tente novamente."));
