@@ -3044,7 +3044,7 @@ function showStudentWaitingForClass(){
  if(input){input.style.display="block";input.disabled=false}
  if(join){join.style.display="inline-block";join.disabled=false;join.textContent="Pedir entrada"}
  const heading=modal?.querySelector("h3"),p=modal?.querySelector(".card p");
- if(heading)heading.textContent="Entrar na aula";
+ if(heading)heading.textContent="Entrar no ensaio";
  if(p)p.textContent="Digite o seu nome e envie a solicitação. O director terá de aprovar a sua entrada.";
  if(waiting){waiting.textContent="O mesmo link é válido para todos os ensaios. Quando o director iniciar um ensaio, poderá solicitar entrada.";waiting.style.display="block"}
 }
@@ -3052,7 +3052,7 @@ function showStudentJoinReady(){
  if(!isStudent||studentApproved)return;const endedNotice=document.getElementById("aznyClassEndedNotice");if(endedNotice)endedNotice.style.display="none";
  const modal=document.getElementById("studentNameModal"),input=document.getElementById("studentNameInput"),join=document.getElementById("studentJoinBtn"),waiting=document.getElementById("studentWaiting");
  modal?.classList.add("show");if(input)input.style.display="block";if(join){join.style.display="inline-block";join.disabled=false}
- const h=modal?.querySelector("h3"),p=modal?.querySelector(".card p");if(h)h.textContent="Entrar na aula";if(p)p.textContent="Identifique-se com o seu nome. O director terá de aprovar a sua entrada.";
+ const h=modal?.querySelector("h3"),p=modal?.querySelector(".card p");if(h)h.textContent="Entrar no ensaio";if(p)p.textContent="Identifique-se com o seu nome. O director terá de aprovar a sua entrada.";
  if(waiting)waiting.style.display="none";
 }
 async function restoreStudentSessionIfApproved(){
