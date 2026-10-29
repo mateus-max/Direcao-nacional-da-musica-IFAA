@@ -1175,7 +1175,7 @@ let pointerMode=false;
 let classStarted=false,classStartTime=0,classTimerHandle=null,screenRecorder=null,recordedChunks=[],recordingStartedAt=0,aznyTeacherScreenTrack=null,aznyStudentScreenTrack=null;
 let isStudent=(()=>{const p=new URLSearchParams(location.search);return p.get("p")==="1"||p.get("aluno")==="1";})();
 const AZNY_URL_PARAMS=new URLSearchParams(location.search);const DNM_PROFILE={name:AZNY_URL_PARAMS.get("nome")||"",role:AZNY_URL_PARAMS.get("funcao")||"",province:AZNY_URL_PARAMS.get("provincia")||"",municipality:AZNY_URL_PARAMS.get("municipio")||"",voice:AZNY_URL_PARAMS.get("voz")||"",instrument:AZNY_URL_PARAMS.get("instrumento")||"",activity:AZNY_URL_PARAMS.get("atividade")||"",hostName:AZNY_URL_PARAMS.get("dirNome")||AZNY_URL_PARAMS.get("nome")||"",hostRole:AZNY_URL_PARAMS.get("dirFuncao")||AZNY_URL_PARAMS.get("funcao")||"",hostProvince:AZNY_URL_PARAMS.get("dirProvincia")||AZNY_URL_PARAMS.get("provincia")||"",hostMunicipality:AZNY_URL_PARAMS.get("dirMunicipio")||AZNY_URL_PARAMS.get("municipio")||""};const DNM_ROLE_LABEL={ "ministro-musica":"Ministro da Música","diretor-musica":"Diretor da Música",director:"Diretor",dir:"Dirigente",dirigente:"Dirigente",instrumentista:"Instrumentista",corista:"Corista"};const DNM_ACTIVITY_LABEL={"ensaio":"Ensaio de coral","aula-piano":"Aula de piano","solfejo":"Aula de solfejo","pautas":"Leitura de pautas musicais","avaliacao":"Avaliação musical","reuniao":"Reunião"};const dnmIdentity=document.getElementById("institutionalIdentity");if(dnmIdentity){const parts=["A dirigir:",DNM_ROLE_LABEL[DNM_PROFILE.hostRole]||DNM_PROFILE.hostRole,DNM_PROFILE.hostName,DNM_PROFILE.hostProvince,DNM_PROFILE.hostMunicipality].filter(Boolean);const own=DNM_PROFILE.name&&DNM_PROFILE.name!==DNM_PROFILE.hostName?(" · Participante: "+DNM_PROFILE.name+(DNM_ROLE_LABEL[DNM_PROFILE.role]||DNM_PROFILE.role?" ("+(DNM_ROLE_LABEL[DNM_PROFILE.role]||DNM_PROFILE.role)+")":"")+(DNM_PROFILE.province?" · "+DNM_PROFILE.province:"")+(DNM_PROFILE.municipality?" · "+DNM_PROFILE.municipality:"")+(DNM_PROFILE.voice?" · "+DNM_PROFILE.voice:"")+(DNM_PROFILE.instrument?" · Instrumento: "+DNM_PROFILE.instrument:"")):"";dnmIdentity.textContent=parts.join(" · ")+own;dnmIdentity.title=dnmIdentity.textContent;}const dnmStudentNameInput=document.getElementById("studentNameInput");if(dnmStudentNameInput&&DNM_PROFILE.name)dnmStudentNameInput.value=DNM_PROFILE.name;const dnmBoardTitle=document.getElementById("boardTitle");if(dnmBoardTitle&&DNM_PROFILE.activity){const activity=DNM_ACTIVITY_LABEL[DNM_PROFILE.activity]||DNM_PROFILE.activity;if(!AZNY_URL_PARAMS.has("titulo"))dnmBoardTitle.value=activity+(DNM_PROFILE.name?" — "+DNM_PROFILE.name:"");}let aznySavedRoom="";try{aznySavedRoom=localStorage.getItem("azny_teacher_room_v1")||""}catch(_){};let roomId=AZNY_URL_PARAMS.get("r")||AZNY_URL_PARAMS.get("sala")||aznySavedRoom||("AZNY-"+(document.getElementById("boardTitle").value.trim().replace(/[^a-zA-Z0-9_-]+/g,"-")||"aula")+"-"+Date.now().toString(36));if(!AZNY_URL_PARAMS.get("sala")){try{localStorage.setItem("azny_teacher_room_v1",roomId)}catch(_){}}
-let classSessionId=isStudent?(AZNY_URL_PARAMS.get("s")||AZNY_URL_PARAMS.get("sess")||""):"ROOM-"+String(roomId).replace(/[.#$\[\]\/]/g,"_");
+let classSessionId=isStudent?(AZNY_URL_PARAMS.get("s")||AZNY_URL_PARAMS.get("sess")||""):(()=>{try{return localStorage.getItem("azny-active-session-"+String(roomId))||("ROOM-"+String(roomId).replace(/[.#$\[\]\/]/g,"_"))}catch(_){return "ROOM-"+String(roomId).replace(/[.#$\[\]\/]/g,"_")}})();
 let studentName="",studentApproved=false,studentRequestId="",studentPeer=null,studentLocalStream=null,studentRemoteDescriptionReady=false,studentPendingTeacherCandidates=[];
 let studentCameraOn=false,studentMicOn=false,sessionRealtimeBound=false,studentBoardChannel=null,studentBoardChunks=new Map();
 const roomChannel="BroadcastChannel" in window ? new BroadcastChannel("azny-room-"+roomId) : null;
@@ -2121,7 +2121,7 @@ async function startCamera(){
   document.getElementById("camStatus").textContent="Ligada";
   if(btn){btn.disabled=false;btn.dataset.mediaState="on";btn.title="Desligar câmera";btn.setAttribute("aria-label","Desligar câmera")}
   document.getElementById("cameraStopBtn").disabled=false;
-  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmera do professor ligada e disponível em tempo real")
+  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmara do diretor ligada e disponível em tempo real")
  }catch(e){
   if(teacherStream){teacherStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}});teacherStream=null}
   const v=document.getElementById("teacherVideo");if(v){v.srcObject=null;v.hidden=true}
@@ -2146,16 +2146,18 @@ async function startMic(){
   teacherAudioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000},latency:{ideal:0.02}},video:false});
   const track=teacherAudioStream.getAudioTracks()[0];track.enabled=true;
   document.getElementById("micBtn").disabled=false;document.getElementById("micBtn").dataset.mediaState="on";document.getElementById("micBtn").title="Desligar microfone";document.getElementById("micBtn").setAttribute("aria-label","Desligar microfone");document.getElementById("micStopBtn").disabled=false;
-  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do professor ligado e disponível em tempo real")
+  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do diretor ligado e disponível em tempo real")
  }catch(e){toast(e.name==="NotAllowedError"?"Permissão do microfone recusada.":("Não foi possível ligar o microfone: "+e.name))}
 }
 function stopMic(){
  if(teacherAudioStream){teacherAudioStream.getTracks().forEach(t=>t.stop());teacherAudioStream=null}
  document.getElementById("micBtn").disabled=false;document.getElementById("micBtn").dataset.mediaState="off";document.getElementById("micBtn").title="Ligar microfone";document.getElementById("micBtn").setAttribute("aria-label","Ligar microfone");document.getElementById("micStopBtn").disabled=true;
- syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do professor desligado")
+ syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do diretor desligado")
 }
-document.getElementById("cameraBtn").onclick=()=>teacherStream?stopCamera():startCamera;document.getElementById("cameraStopBtn").onclick=stopCamera;
-document.getElementById("micBtn").onclick=()=>teacherAudioStream?stopMic():startMic;document.getElementById("micStopBtn").onclick=stopMic;
+document.getElementById("cameraBtn").onclick=null;document.getElementById("cameraStopBtn").onclick=stopCamera;
+document.getElementById("micBtn").onclick=null;document.getElementById("micStopBtn").onclick=stopMic;
+/* Single reliable toggle handlers on the visible buttons. */
+for(const id of ["cameraBtn","micBtn"]){const el=document.getElementById(id);if(el){el.addEventListener("click",async ev=>{ev.preventDefault();ev.stopImmediatePropagation();if(el.disabled)return;el.disabled=true;try{if(id==="cameraBtn"){if(teacherStream?.getVideoTracks?.().some(t=>t.readyState==="live"))stopCamera();else await startCamera()}else{if(teacherAudioStream?.getAudioTracks?.().some(t=>t.readyState==="live"))stopMic();else await startMic()}}catch(err){console.warn("DNAC media toggle",id,err)}finally{el.disabled=false}},true)}}
 
 function formatDuration(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return [h,m,sec].map(v=>String(v).padStart(2,"0")).join(":")}
 function updateClassTimer(){document.getElementById("classTimer").textContent=formatDuration(Date.now()-classStartTime)}
@@ -2811,6 +2813,7 @@ document.querySelectorAll("[data-music]").forEach(b=>b.onclick=()=>addMusic(b.da
 document.getElementById("startClassBtn").onclick=startClass;document.getElementById("endClassBtn").onclick=endClass;document.getElementById("recordClassBtn").onclick=()=>screenRecorder?.state==="recording"?stopRecording():startRecording(false);
 setupObjectActions();const AZNY_READY=initAZNYRealtime();if(isStudent)setupStudent();setupRoomChannel();AZNY_READY.then(async ready=>{if(ready&&!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();toast("Ligação em tempo real ativa")}else if(!ready){console.warn("AZNY realtime aguardará nova tentativa quando necessário")}if(ready&&!isStudent)await restoreActiveTeacherSession()}).catch(e=>console.error(e));
 window.addEventListener("beforeunload",()=>{if(screenRecorder?.state==="recording")screenRecorder.stop();if(studentPeer)studentPeer.close();if(roomChannel)roomChannel.close();/* Atualizar/fechar o separador não encerra a sessão da aula. */});
+try{const raw=sessionStorage.getItem("dnacNetworkRecoveryPending");if(raw){const pending=JSON.parse(raw);if(Date.now()-(pending.at||0)<90000){sessionStorage.removeItem("dnacNetworkRecoveryPending");window.addEventListener("load",()=>setTimeout(async()=>{try{if(!navigator.onLine){toast("Página actualizada; à espera de rede.");return}if(!isStudent&&pending.wasClassStarted){if(AZNY_DB)await restoreActiveTeacherSession();if(pending.wasTeacherCameraOn)await startCamera();if(pending.wasTeacherMicOn)await startMic();toast("Ligação actualizada. O ensaio foi mantido e a recuperação foi iniciada.")}else toast("Página actualizada. A ligação está a ser restabelecida.")}catch(err){console.warn("DNAC recovery after reload",err);toast("Ensaio preservado. Toque nos controlos para reactivar câmara/microfone se necessário.")}},900))}else sessionStorage.removeItem("dnacNetworkRecoveryPending")}catch(_){}
 window.addEventListener("resize",resizeCanvas);
 if(!isStudent)load();setTimeout(()=>{setZoom(1);updateZoomExtent();resizeCanvas()},80);
 
@@ -2834,19 +2837,15 @@ async function forceRefreshBoard(forStudent){
  if(btn){btn.disabled=true;btn.textContent="A actualizar…"}
  try{
   if(!forStudent){
-   pageStates[currentPage-1]=snapshot();
-   save();
-   try{sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),wasClassStarted:!!classStarted,wasTeacherCameraOn:!!teacherStream,wasTeacherMicOn:!!teacherAudioStream}))}catch(_){}
+   pageStates[currentPage-1]=snapshot();save();
+   sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),sessionId:String(classSessionId||""),wasClassStarted:!!classStarted,wasTeacherCameraOn:!!teacherStream?.getVideoTracks?.().some(t=>t.readyState==="live"),wasTeacherMicOn:!!teacherAudioStream?.getAudioTracks?.().some(t=>t.readyState==="live")}));
   }else{
-   try{sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),student:true}))}catch(_){}
+   sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),sessionId:String(classSessionId||""),student:true}));
   }
-  if(!navigator.onLine)throw new Error("Sem ligação à Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
+  if(!navigator.onLine)throw new Error("Sem Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
+  /* Recarregamento real do documento. A sessão activa é recuperada pelo ID persistido, sem marcar o ensaio como terminado. */
   location.reload();
- }catch(e){
-  console.warn("DNAC reload recovery:",e);
-  if(btn){btn.disabled=false;btn.textContent=forStudent?"⟳ Atualizar":"⟳"}
-  toast("Não foi possível actualizar: "+(e?.message||"tente novamente."));
- }
+ }catch(e){console.warn("DNAC refresh:",e);if(btn){btn.disabled=false;btn.textContent=forStudent?"⟳ Atualizar":"⟳"}toast("Não foi possível actualizar: "+(e?.message||"tente novamente."))}
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
 document.getElementById("studentRefreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(true)});
@@ -3386,6 +3385,15 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
 #teacherCamera .cam-overlay-controls{bottom:7px!important;top:auto!important;left:8px!important;right:8px!important;width:auto!important;transform:none!important}
 #teacherCamera .cam-overlay-controls #cameraBtn,
 #teacherCamera .cam-overlay-controls #micBtn{display:flex!important;visibility:visible!important;opacity:1!important}
+</style>
+
+<style id="dnac-camera-compact-footer-v2">
+#teacherCamera{position:relative!important;overflow:hidden!important}
+#teacherCamera .cam-overlay-controls{position:absolute!important;left:5px!important;right:5px!important;bottom:4px!important;top:auto!important;width:auto!important;transform:none!important;display:flex!important;flex-direction:row!important;justify-content:space-between!important;align-items:flex-end!important;gap:6px!important;margin:0!important;padding:0!important;z-index:40!important;pointer-events:none!important}
+#teacherCamera .cam-overlay-controls button{pointer-events:auto!important;flex:0 0 27px!important;width:27px!important;min-width:27px!important;max-width:27px!important;height:25px!important;min-height:25px!important;max-height:25px!important;padding:0!important;margin:0!important;border-radius:7px!important;font-size:14px!important;line-height:1!important;box-shadow:0 1px 4px #0006!important}
+#teacherCamera .cam-overlay-controls button::before,#teacherCamera .cam-overlay-controls button::after{content:none!important;display:none!important}
+#teacherCamera .cam-status{z-index:4!important;top:4px!important;right:4px!important}
+#teacherCamera .camera-label{z-index:4!important;left:4px!important;bottom:31px!important}
 </style>
 </body>
 </html>
