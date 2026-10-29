@@ -1579,16 +1579,30 @@ function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(r
 function scheduleSave(){localBoardMutationAt=Date.now();clearTimeout(saveTimer);saveTimer=setTimeout(save,250);if(!isStudent&&!remoteBoardApplying){clearTimeout(remoteSaveTimer);remoteSaveTimer=setTimeout(publishLiveBoardState,8)}}
 function save(){try{pageStates[currentPage-1]=snapshot();localStorage.setItem(STORAGE,JSON.stringify({version:2,currentPage,pages:pageStates}));document.getElementById("storageState").textContent="● Guardado"}catch(e){toast("Limite do Local Storage atingido")}}
 function publishBoardState(){if(remoteBoardApplying||!AZNY_DB)return;try{const ref=aznyRoomRef().child("board");ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds]}).catch(e=>console.warn("AZNY board sync:",e))}catch(e){console.warn("AZNY board sync:",e)}}
+const aznyBoardSendQueues=new WeakMap();
 function sendBoardSnapshotToChannel(ch){
  if(!ch||ch.readyState!=="open")return false;
- if(ch.bufferedAmount>2097152)return false;
  try{
-  /* Always serialize the visible page immediately before sending: this includes
-     images/data URLs, documents, charts, music objects and fresh text edits. */
+  /* Enfileirar os blocos e enviá-los com controlo de buffer. Imagens do computador
+     podem gerar snapshots grandes; enviar todos os blocos num único ciclo fazia
+     o canal WebRTC encher e perder a imagem para os coristas. */
   pageStates[currentPage-1]=snapshot();
   const payload={type:"board-state",currentPage,title:document.getElementById("boardTitle").value,zoom,boardSize:{width:board.clientWidth,height:board.clientHeight},pages:pageStates,deletedObjectIds:[...deletedObjectIds]};
-  const raw=JSON.stringify(payload),id="b"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),size=12000,total=Math.ceil(raw.length/size);
-  for(let i=0;i<total;i++)ch.send(JSON.stringify({type:"board-chunk",id,index:i,total,data:raw.slice(i*size,(i+1)*size)}));
+  const raw=JSON.stringify(payload),id="b"+Date.now().toString(36)+Math.random().toString(36).slice(2,7),size=8000,total=Math.ceil(raw.length/size);
+  const packets=[];for(let i=0;i<total;i++)packets.push(JSON.stringify({type:"board-chunk",id,index:i,total,data:raw.slice(i*size,(i+1)*size)}));
+  let queue=aznyBoardSendQueues.get(ch);if(!queue){queue={packets:[],timer:0,sending:false};aznyBoardSendQueues.set(ch,queue)}
+  /* Prefer the latest complete snapshot when older snapshots are still queued. */
+  if(queue.packets.length>total*2)queue.packets=[];
+  queue.packets.push(...packets);
+  const pump=()=>{
+   if(ch.readyState!=="open"){queue.packets=[];queue.timer=0;queue.sending=false;return}
+   let sent=0;
+   try{
+    while(queue.packets.length&&ch.bufferedAmount<524288&&sent<16){ch.send(queue.packets.shift());sent++}
+   }catch(e){console.warn("AZNY board channel send:",e)}
+   if(queue.packets.length){queue.timer=setTimeout(pump,25)}else{queue.timer=0;queue.sending=false}
+  };
+  if(!queue.sending){queue.sending=true;pump()}
   return true;
  }catch(e){console.warn("AZNY board channel:",e);return false}
 }
@@ -1721,6 +1735,13 @@ function handleBoardChannelMessage(raw){
    return;
   }
   if(m.type==="board-zoom"){if(Number.isFinite(Number(m.zoom)))setZoom(Number(m.zoom),false);return}if(m.type==="board-pan"){applyBoardPan(m.pan);return}
+  if(m.type==="doc-scroll"){
+   const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,"");
+   const host=board.querySelector('.docobj[data-id="'+id+'"]'),pages=host?.querySelector(".docpdf-pages");
+   if(pages&&Number.isFinite(Number(m.top))&&Math.abs(pages.scrollTop-Number(m.top))>2){pages.dataset.aznyRemoteScroll="1";pages.scrollTop=Math.max(0,Number(m.top));requestAnimationFrame(()=>{if(pages)delete pages.dataset.aznyRemoteScroll})}
+   if(!isStudent){const packet=JSON.stringify(m);Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<524288){try{ch.send(packet)}catch(_){}}})}
+   return;
+  }
   if(m.type==="board-state"){applyRemoteBoardState(m);return}
   if(m.type==="board-chunk"){
    let entry=studentBoardChunks.get(m.id);
@@ -2186,7 +2207,20 @@ async function renderAZNYPdfViewer(viewer,dataUrl){
   zoomOut?.addEventListener('click',()=>{scale=Math.max(.5,Math.round((scale-.15)*100)/100);renderPage(pageNum,true)});
   zoomIn?.addEventListener('click',()=>{scale=Math.min(2.5,Math.round((scale+.15)*100)/100);renderPage(pageNum,true)});
   const observer=new ResizeObserver(()=>{const width=Math.round(pages.clientWidth);if(!width||Math.abs(width-lastWidth)<16)return;lastWidth=width;clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>renderPage(pageNum,false),250)});
-  observer.observe(pages);lastWidth=Math.round(pages.clientWidth);await renderPage(pageNum,false);
+  observer.observe(pages);
+  pages.addEventListener("scroll",()=>{
+   const host=viewer.closest(".docobj");if(!host||pages.dataset.aznyRemoteScroll==="1")return;
+   clearTimeout(pages._aznyScrollTimer);
+   pages._aznyScrollTimer=setTimeout(()=>{
+    const packet=JSON.stringify({type:"doc-scroll",id:host.dataset.id,top:pages.scrollTop});
+    if(isStudent){
+     const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<524288){try{ch.send(packet)}catch(e){console.warn("Sincronização do scroll do documento:",e)}}
+    }else{
+     Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<524288){try{ch.send(packet)}catch(e){console.warn("Sincronização do scroll do documento:",e)}}});
+    }
+   },35);
+  },{passive:true});
+  lastWidth=Math.round(pages.clientWidth);await renderPage(pageNum,false);
  }catch(err){pages.innerHTML='<div class="docpdf-loading">Não foi possível abrir este documento. Verifique se o ficheiro PDF é válido.</div>';console.warn('AZNY PDF load:',err)}
 }
 function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=document.createElement('div');viewer.className='docpdf-viewer';viewer.dataset.initialPage=String(initialPage);viewer.dataset.initialScale=String(initialScale);viewer.innerHTML='<div class="docpdf-toolbar"><button type="button" class="docpdf-prev" aria-label="Página anterior">◀</button><span class="docpdf-status">1 / 1</span><button type="button" class="docpdf-next" aria-label="Página seguinte">▶</button><span style="margin:0 3px;color:#c2cad3">|</span><button type="button" class="docpdf-zoom-out" aria-label="Reduzir">−</button><span class="docpdf-zoom-label">100%</span><button type="button" class="docpdf-zoom-in" aria-label="Ampliar">+</button></div><div class="docpdf-pages"><div class="docpdf-loading">A carregar documento…</div></div>';renderAZNYPdfViewer(viewer,dataUrl);return viewer}
