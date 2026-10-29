@@ -37,21 +37,45 @@ function goToActivity(data){
 }
 /* Links antigos que continham r/s continuam a ser convites permanentes: não encaminhar para uma sessão passada. O aplicativo procura sempre a sessão actualmente activa. */
 enter.addEventListener("click",()=>active&&goToActivity(active));
-window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();promptEvent=e;install.textContent="⬇ Instalar aplicativo de ensaios"});
-window.addEventListener("appinstalled",()=>{promptEvent=null;install.classList.add("hidden")});
+const standaloneMode=()=>window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+if(standaloneMode()){install.textContent="✓ Aplicativo já instalado";install.disabled=true;install.classList.add("hidden")}
+window.addEventListener("beforeinstallprompt",e=>{
+ e.preventDefault();promptEvent=e;
+ install.disabled=false;install.textContent="⬇ Instalar aplicativo de ensaios";
+});
+window.addEventListener("appinstalled",()=>{
+ promptEvent=null;install.textContent="✓ Aplicativo instalado";install.disabled=true;install.classList.add("hidden");
+ setStatus("Aplicativo de ensaios instalado com sucesso.");
+});
 install.addEventListener("click",async()=>{
+ if(standaloneMode()){setStatus("O aplicativo de ensaios já está instalado.");return}
  if(promptEvent){
-  const event=promptEvent;promptEvent=null;
-  try{event.prompt();const result=await event.userChoice;if(result?.outcome==="accepted"){install.textContent="✓ Aplicativo instalado";install.classList.add("hidden")}else{install.textContent="⬇ Tentar instalar novamente"}}
-  catch(_){install.textContent="⬇ Instalar aplicativo de ensaios";setStatus("A instalação não abriu automaticamente. Use o menu do navegador para instalar.");}
+  const event=promptEvent;promptEvent=null;install.disabled=true;install.textContent="A abrir instalação…";
+  try{
+   await event.prompt();
+   const result=await event.userChoice;
+   if(result&&result.outcome==="accepted"){
+    install.textContent="✓ Aplicativo instalado";install.classList.add("hidden");
+    setStatus("Instalação aceite. O aplicativo ficará disponível no dispositivo.");
+   }else{
+    install.disabled=false;install.textContent="⬇ Instalar aplicativo de ensaios";
+    setStatus("A instalação foi cancelada. Toque novamente em Instalar aplicativo para tentar outra vez.");
+   }
+  }catch(err){
+   console.warn("Instalação PWA:",err);install.disabled=false;install.textContent="⬇ Instalar aplicativo de ensaios";
+   setStatus("Este navegador não disponibilizou a instalação automática. Tente abrir este link num navegador compatível com a instalação de aplicações.");
+  }
   return;
  }
+ install.disabled=false;install.textContent="⬇ Instalar aplicativo de ensaios";
  const ua=navigator.userAgent||"";
- if(/iphone|ipad|ipod/i.test(ua)){setStatus("Para instalar no iPhone: abra esta página no Safari, toque em Partilhar e escolha “Adicionar ao ecrã principal”.");return}
- if(/android/i.test(ua)){setStatus("Para instalar no Android: abra esta página no Chrome, toque no menu ⋮ e escolha “Instalar aplicação”. Se aparecer “Adicionar ao ecrã inicial”, escolha essa opção.");return}
- setStatus("Para instalar no computador, use o ícone Instalar na barra de endereço do Chrome ou Edge, ou o menu do navegador → Instalar aplicativo.");
+ if(/iphone|ipad|ipod/i.test(ua)&&!(/CriOS|FxiOS|EdgiOS/i.test(ua))){
+  setStatus("O Safari no iPhone não permite iniciar a instalação automaticamente por um botão de página. A instalação PWA é suportada pelo menu Partilhar do Safari.");
+ }else{
+  setStatus("O navegador ainda não disponibilizou a instalação automática. Confirme que está a abrir o link HTTPS num navegador que suporte instalação PWA e toque novamente quando o botão de instalação estiver disponível.");
+ }
 });
-if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js",{scope:"./"}).then(()=>{install.title="Instalar o aplicativo de ensaios"}).catch(e=>console.warn("Service worker:",e));
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js",{scope:"./"}).catch(e=>console.warn("Service worker:",e));
 async function start(){
  try{
   if(!firebase.apps.length)firebase.initializeApp(cfg);
