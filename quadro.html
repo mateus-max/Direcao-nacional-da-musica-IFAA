@@ -1064,6 +1064,11 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:12px!important;line-height:18px!important;color:#fff!important;text-shadow:0 1px 3px #000!important}
 .camera-panel #teacherCamera #cameraBtn::after,
 .camera-panel #teacherCamera #micBtn::after{content:none!important;display:none!important}
+</style><style id="dnac-camera-panel-top">
+/* Retira o cabeçalho acima da câmara e utiliza esse espaço para a pré-visualização. */
+.rightbar .camera-panel{margin-top:0!important;padding-top:0!important}
+.rightbar #teacherCamera{margin-top:0!important;width:100%!important}
+.rightbar .sidehead#dnac-participants-heading{margin-top:8px!important}
 </style></head>
 <body>
 <div class="app">
@@ -1143,7 +1148,6 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 </main>
 
 <aside class="rightbar">
-  <div class="sidehead">Ensaio / Encontro — Participantes</div>
   <div class="camera-panel">
     <div class="camera" id="teacherCamera">
       <div class="cam-off"><div class="big">🎥</div><div>Câmera do director desligada</div><div>Autorize o acesso à câmera para aparecer aqui.</div></div>
