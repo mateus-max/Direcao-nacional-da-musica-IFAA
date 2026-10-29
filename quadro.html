@@ -1485,7 +1485,41 @@ const aznyRoomKey=()=>String(roomId).replace(/[.#$\[\]\/]/g,"_");
 const aznyRoomRef=()=>AZNY_DB?AZNY_DB.ref("aznyRooms/"+aznyRoomKey()):null;
 /* Uma sessão permanente por sala: o link antigo continua válido entre aulas. */
 if(!isStudent&&!classSessionId)classSessionId="ROOM-"+aznyRoomKey();
-async function initAZNYRealtime(){for(let attempt=0;attempt<12;attempt++){try{if(!window.firebase){await new Promise(r=>setTimeout(r,250));continue}if(!firebase.apps.length)firebase.initializeApp(DNM_FIREBASE_CONFIG);AZNY_DB=firebase.database();AZNY_AUTH=firebase.auth();let current=AZNY_AUTH.currentUser;if(!current){current=await new Promise(resolve=>{let done=false;let unsub=()=>{};unsub=AZNY_AUTH.onAuthStateChanged(user=>{if(done)return;done=true;unsub();resolve(user)},()=>{if(done)return;done=true;unsub();resolve(null)});setTimeout(()=>{if(!done){done=true;unsub();resolve(AZNY_AUTH.currentUser)}},2500)})}if(!isStudent&&(!current||current.isAnonymous)){location.replace("../index.html?acesso=necessario");return false}if(current){aznyUid=current.uid;return true}if(isStudent){try{const cred=await AZNY_AUTH.signInAnonymously();aznyUid=cred.user?.uid||"";if(aznyUid)return true}catch(authError){console.warn("AZNY Auth anónima indisponível; a tentar ligação direta ao Realtime Database.",authError)}}if(AZNY_DB&&isStudent)return true}catch(e){console.warn("AZNY Firebase:",e);AZNY_DB=null;AZNY_AUTH=null;aznyUid=""}await new Promise(r=>setTimeout(r,Math.min(400+attempt*350,2200)))}return false}
+async function initAZNYRealtime(){
+ for(let attempt=0;attempt<12;attempt++){
+  try{
+   if(!window.firebase){await new Promise(r=>setTimeout(r,250));continue}
+   if(!firebase.apps.length)firebase.initializeApp(DNM_FIREBASE_CONFIG);
+   AZNY_DB=firebase.database();AZNY_AUTH=firebase.auth();
+   /* Persistir a autenticação localmente e dar tempo ao Firebase para restaurá-la
+      após refresh/PWA reopen. O atraso curto anterior podia enviar o director ao login. */
+   try{await AZNY_AUTH.setPersistence(firebase.auth.Auth.Persistence.LOCAL)}catch(persistErr){console.warn("DNAC: persistência da sessão Firebase:",persistErr)}
+   let current=AZNY_AUTH.currentUser;
+   if(!current){
+    current=await new Promise(resolve=>{
+     let done=false,unsub=()=>{};
+     const finish=user=>{if(done)return;done=true;try{unsub()}catch(_){}resolve(user||null)};
+     unsub=AZNY_AUTH.onAuthStateChanged(user=>{if(user)finish(user)},()=>finish(null));
+     setTimeout(()=>finish(AZNY_AUTH.currentUser),9000);
+    });
+   }
+   if(!isStudent&&(!current||current.isAnonymous)){
+    /* Não expulsar o director para a página inicial durante uma falha temporária
+       de restauração. Manter o quadro aberto e voltar a tentar a ligação. */
+    console.warn("DNAC: sessão autenticada do director ainda não foi restaurada; o quadro permanece aberto.");
+    return false;
+   }
+   if(current){aznyUid=current.uid;return true}
+   if(isStudent){
+    try{const cred=await AZNY_AUTH.signInAnonymously();aznyUid=cred.user?.uid||"";if(aznyUid)return true}
+    catch(authError){console.warn("AZNY Auth anónima indisponível; a tentar ligação direta ao Realtime Database.",authError)}
+   }
+   if(AZNY_DB&&isStudent)return true;
+  }catch(e){console.warn("AZNY Firebase:",e);AZNY_DB=null;AZNY_AUTH=null;aznyUid=""}
+  await new Promise(r=>setTimeout(r,Math.min(400+attempt*350,2200)));
+ }
+ return false
+}
 let aznyRealtimeBound=false;
 async function ensureAZNYRealtime(){if(AZNY_DB){if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom()}return true}const ok=await initAZNYRealtime();if(ok&&!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom()}return ok}
 function aznySessionRef(){return AZNY_DB&&classSessionId?aznyRoomRef().child("sessions").child(classSessionId):null}
