@@ -1783,6 +1783,7 @@ function aznyRemoveLegacyPinnedDocuments(){
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
  const ref=aznyRoomRef().child("board");
+ ref.on("value",snap=>{
   const d=snap.val();
   if(remoteBoardApplying)return;
   /* Não deixar um snapshot antigo do Firebase apagar imediatamente um objeto acabado de carregar. */
