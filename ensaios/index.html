@@ -109,7 +109,7 @@ async function start(){
     auth.signInAnonymously().then(()=>{authReady=true;statusResolved=false;setStatus("A verificar se há ensaio a decorrer…");ref.off("value",handleSnapshot);ref.on("value",handleSnapshot,handleError)}).catch(e=>{console.warn("Autenticação:",e);if(!statusResolved)setStatus("Sem acesso à ligação. A tentar novamente…")});
    }
   });
-  if(!auth.currentUser)auth.signInAnonymously().then(()=>{authReady=true}).catch(e=>console.warn("Autenticação anónima:",e));
+  /* A autenticação é iniciada uma única vez pelo observador onAuthStateChanged acima. */
  }catch(e){console.warn(e);setStatus("Não foi possível ligar ao serviço de ensaios. A tentar novamente…");setTimeout(()=>start(),1200)}
 }
 start();
