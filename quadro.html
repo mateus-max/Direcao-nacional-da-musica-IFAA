@@ -2234,7 +2234,7 @@ function resizeStart(e){
  if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
  if(!/^image\//i.test(file.type||"")&&!/\.(jpe?g|png|gif|webp|bmp|svg|heic|heif)$/i.test(file.name||"")){toast("Escolha um ficheiro de imagem válido.");return}
  pushHistory();
- const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
+ const el=document.createElement("div");el.className="object mediaobj";/* IDs globais únicos evitam que a imagem do professor colida com o o1/o2 de um corista e seja substituída em vez de aparecer. */const mediaOwner=String(aznyUid||studentRequestId||(isStudent?"corista":"director")).replace(/[^a-zA-Z0-9_-]/g,"").slice(-12)||"user";el.dataset.id="img_"+mediaOwner+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
  const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";
  Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});el.appendChild(img);board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
  /* Mostrar imediatamente localmente; não enviar dataURL/base64 nos snapshots partilhados. */
