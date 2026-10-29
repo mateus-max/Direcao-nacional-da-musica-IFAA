@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-AO">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071b33"><meta name="description" content="Aplicativo de entrada nos ensaios do Departamento Nacional da Música.">
+<link rel="manifest" href="../manifest-ensaios.webmanifest"><link rel="icon" href="../icons/logo-jesus-luz.svg"><link rel="apple-touch-icon" href="icons/logo-jesus-luz.svg">
+<meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="Ensaios DNAC">
+<title>Aplicativo de Ensaios — DNAC</title>
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;min-height:100dvh;display:flex;align-items:center;justify-content:center;padding:20px;background:radial-gradient(circle at top right,#1b456b 0,#0b2745 36%,#06172b 78%);font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#f4f8ff}.shell{width:min(100%,520px);text-align:center}.logo{width:86px;height:86px;object-fit:cover;border-radius:50%;background:#fff;border:2px solid #d9b86e;padding:3px}.eyebrow{margin:20px 0 8px;color:#e6c776;font-size:12px;letter-spacing:.15em;font-weight:800;text-transform:uppercase}h1{font-size:clamp(28px,7vw,42px);line-height:1.1;margin:0 0 14px}p{font-size:16px;line-height:1.65;color:#d5e2f0;margin:0 auto 22px;max-width:420px}.status{padding:16px;border:1px solid #365775;border-radius:14px;background:#0d2b49;margin:20px 0;font-weight:650;line-height:1.5}.status.wait{border-color:#8d7138;background:#392f1c;color:#ffedbc}.status.live{border-color:#3b9270;background:#103a31;color:#d4ffec}.btn{width:100%;min-height:50px;border:0;border-radius:12px;padding:13px 18px;font-size:15px;font-weight:800;background:#e3bd63;color:#091b2e;cursor:pointer}.btn.secondary{margin-top:10px;background:#183b5b;color:#fff;border:1px solid #476582}.btn:disabled{opacity:.55;cursor:wait}.small{font-size:12px;color:#9eb5cc;margin-top:18px}.hidden{display:none!important}
+</style></head>
+<body><main class="shell">
+<img class="logo" src="../icons/logo-jesus-luz.svg" alt="Igreja Fé Apostólica Americana">
+<div class="eyebrow">Departamento Nacional da Música</div><h1>Aplicativo de Ensaios</h1>
+<p>Entre nos ensaios e actividades musicais através do link enviado pelo director. Instale este aplicativo para o encontrar facilmente no seu telefone.</p>
+<div id="status" class="status wait" role="status" aria-live="polite">A verificar se há ensaio a decorrer…</div>
+<button id="enter" class="btn hidden">Entrar no ensaio</button>
+<button id="install" class="btn secondary">⬇ Instalar aplicativo de ensaios</button>
+<div class="small">Se não houver actividade activa, esta página permanece disponível e informa quando ainda não começaram os ensaios.</div>
+</main>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script>
+(()=>{"use strict";
+const cfg={apiKey:"AIzaSyDMXIMLiGh4uH4OP8mb6yd-7Ls_xsk5xIs",authDomain:"direcao-nacional-da-musica.firebaseapp.com",databaseURL:"https://direcao-nacional-da-musica-default-rtdb.firebaseio.com",projectId:"direcao-nacional-da-musica",storageBucket:"direcao-nacional-da-musica.firebasestorage.app",messagingSenderId:"669596496467",appId:"1:669596496467:web:b5ccd86ca14eaf82734ca6"};
+const $=id=>document.getElementById(id),status=$("status"),enter=$("enter"),install=$("install"),params=new URLSearchParams(location.search);
+let promptEvent=null,active=null;
+function setStatus(text,live=false){status.textContent=text;status.className="status "+(live?"live":"wait")}
+function goToActivity(data){
+ const room=String(data.roomId||"").trim(),session=String(data.sessionId||"").trim();
+ if(!room||!session){setStatus("O link do ensaio está incompleto. Peça ao director que envie novamente o link.");return}
+ const url=new URL("../a/",location.href);url.searchParams.set("r",room);url.searchParams.set("s",session);url.searchParams.set("p","1");
+ if(data.activity)url.searchParams.set("a",data.activity);
+ if(data.director)url.searchParams.set("dn",data.director);
+ location.href=url.href;
+}
+/* Links antigos que continham r/s continuam a ser convites permanentes: não encaminhar para uma sessão passada. O aplicativo procura sempre a sessão actualmente activa. */
+enter.addEventListener("click",()=>active&&goToActivity(active));
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();promptEvent=e;install.textContent="⬇ Instalar aplicativo de ensaios"});
+window.addEventListener("appinstalled",()=>{promptEvent=null;install.classList.add("hidden")});
+install.addEventListener("click",async()=>{
+ if(promptEvent){
+  const event=promptEvent;promptEvent=null;
+  try{event.prompt();const result=await event.userChoice;if(result?.outcome==="accepted"){install.textContent="✓ Aplicativo instalado";install.classList.add("hidden")}else{install.textContent="⬇ Tentar instalar novamente"}}
+  catch(_){install.textContent="⬇ Instalar aplicativo de ensaios";setStatus("A instalação não abriu automaticamente. Use o menu do navegador para instalar.");}
+  return;
+ }
+ const ua=navigator.userAgent||"";
+ if(/iphone|ipad|ipod/i.test(ua)){setStatus("Para instalar no iPhone: abra esta página no Safari, toque em Partilhar e escolha “Adicionar ao ecrã principal”.");return}
+ if(/android/i.test(ua)){setStatus("Para instalar no Android: abra esta página no Chrome, toque no menu ⋮ e escolha “Instalar aplicação”. Se aparecer “Adicionar ao ecrã inicial”, escolha essa opção.");return}
+ setStatus("Para instalar no computador, use o ícone Instalar na barra de endereço do Chrome ou Edge, ou o menu do navegador → Instalar aplicativo.");
+});
+if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("../service-worker.js",{scope:"../"}).then(()=>{install.title="Instalar o aplicativo de ensaios"}).catch(e=>console.warn("Service worker:",e));
+async function start(){
+ try{
+  if(!firebase.apps.length)firebase.initializeApp(cfg);
+  const auth=firebase.auth();if(!auth.currentUser){try{await auth.signInAnonymously()}catch(_){}}
+  const ref=firebase.database().ref("dnacPublicActiveSession");
+  ref.on("value",snap=>{
+   const d=snap.val();
+   if(d&&d.status==="active"&&d.roomId&&d.sessionId){
+    active=d;enter.classList.remove("hidden");
+    const title=d.title||"Ensaio musical";
+    setStatus("🔴 "+title+" está a decorrer"+(d.director?" com "+d.director:"")+". Toque abaixo para pedir entrada.",true);
+   }else{active=null;enter.classList.add("hidden");setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");}
+  },err=>{console.warn(err);setStatus("Não foi possível verificar o ensaio. Verifique a ligação à Internet e tente novamente.");});
+ }catch(e){console.warn(e);setStatus("Não foi possível ligar ao serviço de ensaios. Verifique a Internet e volte a abrir o aplicativo.");}
+}
+start();
+})();
+</script></body></html>
