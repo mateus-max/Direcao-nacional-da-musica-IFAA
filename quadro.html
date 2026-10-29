@@ -990,6 +990,34 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .mediaobj .media-zoom-controls button:focus-visible{outline:2px solid #55c7ff;outline-offset:2px}
 </style>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<style id="dnac-business-layout-fix">
+/* DNAC: visual alinhado ao AZNY Business, mantendo ferramentas e funções musicais. */
+:root{--navy:#071b33;--navy2:#0e2c4c;--accent:#1677ff}
+.topbar{background:#071b33!important;border-bottom:3px solid #1677ff!important}
+.toolbar,.workspace .sidehead{background:#eaf2fb!important;color:#173451!important}
+#board{background:#fff!important;border:5px solid #315b83!important;box-shadow:inset 0 0 0 1px #d5e3f1!important}
+.canvas-wrap{background:#dce8f4!important}
+.rightbar{background:#f4f8fd!important;border-left:1px solid #c7d8e9!important}
+.rightbar .sidehead{background:#e7f0fa!important;color:#173451!important;font-weight:800!important}
+.camera-panel{position:relative!important;display:flex!important;flex-direction:column!important;gap:4px!important;padding:5px!important;background:#f4f8fd!important}
+.camera-panel .camera{height:clamp(105px,22vh,190px)!important;min-height:105px!important;flex:0 0 auto!important;border:2px solid #168f88!important;border-radius:13px!important;overflow:hidden!important;background:#071b33!important}
+.camera-panel #teacherVideo{width:100%!important;height:100%!important;object-fit:cover!important}
+.camera-panel .camera .cam-off{font-size:12px!important;line-height:1.25!important;padding:8px!important;color:#b8c7d8!important}
+.camera-panel .camera-label{left:7px!important;bottom:6px!important;font-size:10px!important}
+.camera-panel .cam-status{right:5px!important;top:5px!important;font-size:10px!important}
+.camera-panel>.cam-buttons{position:absolute!important;z-index:8!important;left:10px!important;right:10px!important;display:flex!important;gap:5px!important;padding:0!important;justify-content:flex-start!important;pointer-events:none!important}
+.camera-panel>.cam-buttons button{pointer-events:auto!important;min-height:30px!important;height:30px!important;width:38px!important;min-width:38px!important;padding:2px!important;border:1px solid #cad7e4!important;border-radius:8px!important;background:#f7fbff!important;color:#173451!important;font-size:0!important;box-shadow:0 2px 5px #0003!important}
+.camera-panel>.cam-buttons:nth-of-type(2),.camera-panel>.cam-buttons:nth-of-type(3){top:calc(5px + clamp(105px,22vh,190px) - 36px)!important}
+.camera-panel>.cam-buttons:nth-of-type(3){left:calc(50% + 2px)!important}
+.camera-panel #cameraBtn::after{content:"📷";font-size:16px!important}
+.camera-panel #cameraStopBtn::after{content:"■";font-size:14px!important}
+.camera-panel #micBtn::after{content:"🎙";font-size:16px!important}
+.camera-panel #micStopBtn::after{content:"◉";font-size:16px!important}
+.camera-panel .teacher-media-status,.camera-panel .azny-audio-output-picker,#aznyAudioOutputStatus{display:none!important}
+.camera-panel .camera-join-requests{max-height:42px!important;overflow:auto!important;margin-top:2px!important;font-size:10px!important}
+@media(max-width:760px){.camera-panel .camera{height:clamp(100px,20vh,150px)!important;min-height:100px!important}.camera-panel>.cam-buttons:nth-of-type(2),.camera-panel>.cam-buttons:nth-of-type(3){top:calc(5px + clamp(100px,20vh,150px) - 35px)!important}.camera-panel .camera .cam-off{font-size:10px!important}}
+</style>
 </head>
 <body>
 <div class="app">
@@ -998,8 +1026,8 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
   <div class="title"><input id="boardTitle" value="Nova aula" aria-label="Nome da aula"></div>
   <div class="class-controls" id="classControlsTop">
     <div class="class-timer" id="classTimer">00:00:00</div>
-    <button id="startClassBtn">▶ Iniciar aula</button>
-    <button id="endClassBtn" disabled>⏹ Encerrar aula</button>
+    <button id="startClassBtn">▶ Iniciar ensaio</button>
+    <button id="endClassBtn" disabled>⏹ Encerrar ensaio</button>
     <button id="recordClassBtn">⏺ Gravar aula</button><button id="teacherScreenShareBtn" type="button" title="Partilhar ecrã com os alunos">▣ Partilhar ecrã</button>
     <div class="record-download" id="recordDownload"></div>
   </div>
