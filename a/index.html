@@ -18,16 +18,39 @@
 <script>
 /* Mantém o convite curto no endereço público, mas apresenta o formulário institucional antes de abrir o quadro. */
 const incoming=new URLSearchParams(location.search);
+const room=incoming.get("r")||"",session=incoming.get("s")||"";
 const entry=new URL("../entrar.html",location.href);
-entry.searchParams.set("sala",incoming.get("r")||"");
-entry.searchParams.set("sess",incoming.get("s")||"");
+entry.searchParams.set("sala",room);
+entry.searchParams.set("sess",session);
 entry.searchParams.set("aluno","1");
 if(incoming.has("a"))entry.searchParams.set("atividade",incoming.get("a"));
 if(incoming.has("dn"))entry.searchParams.set("dirNome",incoming.get("dn"));
 if(incoming.has("df"))entry.searchParams.set("dirFuncao",incoming.get("df"));
 if(incoming.has("dp"))entry.searchParams.set("dirProvincia",incoming.get("dp"));
 if(incoming.has("dm"))entry.searchParams.set("dirMunicipio",incoming.get("dm"));
-document.getElementById("board").src=entry.href;
+/* Se este dispositivo já preencheu o formulário para este mesmo ensaio,
+   reabrir directamente o quadro. O quadro valida/restaura a aprovação guardada;
+   não cria uma aprovação nova nem remove o participante ao actualizar. */
+let saved=null;
+try{saved=JSON.parse(localStorage.getItem("dnm_profile_v1")||"null")}catch(_){}
+const sameInvite=!!(saved&&saved.name&&saved.room===room&&saved.session===session&&room&&session);
+if(sameInvite){
+ const boardUrl=new URL("../quadro.html",location.href);
+ boardUrl.searchParams.set("aluno","1");
+ boardUrl.searchParams.set("sala",room);
+ boardUrl.searchParams.set("sess",session);
+ boardUrl.searchParams.set("nome",saved.name);
+ boardUrl.searchParams.set("funcao",saved.role||"corista");
+ boardUrl.searchParams.set("provincia",saved.province||"");
+ boardUrl.searchParams.set("municipio",saved.municipality||"");
+ boardUrl.searchParams.set("atividade",saved.activity||incoming.get("a")||"ensaio");
+ if(saved.voice)boardUrl.searchParams.set("voz",saved.voice);
+ if(saved.instrument)boardUrl.searchParams.set("instrumento",saved.instrument);
+ ["dn","df","dp","dm"].forEach((key,index)=>{const target=["dirNome","dirFuncao","dirProvincia","dirMunicipio"][index];if(incoming.has(key))boardUrl.searchParams.set(target,incoming.get(key))});
+ document.getElementById("board").src=boardUrl.href;
+}else{
+ document.getElementById("board").src=entry.href;
+}
 </script>
 </body>
 </html>
