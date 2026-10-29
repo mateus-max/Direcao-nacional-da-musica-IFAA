@@ -1024,6 +1024,12 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 #teacherCamera .cam-overlay-controls button{pointer-events:auto!important;position:relative!important;z-index:2147483001!important}
 #teacherCamera .cam-off{pointer-events:none!important}
 </style>
+
+<style id="dnac-pointer-tool-clarity">
+#pointerTool,#studentPointerBtn{font-weight:700!important}
+#pointerTool{cursor:pointer!important}
+#studentPointerBtn{cursor:pointer!important}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1054,7 +1060,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
     <button class="tool" data-tool="pen">✎ Caneta</button>
     <button class="tool" data-tool="eraser">⌫ Borracha</button>
     <button class="tool" id="deleteTool">✕ Apagar</button>
-    <button class="tool" id="pointerTool">🔎 Cursor / Lupa</button>
+    <button class="tool" id="pointerTool" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button>
     <button class="tool" id="undoSide">↶ Desfazer</button>
     <button class="tool" id="redoSide">↷ Refazer</button>
     <button class="tool wide" id="imageBtn">🖼 Carregar imagem</button>
@@ -1132,7 +1138,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 </div>
 
 <div class="student-controls" id="studentControls">
-    <button id="studentPointerBtn">🔎 Lupa</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Atualizar e reconectar ao quadro">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
+    <button id="studentPointerBtn" type="button" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Atualizar e reconectar ao quadro">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
 </div>
 <div class="student-live" id="studentLive"><div class="student-video-pair"><div class="student-video-card"><video id="studentTeacherVideo" autoplay playsinline></video><span>Professor</span></div><div class="student-video-card azny-self-video-card"><video id="studentSelfVideo" autoplay muted playsinline></video><span>Você</span><b id="studentSelfRaisedHand" class="azny-self-raised-hand" aria-live="polite" hidden>✋</b></div></div></div>
 <div class="modal student-name-modal" id="studentNameModal"><div class="card">
@@ -2096,46 +2102,40 @@ function updateTeacherMediaStatus(){
  document.getElementById("teacherMediaStatus").textContent="Câmera: "+cam+" · Microfone: "+mic;
 }
 async function startCamera(){
- if(!navigator.mediaDevices?.getUserMedia){toast("A câmera exige HTTPS ou localhost.");return}
- const btn=document.getElementById("cameraBtn");
- if(btn)btn.disabled=true;
+ const btn=document.getElementById("cameraBtn"), video=document.getElementById("teacherVideo");
+ if(!navigator.mediaDevices?.getUserMedia){toast("A câmara requer HTTPS e permissões do navegador.");return}
  try{
-  // Não reutilizar uma stream antiga que possa estar parada ou bloqueada.
   if(teacherStream){teacherStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}});teacherStream=null}
-  const v=document.getElementById("teacherVideo");
-  if(v){v.pause?.();v.srcObject=null;v.hidden=true}
-  let lastError=null;
-  // Manter a configuração simples que funciona no telefone e acrescentar alternativas para webcams de computador.
-  const constraintsList=[
-   {video:{facingMode:"user",width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false},
-   {video:{width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false},
-   {video:true,audio:false}
-  ];
-  try{
-   const devices=await navigator.mediaDevices.enumerateDevices();
-   const cameras=devices.filter(d=>d.kind==="videoinput");
-   const preferred=cameras.find(d=>/integrated|webcam|camera|hd camera/i.test(d.label))||cameras[0];
-   if(preferred?.deviceId)constraintsList.splice(2,0,{video:{deviceId:{exact:preferred.deviceId},width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false});
-  }catch(_){}
-  for(const constraints of constraintsList){
-   try{teacherStream=await navigator.mediaDevices.getUserMedia(constraints);if(teacherStream?.getVideoTracks?.().length)break;teacherStream?.getTracks?.().forEach(t=>t.stop());teacherStream=null;lastError=new Error("A câmara não devolveu vídeo.")}
-   catch(e){lastError=e;if(e.name==="NotAllowedError"||e.name==="SecurityError")throw e;await new Promise(resolve=>setTimeout(resolve,350))}
+  if(video){video.pause?.();video.srcObject=null;video.hidden=true}
+  let stream=null,lastError=null;
+  /* Constraints simples para compatibilidade máxima com Android/Chrome e computadores. */
+  for(const constraints of [{video:true,audio:false},{video:{facingMode:"user"},audio:false}]){
+   try{stream=await navigator.mediaDevices.getUserMedia(constraints);if(stream?.getVideoTracks().length)break;stream?.getTracks().forEach(t=>t.stop());stream=null}
+   catch(e){lastError=e;if(e.name==="NotAllowedError"||e.name==="SecurityError")throw e}
   }
-  if(!teacherStream)throw lastError||new Error("A câmara não devolveu uma transmissão.");
-  if(v){v.srcObject=teacherStream;v.autoplay=true;v.muted=true;v.playsInline=true;v.removeAttribute("hidden");v.hidden=false;v.style.cssText+=";display:block!important;visibility:visible!important;opacity:1!important;width:100%;height:100%;min-height:60px;object-fit:cover;background:#0b1828;position:absolute;inset:0;z-index:2";v.onloadedmetadata=()=>{v.play?.().catch(()=>{})};await new Promise(resolve=>{if(v.readyState>=2){resolve();return}const done=()=>resolve();v.addEventListener("loadeddata",done,{once:true});setTimeout(done,1200)});try{await v.play()}catch(playError){console.warn("AZNY camera play:",playError);toast("A câmara está ligada. Toque no vídeo para iniciar a imagem.");v.addEventListener("pointerdown",()=>v.play?.().catch(()=>{}),{once:true})}}
-  document.querySelector("#teacherCamera .cam-off").style.display="none";
+  if(!stream)throw lastError||new Error("Nenhuma câmara disponível");
+  teacherStream=stream;
+  const track=teacherStream.getVideoTracks()[0];
+  track.enabled=true;
+  if(video){
+   video.srcObject=teacherStream;video.autoplay=true;video.muted=true;video.playsInline=true;video.hidden=false;
+   video.style.cssText+=";display:block!important;visibility:visible!important;opacity:1!important;width:100%;height:100%;object-fit:cover;background:#0b1828;position:absolute;inset:0;z-index:2";
+   document.querySelector("#teacherCamera .cam-off").style.display="none";
+   try{await video.play()}catch(e){console.warn("DNAC video play",e)}
+  }
   document.getElementById("camStatus").textContent="Ligada";
-  if(btn){btn.disabled=false;btn.dataset.mediaState="on";btn.title="Desligar câmera";btn.setAttribute("aria-label","Desligar câmera")}
+  if(btn){btn.disabled=false;btn.dataset.mediaState="on";btn.title="Desligar câmara";btn.setAttribute("aria-label","Desligar câmara")}
   document.getElementById("cameraStopBtn").disabled=false;
-  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmara do diretor ligada e disponível em tempo real")
+  track.onended=()=>{if(teacherStream){teacherStream=null;if(video){video.srcObject=null;video.hidden=true}document.querySelector("#teacherCamera .cam-off").style.display="flex";document.getElementById("camStatus").textContent="Desligada";if(btn){btn.dataset.mediaState="off";btn.title="Ligar câmara"}syncTeacherMediaToPeers();updateTeacherMediaStatus()}};
+  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmara do director ligada.")
  }catch(e){
   if(teacherStream){teacherStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}});teacherStream=null}
-  const v=document.getElementById("teacherVideo");if(v){v.srcObject=null;v.hidden=true}
-  if(btn){btn.disabled=false;btn.dataset.mediaState="off";btn.title="Ligar câmera";btn.setAttribute("aria-label","Ligar câmera")}
-  document.getElementById("cameraStopBtn").disabled=true;
+  if(video){video.srcObject=null;video.hidden=true}
+  document.querySelector("#teacherCamera .cam-off").style.display="flex";
+  document.getElementById("camStatus").textContent="Desligada";
+  if(btn){btn.disabled=false;btn.dataset.mediaState="off";btn.title="Ligar câmara"}
   updateTeacherMediaStatus();
-  const msg=e.name==="NotAllowedError"?"Permissão da câmera recusada. Autorize a câmera nas configurações do navegador.":e.name==="NotReadableError"||e.name==="AbortError"?"A câmera está ocupada ou o controlador não respondeu. Feche outros programas que usam a câmera e tente novamente.":"Não foi possível ligar a câmera: "+(e.name||e.message);
-  toast(msg)
+  toast(e.name==="NotAllowedError"?"Permita o acesso à câmara nas definições do Chrome.":e.name==="NotReadableError"?"A câmara está a ser usada por outra aplicação. Feche-a e tente novamente.":"Não foi possível abrir a câmara: "+(e.name||e.message));
  }
 }
 function stopCamera(){
@@ -2147,13 +2147,27 @@ function stopCamera(){
  syncTeacherMediaToPeers();updateTeacherMediaStatus()
 }
 async function startMic(){
- if(!navigator.mediaDevices?.getUserMedia){toast("O microfone exige HTTPS ou localhost.");return}
+ const btn=document.getElementById("micBtn");
+ if(!navigator.mediaDevices?.getUserMedia){toast("O microfone requer HTTPS e permissões do navegador.");return}
  try{
-  teacherAudioStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000},latency:{ideal:0.02}},video:false});
+  if(teacherAudioStream){teacherAudioStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}});teacherAudioStream=null}
+  let stream=null,lastError=null;
+  for(const constraints of [{audio:true,video:false},{audio:{echoCancellation:true,noiseSuppression:true},video:false}]){
+   try{stream=await navigator.mediaDevices.getUserMedia(constraints);if(stream?.getAudioTracks().length)break;stream?.getTracks().forEach(t=>t.stop());stream=null}
+   catch(e){lastError=e;if(e.name==="NotAllowedError"||e.name==="SecurityError")throw e}
+  }
+  if(!stream)throw lastError||new Error("Nenhum microfone disponível");
+  teacherAudioStream=stream;
   const track=teacherAudioStream.getAudioTracks()[0];track.enabled=true;
-  document.getElementById("micBtn").disabled=false;document.getElementById("micBtn").dataset.mediaState="on";document.getElementById("micBtn").title="Desligar microfone";document.getElementById("micBtn").setAttribute("aria-label","Desligar microfone");document.getElementById("micStopBtn").disabled=false;
-  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do diretor ligado e disponível em tempo real")
- }catch(e){toast(e.name==="NotAllowedError"?"Permissão do microfone recusada.":("Não foi possível ligar o microfone: "+e.name))}
+  if(btn){btn.disabled=false;btn.dataset.mediaState="on";btn.title="Desligar microfone";btn.setAttribute("aria-label","Desligar microfone")}
+  document.getElementById("micStopBtn").disabled=false;
+  track.onended=()=>{if(teacherAudioStream){teacherAudioStream=null;if(btn){btn.dataset.mediaState="off";btn.title="Ligar microfone"}syncTeacherMediaToPeers();updateTeacherMediaStatus()}};
+  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Microfone do director ligado.")
+ }catch(e){
+  if(btn){btn.disabled=false;btn.dataset.mediaState="off";btn.title="Ligar microfone"}
+  updateTeacherMediaStatus();
+  toast(e.name==="NotAllowedError"?"Permita o acesso ao microfone nas definições do Chrome.":e.name==="NotReadableError"?"O microfone está a ser usado por outra aplicação.":"Não foi possível abrir o microfone: "+(e.name||e.message));
+ }
 }
 function stopMic(){
  if(teacherAudioStream){teacherAudioStream.getTracks().forEach(t=>t.stop());teacherAudioStream=null}
@@ -2162,29 +2176,21 @@ function stopMic(){
 }
 document.getElementById("cameraBtn").onclick=null;document.getElementById("cameraStopBtn").onclick=stopCamera;
 document.getElementById("micBtn").onclick=null;document.getElementById("micStopBtn").onclick=stopMic;
-/* Delegação de eventos no documento: continua funcional mesmo se um estilo ou script
-   anterior substituir os handlers dos botões. O pedido de permissão é iniciado directamente pelo toque. */
+/* Um único manipulador de clique alterna a câmara e o microfone do director. */
 document.addEventListener("click",async function dnacDirectorMediaToggle(ev){
  const el=ev.target.closest("#cameraBtn,#micBtn");
  if(!el)return;
  ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
  if(el.dataset.busy==="1")return;
- el.dataset.busy="1";el.disabled=false;
+ el.dataset.busy="1";
  const isCamera=el.id==="cameraBtn";
  try{
   const stream=isCamera?teacherStream:teacherAudioStream;
   const track=stream?.getTracks?.().find(t=>t.kind===(isCamera?"video":"audio")&&t.readyState==="live");
-  if(track){
-   track.enabled=!track.enabled;
-   if(isCamera){
-    const v=document.getElementById("teacherVideo");
-    if(track.enabled){if(v){v.hidden=false;v.srcObject=teacherStream;v.play?.().catch(()=>{})}document.querySelector("#teacherCamera .cam-off").style.display="none";document.getElementById("camStatus").textContent="Ligada";el.dataset.mediaState="on";el.title="Desligar câmara"}
-    else{document.getElementById("camStatus").textContent="Desligada";el.dataset.mediaState="off";el.title="Ligar câmara"}
-   }else{el.dataset.mediaState=track.enabled?"on":"off";el.title=track.enabled?"Desligar microfone":"Ligar microfone"}
-   if(!track.enabled){if(isCamera)stopCamera();else stopMic()}
-   else{syncTeacherMediaToPeers();updateTeacherMediaStatus();toast((isCamera?"Câmara":"Microfone")+" do director ligado.")}
-  }else if(isCamera){await startCamera()}else{await startMic()}
- }catch(err){console.error("DNAC media toggle",el.id,err);toast("Não foi possível activar "+(isCamera?"a câmara":"o microfone")+": "+(err?.name||err?.message||"verifique as permissões"))}
+  if(track){if(isCamera)stopCamera();else stopMic()}
+  else if(isCamera)await startCamera();
+  else await startMic();
+ }catch(err){console.error("DNAC media toggle",el.id,err);toast("Falha ao activar "+(isCamera?"a câmara":"o microfone")+": "+(err?.name||err?.message||"verifique as permissões"))}
  finally{el.dataset.busy="0";el.disabled=false}
 },true);
 
