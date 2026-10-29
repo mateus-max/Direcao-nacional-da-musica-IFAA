@@ -1020,6 +1020,32 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 </style>
 
 <style id="dnac-pointer-label-fix">#pointerTool,#studentPointerBtn{font-weight:700!important;cursor:pointer!important}</style>
+
+<style id="dnac-camera-footer-controls-fix">
+/* DNAC: controlos pequenos, alinhados no rodapé da pré-visualização do director. */
+.camera-panel #teacherCamera{position:relative!important;isolation:isolate!important;overflow:hidden!important}
+.camera-panel #teacherVideo{object-fit:cover!important;object-position:center 28%!important;z-index:1!important}
+.camera-panel #teacherCamera .cam-off{z-index:2!important}
+.camera-panel #teacherCamera .camera-label,.camera-panel #teacherCamera .cam-status{z-index:4!important}
+.camera-panel #teacherCamera>.cam-buttons.cam-overlay-controls{
+ position:absolute!important;left:0!important;right:0!important;top:auto!important;bottom:4px!important;
+ width:100%!important;display:flex!important;justify-content:center!important;align-items:center!important;
+ gap:6px!important;padding:0 6px!important;margin:0!important;z-index:12!important;
+ pointer-events:none!important;transform:none!important
+}
+.camera-panel #teacherCamera>.cam-buttons.cam-overlay-controls button{
+ pointer-events:auto!important;flex:0 0 29px!important;width:29px!important;min-width:29px!important;
+ max-width:29px!important;height:25px!important;min-height:25px!important;padding:0!important;
+ border-radius:7px!important;font-size:0!important;line-height:1!important;box-shadow:0 1px 4px #0005!important;
+ opacity:.96!important
+}
+.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:13px!important}
+.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:13px!important}
+.camera-panel #teacherCamera #cameraBtn::after,.camera-panel #teacherCamera #micBtn::after{content:none!important}
+.camera-panel #teacherCamera .cam-off{pointer-events:none!important}
+.camera-panel #teacherCamera .camera-label{bottom:5px!important;left:5px!important;z-index:3!important;max-width:45%!important}
+.camera-panel #teacherCamera .cam-status{top:4px!important;right:4px!important;z-index:3!important}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1102,9 +1128,9 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
   <div class="sidehead">Aula / Participantes</div>
   <div class="camera-panel">
     <div class="camera" id="teacherCamera">
-      <div class="cam-off"><div class="big">🎥</div><div>Câmera do professor desligada</div><div>Autorize o acesso à câmera para aparecer aqui.</div></div>
+      <div class="cam-off"><div class="big">🎥</div><div>Câmera do director desligada</div><div>Autorize o acesso à câmera para aparecer aqui.</div></div>
       <video id="teacherVideo" autoplay muted playsinline hidden></video>
-      <div class="camera-label">Professor</div>
+      <div class="camera-label">Director</div>
       <div class="cam-status" id="camStatus">Desligada</div>
       <div class="cam-buttons cam-overlay-controls">
         <button id="cameraBtn" type="button" title="Ligar câmera" aria-label="Ligar câmera" data-media-state="off">🎥</button>
@@ -2123,7 +2149,7 @@ async function startCamera(){
   document.getElementById("camStatus").textContent="Ligada";
   if(btn){btn.disabled=false;btn.dataset.mediaState="on";btn.title="Desligar câmera";btn.setAttribute("aria-label","Desligar câmera")}
   document.getElementById("cameraStopBtn").disabled=false;
-  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmera do professor ligada e disponível em tempo real")
+  syncTeacherMediaToPeers();updateTeacherMediaStatus();toast("Câmara do director ligada e disponível em tempo real")
  }catch(e){
   if(teacherStream){teacherStream.getTracks().forEach(t=>{try{t.stop()}catch(_){}});teacherStream=null}
   const v=document.getElementById("teacherVideo");if(v){v.srcObject=null;v.hidden=true}
@@ -2833,20 +2859,28 @@ setupAznyContextMenu();
 try{const raw=sessionStorage.getItem("dnacNetworkRecoveryPending");if(raw){const rec=JSON.parse(raw);if(Date.now()-(rec.at||0)<60000){sessionStorage.removeItem("dnacNetworkRecoveryPending");window.addEventListener("load",()=>setTimeout(()=>{if(navigator.onLine)toast("Página actualizada. A restabelecer a ligação do ensaio e a sincronização.");else toast("Página actualizada, mas o dispositivo continua sem Internet.")},1200))}else sessionStorage.removeItem("dnacNetworkRecoveryPending")}}catch(_){}
 async function forceRefreshBoard(forStudent){
  const btn=document.getElementById(forStudent?"studentRefreshBoardBtn":"refreshBoardBtn");
- if(btn){btn.disabled=true;btn.textContent="A actualizar…"}
+ if(btn){btn.disabled=true;btn.dataset.previousText=btn.textContent;btn.textContent="A actualizar…"}
  try{
+  if(!navigator.onLine)throw new Error("Sem Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
   if(!forStudent){
    pageStates[currentPage-1]=snapshot();
    save();
-   try{sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),wasClassStarted:!!classStarted,wasTeacherCameraOn:!!teacherStream,wasTeacherMicOn:!!teacherAudioStream}))}catch(_){}
-  }else{
-   try{sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),student:true}))}catch(_){}
   }
-  if(!navigator.onLine)throw new Error("Sem ligação à Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
-  location.reload();
+  /* Guarda a identidade da sessão e o estado dos dispositivos antes do reload.
+     O URL original mantém nome, função, actividade, sala e sessão. */
+  sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({
+   at:Date.now(),roomId:String(roomId||""),sessionId:String(classSessionId||""),
+   wasClassStarted:!!classStarted,
+   wasTeacherCameraOn:!!teacherStream?.getVideoTracks?.().some(t=>t.readyState==="live"),
+   wasTeacherMicOn:!!teacherAudioStream?.getAudioTracks?.().some(t=>t.readyState==="live"),
+   student:!!forStudent,wasStudentCameraOn:!!studentCameraOn,wasStudentMicOn:!!studentMicOn
+  }));
+  const next=new URL(window.location.href);
+  next.searchParams.set("__dnac_refresh",String(Date.now()));
+  window.location.replace(next.href);
  }catch(e){
-  console.warn("DNAC reload recovery:",e);
-  if(btn){btn.disabled=false;btn.textContent=forStudent?"⟳ Atualizar":"⟳"}
+  console.warn("DNAC browser refresh:",e);
+  if(btn){btn.disabled=false;btn.textContent=btn.dataset.previousText||(forStudent?"⟳ Atualizar":"⟳")}
   toast("Não foi possível actualizar: "+(e?.message||"tente novamente."));
  }
 }
