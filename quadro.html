@@ -1720,11 +1720,19 @@ function applyRemoteBoardState(d){
 }
 function updatePointerTrail(){/* Intencionalmente sem rasto: a lupa mostra apenas a posição atual. */}
 const aznyPendingMediaReady=new Map();
+/* Carrega a imagem sem deixar o ícone de imagem quebrada aparecer. Se o URL falhar, tenta renovar o URL no Firebase Storage. */
+function aznySetSharedImageSource(img,src){
+ const url=String(src||"");if(!img||!(url.toLowerCase().startsWith("http://")||url.toLowerCase().startsWith("https://")))return;
+ img.dataset.aznySource=url;img.style.visibility="hidden";let retried=false;
+ img.onload=()=>{img.style.visibility="visible";img.dataset.aznyLoaded="1";};
+ img.onerror=async()=>{if(!retried&&window.firebase?.storage){retried=true;try{const fresh=await firebase.storage().refFromURL(url).getDownloadURL();if(fresh){img.dataset.aznySource=fresh;img.src=fresh;return}}catch(err){console.warn("DNAC: falha ao renovar o URL da imagem:",err)}}img.style.visibility="hidden";console.warn("DNAC: imagem indisponível; ícone de erro ocultado.");};
+ if(img.src!==url)img.src=url;else if(img.complete&&img.naturalWidth>0)img.style.visibility="visible";
+}
 function aznyApplyMediaReady(m){
  const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,""),src=String(m.src||"");
- if(!id||!/^https?:\/\//i.test(src))return;
+ if(!id||!(src.toLowerCase().startsWith("http://")||src.toLowerCase().startsWith("https://")))return;
  const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
- if(host&&img){host.dataset.mediaUrl=src;delete host.dataset.uploadPending;img.src=src;host.dataset.aznyMediaReady="1";scheduleSave();}
+ if(host&&img){host.dataset.mediaUrl=src;delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");aznySetSharedImageSource(img,src);host.dataset.aznyMediaReady="1";scheduleSave();}
  else aznyPendingMediaReady.set(id,src);
 }
 function handleBoardChannelMessage(raw){
@@ -1852,9 +1860,7 @@ function aznyApplySharedMediaAsset(id,data){
  if(!img)return;
  host.dataset.mediaUrl=src;host.dataset.name=String(data.name||host.dataset.name||"Imagem");
  delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");
- if(img.src!==src)img.src=src;
- img.onerror=()=>{console.warn("DNAC: a imagem partilhada não pôde ser descarregada:",src);};
- img.onload=()=>{host.classList.remove("media-uploading-silent");};
+ aznySetSharedImageSource(img,src);
  aznyPendingMediaReady.delete(safeId);
 }
 function aznyPublishSharedMediaAsset(el,src){
@@ -2063,7 +2069,7 @@ function createFromData(o){
   Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px",fontSize:o.style?.fontSize,fontFamily:o.style?.fontFamily,fontWeight:o.style?.fontWeight,fontStyle:o.style?.fontStyle,textDecoration:o.style?.textDecoration,color:o.style?.color,textAlign:o.style?.textAlign});
   if(o.anchorId){el.dataset.anchorId=o.anchorId;el.dataset.anchorX=o.anchorX??0;el.dataset.anchorY=o.anchorY??0;el.dataset.anchorW=o.anchorW??1;el.dataset.anchorH=o.anchorH??1;el.dataset.anchorFontSize=(o.anchorFontSize??parseFloat(el.style.fontSize)??16);}
  }else if(o.kind==="image"){
-  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";const readySrc=aznyPendingMediaReady.get(String(o.id||""));if(readySrc){el.dataset.mediaUrl=readySrc;aznyPendingMediaReady.delete(String(o.id||""));}if(o.uploadPending&&!readySrc)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.src=readySrc||o.src||"";img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain";el.appendChild(img);if(o.uploadPending&&!readySrc&&!o.src){img.removeAttribute("src");el.classList.add("media-uploading-silent");}img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
+  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";const readySrc=aznyPendingMediaReady.get(String(o.id||""));if(readySrc){el.dataset.mediaUrl=readySrc;aznyPendingMediaReady.delete(String(o.id||""));}if(o.uploadPending&&!readySrc)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain;visibility:hidden";el.appendChild(img);if(readySrc||o.src){aznySetSharedImageSource(img,readySrc||o.src)}else{img.removeAttribute("src");el.classList.add("media-uploading-silent");}if(o.uploadPending&&!readySrc&&!o.src)el.classList.add("media-uploading-silent");img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
  }else if(o.kind==="chart"){ el=createChartObject(o.chartType||"bar",o.values||"12,19,8,15,10",o.title||"Gráfico"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="music"){ el=createMusicObject(o.musicType||"blank",o.title||"Música"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="resource"){ el=createResourceObject(o.resourceType||"bible",o.language||"pt"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
