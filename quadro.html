@@ -3167,58 +3167,53 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 function setupAznyContextMenu(){if(document.getElementById("aznyContextMenu"))return;const menu=document.createElement("div");menu.id="aznyContextMenu";menu.innerHTML='<div class="ctx-title">Ferramentas do quadro</div><div class="ctx-items"></div>';document.body.appendChild(menu);const close=()=>menu.classList.remove("open");document.addEventListener("click",e=>{if(!menu.contains(e.target))close()});document.addEventListener("keydown",e=>{if(e.key==="Escape")close()});document.addEventListener("contextmenu",e=>{const obj=e.target.closest?.(".object");const onBoard=e.target.closest?.("#board");if(!onBoard&&!obj)return;e.preventDefault();if(obj)selectObject(obj);const items=menu.querySelector(".ctx-items");items.innerHTML="";const buttons=[...document.querySelectorAll(".toolbar button")].filter(b=>!b.disabled&&b.id!=="teacherDashboardBtn");buttons.forEach(original=>{const item=document.createElement("button");item.type="button";item.textContent=(original.title||original.getAttribute("aria-label")||original.innerText||original.textContent||original.id||"Ferramenta").trim();if(!item.textContent)item.textContent=original.id||"Ferramenta";item.onclick=()=>{close();if(obj&&obj.isConnected)selectObject(obj);original.click()};items.appendChild(item)});if(selected&&selected.isConnected){const sep=document.createElement("div");sep.className="ctx-title";sep.textContent="Objeto selecionado";items.appendChild(sep);[["Minimizar / restaurar",minimizeSelectedObject],["Duplicar",duplicateSelectedObject],["Trazer para a frente",()=>changeSelectedLayer(1)],["Enviar para trás",()=>changeSelectedLayer(-1)],["Eliminar",deleteSelected]].forEach(([label,fn])=>{const b=document.createElement("button");b.textContent=label;b.onclick=()=>{close();fn()};items.appendChild(b)})}menu.style.left=Math.min(e.clientX,innerWidth-310)+"px";menu.style.top=Math.min(e.clientY,innerHeight-menu.scrollHeight-12)+"px";menu.classList.add("open")})}
 setupAznyContextMenu();
-try{const raw=sessionStorage.getItem("dnacNetworkRecoveryPending");if(raw){const rec=JSON.parse(raw);if(Date.now()-(rec.at||0)<60000){sessionStorage.removeItem("dnacNetworkRecoveryPending");window.addEventListener("load",()=>setTimeout(()=>{if(navigator.onLine)toast("Página actualizada. A restabelecer a ligação do ensaio e a sincronização.");else toast("Página actualizada, mas o dispositivo continua sem Internet.")},1200))}else sessionStorage.removeItem("dnacNetworkRecoveryPending")}}catch(_){}
-async function forceRefreshBoard(forStudent){
- const btn=document.getElementById(forStudent?"studentRefreshBoardBtn":"refreshBoardBtn");
- const original=btn?.textContent|| (forStudent?"⟳ Atualizar":"⟳");
- if(btn){btn.disabled=true;btn.dataset.previousText=original;btn.textContent="A recuperar…"}
+try{
+ const raw=sessionStorage.getItem("dnacNetworkRecoveryPending");
+ if(raw){
+  const rec=JSON.parse(raw);
+  if(Date.now()-(rec.at||0)<120000){
+   sessionStorage.removeItem("dnacNetworkRecoveryPending");
+   window.addEventListener("load",()=>{
+    (async()=>{
+     try{
+      if(!navigator.onLine){toast("O navegador foi atualizado. Sem Internet: a ligação será recuperada quando a rede voltar.");return;}
+      await ensureAZNYRealtime();
+      if(!AZNY_DB)throw new Error("Serviço em tempo real indisponível.");
+      AZNY_DB.goOnline?.();
+      if(rec.student){
+       if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
+       if(classSessionId)bindClassSessionRealtime();
+       await restoreStudentSessionIfApproved();
+      }else{
+       const activeSnap=await aznyRoomRef().child("activeSessionId").once("value");
+       const activeId=activeSnap.val();
+       if(activeId){
+        const status=await AZNY_DB.ref("aznyRooms/"+aznyRoomKey()+"/sessions/"+activeId+"/status").once("value").then(x=>x.val()).catch(()=>null);
+        if(status==="active"){classSessionId=activeId;sessionRealtimeBound=false;aznyObservedClassStatus="active";}
+       }
+       if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
+       bindClassSessionRealtime();bindTeacherPresenceWatch();
+       await restoreActiveTeacherSession();
+       publishTeacherPresence(true,"online");
+      }
+      toast("Navegador atualizado. A ligação ao ensaio está a ser restabelecida.");
+     }catch(err){console.warn("DNAC pós-atualização:",err);toast("Página atualizada, mas a ligação ainda não foi recuperada. Verifique a Internet.");}
+    })();
+   },{once:true});
+  }else sessionStorage.removeItem("dnacNetworkRecoveryPending");
+ }
+}catch(_){}
+function forceRefreshBoard(forStudent){
  try{
-  if(!navigator.onLine)throw new Error("Sem Internet. Active os dados móveis ou o Wi-Fi e tente novamente.");
-  /* Atualização segura, equivalente a atualizar o navegador para efeitos de recuperação:
-     restabelece a ligação e a sincronização sem recarregar o documento, encerrar a sessão,
-     remover participantes ou destruir as ligações WebRTC activas. */
-  if(!forStudent){pageStates[currentPage-1]=snapshot();save();}
-  if(AZNY_DB&&typeof AZNY_DB.goOnline==="function")AZNY_DB.goOnline();
-  await ensureAZNYRealtime();
-  if(AZNY_DB){
-   for(let attempt=0;attempt<8;attempt++){
-    const connected=await AZNY_DB.ref(".info/connected").once("value").then(s=>s.val()===true).catch(()=>false);
-    if(connected)break;
-    await new Promise(resolve=>setTimeout(resolve,350));
-   }
+  if(!forStudent){
+   pageStates[currentPage-1]=snapshot();
+   save();
   }
-  if(!AZNY_DB)throw new Error("O serviço em tempo real ainda não está disponível.");
-  if(forStudent){
-   if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
-   bindClassSessionRealtime();
-   if(studentApproved){
-    const state=studentPeer?.connectionState||studentPeer?.iceConnectionState||"";
-    if(["failed","disconnected","closed"].includes(state))await startStudentWebRTC({reconnect:true});
-   }else await restoreStudentSessionIfApproved();
-  }else{
-   const activeSnap=await aznyRoomRef().child("activeSessionId").once("value");
-   const activeId=activeSnap.val();
-   if(activeId){
-    const statusSnap=await AZNY_DB.ref("aznyRooms/"+aznyRoomKey()+"/sessions/"+activeId+"/status").once("value").catch(()=>null);
-    if(statusSnap?.val()==="active"&&classSessionId!==activeId){
-     classSessionId=activeId;sessionRealtimeBound=false;aznyObservedClassStatus="active";
-    }
-   }
-   if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();}
-   if(classSessionId&&!sessionRealtimeBound)bindClassSessionRealtime();
-   bindTeacherPresenceWatch();
-   if(!classStarted)await restoreActiveTeacherSession();
-   Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{
-    const channel=pc?._aznyBoardChannel;
-    if(channel?.readyState==="open")try{sendBoardSnapshotToChannel(channel)}catch(_){}
-   });
-   if(classStarted)publishTeacherPresence(true,"online");
-  }
-  if(typeof toast==="function")toast("Atualização concluída: ligação e sincronização recuperadas. O ensaio e os participantes foram mantidos.");
- }catch(e){
-  console.warn("DNAC recuperação de ligação:",e);
-  if(typeof toast==="function")toast("Não foi possível recuperar totalmente a ligação: "+(e?.message||"tente novamente."));
- }finally{if(btn){btn.disabled=false;btn.textContent=original}}
+  sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),student:!!forStudent,room:roomId,session:classSessionId}));
+ }catch(e){console.warn("Não foi possível guardar o estado antes de atualizar:",e);}
+ /* Isto é um recarregamento real do documento, como o botão Atualizar do Chrome.
+    A sessão activa é recuperada no arranque; não se chama endClass nem se apagam participantes. */
+ window.location.reload();
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
 document.getElementById("studentRefreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(true)});
