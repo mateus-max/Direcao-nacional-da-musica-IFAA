@@ -1137,7 +1137,44 @@ body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!import
 .azny-self-media-overlay button.is-off{background:#a91f2bdc!important;border-color:#ffb7bd!important}
 .azny-self-media-overlay button:disabled{opacity:.45!important;cursor:not-allowed!important}
 @media(max-width:600px){.azny-self-media-overlay{right:4px!important;bottom:4px!important;gap:4px!important}.azny-self-media-overlay button{width:28px!important;height:28px!important;min-width:28px!important;min-height:28px!important;font-size:13px!important}}
-</style></head>
+</style><style id="dnac-student-church-header-fix">
+/* Identidade institucional também visível para quem entra como participante/aluno. */
+body.student-mode .topbar{
+  display:flex!important;visibility:visible!important;opacity:1!important;
+  position:relative!important;inset:auto!important;z-index:1000!important;
+  flex:0 0 44px!important;width:100%!important;height:44px!important;min-height:44px!important;
+  box-sizing:border-box!important;gap:7px!important;padding:3px 8px!important;
+  overflow:hidden!important;background:#071b33!important;border-bottom:1px solid #29445f!important;
+}
+body.student-mode .topbar>.church-logo{
+  display:flex!important;visibility:visible!important;flex:0 0 36px!important;
+  width:36px!important;height:36px!important;min-width:36px!important;max-width:36px!important;
+  align-items:center!important;justify-content:center!important;
+}
+body.student-mode .topbar>.church-logo img{
+  display:block!important;width:100%!important;height:100%!important;object-fit:contain!important;
+}
+body.student-mode #dnacProvinceIdentity{
+  display:flex!important;visibility:visible!important;flex:1 1 auto!important;min-width:0!important;
+  align-items:center!important;justify-content:flex-start!important;
+  color:#fff!important;font-weight:800!important;font-size:clamp(11px,2.2vw,16px)!important;
+  line-height:1.15!important;white-space:normal!important;overflow:hidden!important;
+  text-overflow:ellipsis!important;letter-spacing:.2px!important;
+}
+body.student-mode #installAppHeaderBtn{display:none!important}
+body.student-mode .topbar>.title{min-width:0!important;max-width:34vw!important;flex:0 1 auto!important}
+body.student-mode.azny-landscape-view .topbar{
+  display:flex!important;position:fixed!important;top:0!important;left:0!important;right:0!important;
+  height:40px!important;min-height:40px!important;flex-basis:40px!important;padding:2px 7px!important;
+}
+body.student-mode.azny-landscape-view .topbar>.church-logo{width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;flex-basis:32px!important}
+body.student-mode.azny-landscape-view #dnacProvinceIdentity{font-size:clamp(10px,1.7vw,14px)!important}
+body.student-mode.azny-landscape-view .workspace{
+  position:absolute!important;top:40px!important;left:0!important;right:0!important;
+  width:100vw!important;height:calc(100dvh - 40px)!important;min-height:0!important;
+}
+</style>
+</head>
 <body>
 <div class="app">
 <header class="topbar">
