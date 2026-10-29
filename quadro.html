@@ -45,6 +45,7 @@ if (window.top === window.self && /\/quadro\.html$/.test(window.location.pathnam
 
 /* AZNY_INTERACTION_RECOVERY: controls must remain touch/click targets above decorative layers. */
 button,[role="button"],input,select{pointer-events:auto;touch-action:manipulation}button:disabled{cursor:not-allowed;opacity:.65}
+.student-controls button.active,.student-controls button.pointer-tool-on{background:#ffe9e9!important;border-color:#e11!important;color:#b00000!important;box-shadow:inset 0 0 0 1px #e11!important}
 :root{--navy:#071b33;--navy2:#0e2c4c;--line:#d7e0e9;--bg:#eef2f7;--accent:#1677ff}
 body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:#182433;overflow:hidden}
 button,input,select{font:inherit}.app{height:100vh;display:flex;flex-direction:column}
@@ -1647,8 +1648,8 @@ function load(){try{const raw=localStorage.getItem(STORAGE);if(!raw)return;const
 function updateHint(){hint.style.display=board.querySelector(".object")||strokes.length?"none":"block"}
 function setPointerMode(on){
  pointerMode=!!on;
- const p=document.getElementById("livePointer"),b=document.getElementById("pointerTool");
- p.classList.toggle("active",pointerMode);b.classList.toggle("pointer-tool-on",pointerMode);
+ const p=document.getElementById("livePointer"),b=document.getElementById("pointerTool"),studentButton=document.getElementById("studentPointerBtn");
+ p.classList.toggle("active",pointerMode);b.classList.toggle("pointer-tool-on",pointerMode);studentButton?.classList.toggle("active",pointerMode);studentButton?.classList.toggle("pointer-tool-on",pointerMode);
  stage.style.cursor=pointerMode?"none":(tool==="text"?"text":(tool==="pen"||tool==="eraser"?"crosshair":"default"));
  {const packet=JSON.stringify({type:"live-pointer",x:0,y:0,normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,visible:pointerMode});if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}}else Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}})}
 }
