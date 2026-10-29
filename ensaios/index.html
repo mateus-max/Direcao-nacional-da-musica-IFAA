@@ -56,15 +56,17 @@ async function start(){
  try{
   if(!firebase.apps.length)firebase.initializeApp(cfg);
   const auth=firebase.auth();
-  const ref=firebase.database().ref("dnacPublicActiveSession");
-  /* Nunca deixar o ecrã preso em “A verificar” enquanto a autenticação móvel demora. */
-  let statusResolved=false;
-  const slowTimer=setTimeout(()=>{if(!statusResolved)setStatus("A ligação está a demorar. A tentar verificar o ensaio automaticamente…");},4500);
-  let authPromise=Promise.resolve(auth.currentUser);
+  /* A base de dados pode exigir autenticação. Esperar pelo login antes de abrir o listener evita que a leitura inicial seja recusada. */
   if(!auth.currentUser){
-   authPromise=auth.signInAnonymously().catch(err=>{console.warn("Autenticação anónima:",err);return null});
+   setStatus("A estabelecer ligação segura…");
+   await Promise.race([
+    auth.signInAnonymously(),
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de autenticação excedido")),7000))
+   ]);
   }
-  authPromise.then(()=>{if(!statusResolved)setStatus("Ligação estabelecida. A procurar ensaio activo…");});
+  const ref=firebase.database().ref("dnacPublicActiveSession");
+  let statusResolved=false;
+  const slowTimer=setTimeout(()=>{if(!statusResolved)setStatus("A ligação está lenta. A verificar novamente o ensaio…");},3500);
  let checkToken=0;
  function showActive(d){
   if(!d||!d.roomId||!d.sessionId||d.status!=="active")return false;
@@ -99,7 +101,7 @@ async function start(){
   if(await recoverActiveSession(d))return;
   active=null;enter.classList.add("hidden");
   setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");
- },err=>{statusResolved=true;clearTimeout(slowTimer);console.warn(err);setStatus("Não foi possível verificar o ensaio. A tentar restabelecer a ligação…");setTimeout(()=>{try{ref.off();ref.on("value",async snap=>{statusResolved=true;const d=snap.val();if(showActive(d))return;if(await recoverActiveSession(d))return;active=null;enter.classList.add("hidden");setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");},e=>{console.warn(e);setStatus("Sem ligação ao serviço de ensaios. Verifique a Internet e tente novamente.");});}catch(e){console.warn(e)}},1800);});
+ },err=>{statusResolved=true;clearTimeout(slowTimer);console.warn("Leitura do estado do ensaio:",err);setStatus("Não foi possível consultar o ensaio. A tentar novamente…");setTimeout(()=>{try{ref.off();ref.on("value",async snap=>{statusResolved=true;const d=snap.val();if(showActive(d))return;if(await recoverActiveSession(d))return;active=null;enter.classList.add("hidden");setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");},e=>{console.warn(e);setStatus("Ligação indisponível. Recarregue esta página para tentar novamente.");});}catch(e){console.warn(e);setStatus("Ligação indisponível. Recarregue esta página para tentar novamente.");}},1000);});
  }catch(e){console.warn(e);setStatus("Não foi possível ligar ao serviço de ensaios. Verifique a Internet e volte a abrir o aplicativo.");}
 }
 start();
