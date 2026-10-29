@@ -1072,15 +1072,16 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .rightbar #teacherCamera .cam-status{display:none!important}
 .rightbar .sidehead#dnac-participants-heading{margin-top:8px!important}
 </style><style id="dnac-province-header-identity">
-/* Logótipo alinhado ao limite esquerdo; nome do coral sem corte e controlos preservados. */
+/* Logótipo circular encostado à esquerda; identidade completa sem alterar os controlos. */
 body:not(.student-mode) .topbar{gap:4px!important;overflow:hidden!important;padding-left:0!important;padding-right:3px!important}
 body:not(.student-mode) .topbar>.church-logo{
  width:64px!important;height:56px!important;min-width:64px!important;max-width:64px!important;
- flex:0 0 64px!important;overflow:visible!important;border-radius:0!important;background:transparent!important;
+ flex:0 0 64px!important;overflow:hidden!important;border-radius:50%!important;background:transparent!important;
  padding:0!important;margin-left:0!important;margin-right:0!important
 }
 body:not(.student-mode) .topbar>.church-logo img{
- width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;display:block!important
+ width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;
+ border-radius:50%!important;display:block!important
 }
 #dnacProvinceIdentity{
  display:flex!important;align-items:center!important;justify-content:flex-start!important;flex:0 1 auto!important;
@@ -1102,21 +1103,21 @@ body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!import
  body:not(.student-mode) #classControlsTop{gap:3px!important}
 }
 </style><style id="dnac-director-name-camera-spacing">
-/* Nome compacto em linha única; câmara posicionada logo abaixo, sem espaço excessivo. */
+/* Nome do director centralizado e ligeiramente maior, acima da câmara. */
 .rightbar .camera-panel{display:flex!important;flex-direction:column!important;gap:1px!important}
 #dnacDirectorName{
  display:block!important;flex:0 0 auto!important;width:100%!important;box-sizing:border-box!important;
  margin:0!important;padding:1px 4px!important;min-height:0!important;height:auto!important;
  color:#000!important;background:transparent!important;border:0!important;border-radius:0!important;
  font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;
- font-size:11px!important;line-height:1.15!important;letter-spacing:.1px!important;
+ font-size:12px!important;line-height:1.15!important;letter-spacing:.1px!important;
  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
- text-shadow:none!important;text-align:left!important
+ text-shadow:none!important;text-align:center!important
 }
 #dnacDirectorName[hidden]{display:none!important}
 .rightbar #teacherCamera{margin-top:0!important;flex:0 0 auto!important}
 @media(max-width:900px){
- #dnacDirectorName{font-size:10px!important;padding:1px 3px!important;line-height:1.1!important}
+ #dnacDirectorName{font-size:11px!important;padding:1px 3px!important;line-height:1.1!important;text-align:center!important}
  .rightbar .camera-panel{gap:0!important}
 }
 </style></head>
@@ -2202,15 +2203,15 @@ async function startCamera(){
   let lastError=null;
   // Manter a configuração simples que funciona no telefone e acrescentar alternativas para webcams de computador.
   const constraintsList=[
-   {video:{facingMode:"user",width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false},
-   {video:{width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false},
+   {video:{facingMode:"user",width:{ideal:240,max:240},height:{ideal:180,max:180},frameRate:{ideal:8,max:8}},audio:false},
+   {video:{width:{ideal:240,max:240},height:{ideal:180,max:180},frameRate:{ideal:8,max:8}},audio:false},
    {video:true,audio:false}
   ];
   try{
    const devices=await navigator.mediaDevices.enumerateDevices();
    const cameras=devices.filter(d=>d.kind==="videoinput");
    const preferred=cameras.find(d=>/integrated|webcam|camera|hd camera/i.test(d.label))||cameras[0];
-   if(preferred?.deviceId)constraintsList.splice(2,0,{video:{deviceId:{exact:preferred.deviceId},width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:false});
+   if(preferred?.deviceId)constraintsList.splice(2,0,{video:{deviceId:{exact:preferred.deviceId},width:{ideal:240,max:240},height:{ideal:180,max:180},frameRate:{ideal:8,max:8}},audio:false});
   }catch(_){}
   for(const constraints of constraintsList){
    try{teacherStream=await navigator.mediaDevices.getUserMedia(constraints);if(teacherStream?.getVideoTracks?.().length)break;teacherStream?.getTracks?.().forEach(t=>t.stop());teacherStream=null;lastError=new Error("A câmara não devolveu vídeo.")}
@@ -2441,7 +2442,7 @@ async function startStudentWebRTC(options={}){
   studentRemoteDescriptionReady=false;studentPendingTeacherCandidates=[];studentBoardChunks.clear();
   toast("A ligar câmera e microfone do aluno...");
   studentLocalStream=await navigator.mediaDevices.getUserMedia({
-   video:{facingMode:"user",width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},
+   video:{facingMode:"user",width:{ideal:240,max:240},height:{ideal:180,max:180},frameRate:{ideal:8,max:8}},
    audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000},latency:{ideal:0.02}}
   });
   studentCameraOn=true;studentMicOn=true;
@@ -2530,7 +2531,7 @@ async function startStudentWebRTC(options={}){
  }catch(e){console.error(e);toast("Não foi possível ligar câmera/microfone do aluno: "+(e.name||"erro"))}
 }
 async function aznyReconnectStudentMedia(){if(!isStudent||!studentApproved||!studentRequestId)return false;aznyStopStudentMesh();try{studentPeer?._aznyBoardChannel?.close()}catch(_){}try{studentPeer?.close()}catch(_){}studentPeer=null;studentBoardChannel=null;studentBoardChunks.clear();studentPendingTeacherCandidates=[];studentRemoteDescriptionReady=false;const tv=document.getElementById("studentTeacherVideo");if(tv){try{tv.pause()}catch(_){}tv.srcObject=null;tv.style.display="block"}const ta=document.getElementById("studentTeacherAudioOut");if(ta){try{ta.pause()}catch(_){}ta.srcObject=null}document.querySelectorAll("#studentLive .azny-peer-video-card").forEach(card=>{card.querySelectorAll("video,audio").forEach(el=>{try{el.pause()}catch(_){}el.srcObject=null});card.remove()});try{await startStudentWebRTC({reconnect:true});return true}catch(e){console.warn("AZNY reconnect:",e);toast("Não foi possível restabelecer a chamada. Tente atualizar novamente.");return false}}
-async function ensureStudentMedia(){if(studentLocalStream?.getTracks?.().length)return true;try{if(!navigator.mediaDevices?.getUserMedia){toast("Câmera e microfone exigem HTTPS.");return false}studentLocalStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:320,max:320},height:{ideal:240,max:240},frameRate:{ideal:10,max:12}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000},latency:{ideal:0.02}}});studentCameraOn=true;studentMicOn=true;const v=document.getElementById("studentSelfVideo");if(v){v.srcObject=studentLocalStream;v.muted=true;v.playsInline=true;v.play?.().catch(()=>{})}studentLocalStream.getTracks().forEach(t=>{if(studentPeer&&studentPeer.connectionState!=="closed"){const sender=studentPeer.getSenders().find(s=>s.track?.kind===t.kind);if(sender)sender.replaceTrack(t).catch(()=>{});else studentPeer.addTrack(t,studentLocalStream)}});const cb=document.getElementById("studentCameraBtn"),mb=document.getElementById("studentMicBtn");if(cb)cb.textContent="📷 Desligar câmera";if(mb)mb.textContent="🎙 Desligar microfone";toast("Câmera e microfone ativados");return true}catch(e){console.warn("Permissão de mídia do aluno:",e);toast("Permita o acesso à câmera e ao microfone no navegador.");return false}}
+async function ensureStudentMedia(){if(studentLocalStream?.getTracks?.().length)return true;try{if(!navigator.mediaDevices?.getUserMedia){toast("Câmera e microfone exigem HTTPS.");return false}studentLocalStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:"user",width:{ideal:240,max:240},height:{ideal:180,max:180},frameRate:{ideal:8,max:8}},audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true,channelCount:{ideal:1},sampleRate:{ideal:48000},latency:{ideal:0.02}}});studentCameraOn=true;studentMicOn=true;const v=document.getElementById("studentSelfVideo");if(v){v.srcObject=studentLocalStream;v.muted=true;v.playsInline=true;v.play?.().catch(()=>{})}studentLocalStream.getTracks().forEach(t=>{if(studentPeer&&studentPeer.connectionState!=="closed"){const sender=studentPeer.getSenders().find(s=>s.track?.kind===t.kind);if(sender)sender.replaceTrack(t).catch(()=>{});else studentPeer.addTrack(t,studentLocalStream)}});const cb=document.getElementById("studentCameraBtn"),mb=document.getElementById("studentMicBtn");if(cb)cb.textContent="📷 Desligar câmera";if(mb)mb.textContent="🎙 Desligar microfone";toast("Câmera e microfone ativados");return true}catch(e){console.warn("Permissão de mídia do aluno:",e);toast("Permita o acesso à câmera e ao microfone no navegador.");return false}}
 async function toggleStudentMic(){if(!studentLocalStream?.getAudioTracks?.().length){const ok=await ensureStudentMedia();if(!ok)return}const t=studentLocalStream?.getAudioTracks?.()[0];if(!t){toast("O microfone ainda não está disponível.");return}if(!aznyTeacherMicAllowed){toast("O professor desligou o seu microfone.");return}t.enabled=!t.enabled;studentMicOn=t.enabled;const b=document.getElementById("studentMicBtn");if(b){b.textContent=t.enabled?"🎙 Desligar microfone":"🔇 Ligar microfone";b.disabled=!aznyTeacherMicAllowed}toast(t.enabled?"Microfone ligado":"Microfone desligado")}
 let aznyTeacherCameraAllowed=true,aznyTeacherMicAllowed=true;
 async function toggleStudentCamera(){
