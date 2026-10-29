@@ -1828,9 +1828,50 @@ function aznyRemoveLegacyPinnedDocuments(){
   localStorage.setItem(marker,"1");
  }catch(err){console.warn("Limpeza de documentos antigos:",err)}
 }
+/* Publicação persistente de imagens por sala: não depende de um único evento efémero
+   viewSync nem do canal WebRTC estar aberto no exacto instante do upload. */
+function aznyApplySharedMediaAsset(id,data){
+ if(!id||!data||!/^https?:\\/\\//i.test(String(data.src||"")))return;
+ const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");
+ if(!safeId)return;
+ const src=String(data.src);
+ let host=board.querySelector('.mediaobj[data-id="'+safeId+'"]');
+ if(!host){
+  /* Se o snapshot do quadro ainda não chegou, materializar a imagem a partir
+     do registo persistente para que o participante não fique sem a ver. */
+  const obj={kind:"image",id:safeId,src,left:Number(data.left)||100,top:Number(data.top)||80,
+   width:Number(data.width)||360,height:Number(data.height)||260,innerPanX:Number(data.innerPanX)||0,
+   innerPanY:Number(data.innerPanY)||0,uploadPending:false};
+  host=createFromData(obj);
+  if(host){board.appendChild(host);makeInteractive(host);updateHint();}
+ }
+ if(!host)return;
+ const img=host.querySelector("img");
+ if(!img)return;
+ host.dataset.mediaUrl=src;host.dataset.name=String(data.name||host.dataset.name||"Imagem");
+ delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");
+ if(img.src!==src)img.src=src;
+ img.onerror=()=>{console.warn("DNAC: a imagem partilhada não pôde ser descarregada:",src);};
+ img.onload=()=>{host.classList.remove("media-uploading-silent");};
+ aznyPendingMediaReady.delete(safeId);
+}
+function aznyPublishSharedMediaAsset(el,src){
+ if(!AZNY_DB||!el||!src)return Promise.resolve(false);
+ const payload={id:el.dataset.id,src:String(src),name:el.dataset.name||"Imagem",
+  left:parseFloat(el.style.left)||100,top:parseFloat(el.style.top)||80,
+  width:parseFloat(el.style.width)||el.offsetWidth||360,height:parseFloat(el.style.height)||el.offsetHeight||260,
+  innerPanX:Number(el.dataset.innerPanX)||0,innerPanY:Number(el.dataset.innerPanY)||0,
+  updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ return aznyRoomRef().child("mediaAssets").child(String(el.dataset.id)).set(payload)
+  .then(()=>true).catch(err=>{console.warn("DNAC: falha ao guardar imagem partilhada:",err);return false});
+}
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
  const roomRef=aznyRoomRef();
+ const mediaRef=roomRef.child("mediaAssets");
+ const applyMediaSnapshot=snap=>{const data=snap.val();if(data)aznyApplySharedMediaAsset(snap.key,data)};
+ mediaRef.on("child_added",applyMediaSnapshot,err=>console.warn("DNAC: leitura das imagens partilhadas:",err));
+ mediaRef.on("child_changed",applyMediaSnapshot,err=>console.warn("DNAC: actualização das imagens partilhadas:",err));
  roomRef.child("viewSync").on("value",snap=>{
   const event=snap.val();
   if(!event||!event.type||event.sender===(aznyUid||studentRequestId))return;
@@ -2195,21 +2236,26 @@ function resizeStart(e){
  const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";
  Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});el.appendChild(img);board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
  /* Mostrar imediatamente localmente; não enviar dataURL/base64 nos snapshots partilhados. */
- try{const preview=await fileAsDataUrl(file);img.src=preview;if(file.size<=1024*1024){el.dataset.mediaUrl=preview;delete el.dataset.uploadPending;}}
+ try{const preview=await fileAsDataUrl(file);img.src=preview;/* A pré-visualização é apenas local. Nunca publicar dataURL/base64 como URL partilhado antes do upload. */}
  catch(previewErr){console.warn("Pré-visualização da imagem:",previewErr);el.remove();toast("Não foi possível abrir esta imagem.");return}
  scheduleSave();publishLiveBoardState();
  try{
   const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);
   if(!el.isConnected)return;
   el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;
-  /* Publicar também o URL como evento pequeno e directo: não depender apenas do snapshot completo do quadro, que pode ficar atrasado em ligações lentas. */
+  /* Guardar o URL e a geometria num registo persistente da sala. Cada corista
+     recebe child_added/child_changed, mesmo se o canal WebRTC falhar ou abrir depois. */
+  await aznyPublishSharedMediaAsset(el,remoteUrl);
+  /* Publicar também o URL como evento directo para participantes já ligados. */
   const mediaReady={type:"media-ready",id:el.dataset.id,src:remoteUrl};
   publishViewportSync(mediaReady);
   const mediaPacket=JSON.stringify(mediaReady);
   if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}}
   else{Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}})}
-  scheduleSave();publishLiveBoardState();setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},250);setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},900);
-  toast("Imagem disponível para todos os participantes.");
+  scheduleSave();publishLiveBoardState();publishBoardState();
+  setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState();publishBoardState()},180);
+  setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState();publishBoardState()},700);
+  toast("Imagem disponibilizada aos participantes do ensaio.");
  }catch(err){
   console.warn("Falha ao partilhar imagem:",err);
   /* Fallback limitado a ficheiros pequenos: evita deixar a imagem presa no dispositivo de origem. */
