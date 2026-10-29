@@ -1317,6 +1317,16 @@ body:not(.student-mode) .camera-panel .join-request .jr-actions button{
   cursor:default!important;
 }
 </style>
+<style id="dnac-student-top-frame-visible-fix">
+/* A moldura superior dos coristas fica numa camada própria para não ser tapada pelo conteúdo do quadro. */
+body.student-mode .canvas-wrap{position:relative!important}
+body.student-mode .canvas-wrap::before{
+ content:""!important;display:block!important;position:absolute!important;
+ top:0!important;left:0!important;right:0!important;height:8px!important;
+ background:#8b5a2b!important;z-index:2147483000!important;
+ pointer-events:none!important
+}
+</style>
 <style id="dnac-board-top-frame-and-shared-clock">
 /* Moldura castanha no topo do quadro, separada do cabeçalho, sem alterar ferramentas ou ficheiros. */
 body:not(.student-mode) .canvas-wrap{padding-top:8px!important;box-sizing:border-box!important}
