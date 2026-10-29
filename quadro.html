@@ -1883,6 +1883,33 @@ function aznyApplySharedMediaAsset(id,data){
  if(img.src!==src)img.src=src;
  host.dataset.aznyMediaReady="1";updateHint();
 }
+function aznyApplySharedDocumentAsset(id,data){
+ if(!id||!data||!/^https?:\/\//i.test(String(data.src||"")))return;
+ const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");if(!safeId)return;
+ const src=String(data.src),name=String(data.name||"Documento");
+ let el=board.querySelector('.docobj[data-id="'+safeId+'"]');
+ if(!el){
+  createFromData({kind:"doc",id:safeId,name,pdf:src,left:Number(data.left)||100,top:Number(data.top)||80,
+   width:Number(data.width)||620,height:Number(data.height)||450,pdfPage:1,pdfScale:1});
+  el=board.querySelector('.docobj[data-id="'+safeId+'"]');
+ }
+ if(!el)return;
+ el.dataset.name=name;el.dataset.pdf=src;delete el.dataset.uploadPending;
+ el.querySelector(".docpdf-viewer")?.remove();
+ const body=el.querySelector(".docbody");if(body)body.remove();
+ el.appendChild(createAZNYPdfViewer(src,Number(data.pdfPage)||1,Number(data.pdfScale)||1));
+ el.dataset.aznyMediaReady="1";updateHint();
+}
+function aznyPublishSharedDocumentAsset(el,src){
+ if(!AZNY_DB||!el||!src)return Promise.resolve(false);
+ const payload={kind:"document",id:el.dataset.id,src:String(src),name:el.dataset.name||"Documento",
+  left:parseFloat(el.style.left)||100,top:parseFloat(el.style.top)||80,
+  width:parseFloat(el.style.width)||el.offsetWidth||620,height:parseFloat(el.style.height)||el.offsetHeight||450,
+  pdfPage:Number(el.dataset.pdfPage)||1,pdfScale:Number(el.dataset.pdfScale)||1,
+  updatedAt:firebase.database.ServerValue.TIMESTAMP};
+ return aznyRoomRef().child("mediaAssets").child(String(el.dataset.id)).set(payload)
+  .then(()=>true).catch(err=>{console.warn("DNAC: falha ao guardar documento partilhado:",err);return false});
+}
 function aznyPublishSharedMediaAsset(el,src){
  if(!AZNY_DB||!el||!src)return Promise.resolve(false);
  const payload={id:el.dataset.id,src:String(src),name:el.dataset.name||"Imagem",
@@ -1896,8 +1923,9 @@ function aznyPublishSharedMediaAsset(el,src){
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
  const roomRef=aznyRoomRef();
- roomRef.child("mediaAssets").on("child_added",snap=>{const data=snap.val();if(data)aznyApplySharedMediaAsset(snap.key,data)},err=>console.warn("DNAC: leitura das imagens partilhadas:",err));
- roomRef.child("mediaAssets").on("child_changed",snap=>{const data=snap.val();if(data)aznyApplySharedMediaAsset(snap.key,data)},err=>console.warn("DNAC: actualização das imagens partilhadas:",err));
+ const applySharedAsset=snap=>{const data=snap.val();if(!data)return;if(data.kind==="document")aznyApplySharedDocumentAsset(snap.key,data);else aznyApplySharedMediaAsset(snap.key,data)};
+ roomRef.child("mediaAssets").on("child_added",applySharedAsset,err=>console.warn("DNAC: leitura dos ficheiros partilhados:",err));
+ roomRef.child("mediaAssets").on("child_changed",applySharedAsset,err=>console.warn("DNAC: actualização dos ficheiros partilhados:",err));
  roomRef.child("viewSync").on("value",snap=>{
   const event=snap.val();
   if(!event||!event.type||event.sender===(aznyUid||studentRequestId))return;
@@ -2358,23 +2386,23 @@ function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=
  if(!file)return;if(file.size>20*1024*1024){toast("O documento excede 20 MB.");return}
  const isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");
  if(isPdf){
-  pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.uploadPending="1";
+  pushHistory();const el=document.createElement("div");el.className="object docobj";const docOwner=String(aznyUid||studentRequestId||(isStudent?"corista":"director")).replace(/[^a-zA-Z0-9_-]/g,"").slice(-14)||"user";el.dataset.id="doc_"+docOwner+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.uploadPending="1";
   el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div>';
   Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
-  /* PDFs pequenos: partilhar a pré-visualização imediatamente; substituir pelo URL definitivo após o upload. Evita gravar PDFs grandes em Firebase Realtime Database. */
+  /* Mostrar pré-visualização apenas neste dispositivo enquanto o PDF é enviado.
+     Nunca sincronizar blob: ou dataURL local: os outros dispositivos não conseguem abri-los. */
+  try{el.appendChild(createAZNYPdfViewer(URL.createObjectURL(file)));scheduleSave();}catch(previewErr){console.warn("Pré-visualização PDF:",previewErr);}
   try{
-   if(file.size<=400*1024){
-    const preview=await fileAsDataUrl(file);
-    if(!el.isConnected)return;
-    el.dataset.pdf=preview;delete el.dataset.uploadPending;el.appendChild(createAZNYPdfViewer(preview));scheduleSave();publishLiveBoardState();
-   }else{
-    el.appendChild(createAZNYPdfViewer(URL.createObjectURL(file)));scheduleSave();publishLiveBoardState();
-   }
-  }catch(previewErr){console.warn("Pré-visualização PDF:",previewErr);el.querySelector(".docpdf-viewer")?.remove();}
-  try{const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.pdf=remoteUrl;delete el.dataset.uploadPending;el.querySelector(".docpdf-viewer")?.remove();el.appendChild(createAZNYPdfViewer(remoteUrl));scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);}
+   const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);
+   if(!el.isConnected)return;
+   el.dataset.pdf=remoteUrl;delete el.dataset.uploadPending;
+   el.querySelector(".docpdf-viewer")?.remove();el.appendChild(createAZNYPdfViewer(remoteUrl));
+   await aznyPublishSharedDocumentAsset(el,remoteUrl);
+   scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);
+  }
   catch(err){console.warn("Falha ao partilhar PDF:",err);delete el.dataset.uploadPending;scheduleSave();publishLiveBoardState();toast("O PDF continua aberto neste dispositivo, mas o envio para todos falhou. Verifique Firebase Storage.")}return
  }
- try{const content=await file.text();pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div><div class="docbody"></div>';el.querySelector(".docbody").textContent=content;Object.assign(el.style,{left:"100px",top:"80px",width:"500px",height:"350px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Documento aberto e partilhado");}catch(err){console.error("Leitura do documento:",err);toast("Não foi possível abrir este documento.")}
+ try{const content=await file.text();pushHistory();const el=document.createElement("div");el.className="object docobj";const docOwner=String(aznyUid||studentRequestId||(isStudent?"corista":"director")).replace(/[^a-zA-Z0-9_-]/g,"").slice(-14)||"user";el.dataset.id="doc_"+docOwner+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,7);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div><div class="docbody"></div>';el.querySelector(".docbody").textContent=content;Object.assign(el.style,{left:"100px",top:"80px",width:"500px",height:"350px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Documento aberto e partilhado");}catch(err){console.error("Leitura do documento:",err);toast("Não foi possível abrir este documento.")}
 }
 function chartSvg(type,values,title){
  const vals=values.split(',').map(Number).filter(v=>Number.isFinite(v)); const v=vals.length?vals:[12,19,8,15,10]; const W=640,H=360,p=48,max=Math.max(...v,1),min=Math.min(0,...v),range=Math.max(1,max-min); let body='';
