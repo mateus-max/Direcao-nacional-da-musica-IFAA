@@ -1759,7 +1759,7 @@ function aznyCoerceBoardPages(value){
  if(!value||typeof value!=="object")return null;
  const out=Array(5).fill(null);
  Object.keys(value).forEach(key=>{
-  if(/^\\d+$/.test(key)){
+  if(/^\d+$/.test(key)){
    const index=Number(key);
    if(index>=0&&index<5)out[index]=value[key];
   }
