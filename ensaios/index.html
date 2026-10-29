@@ -57,14 +57,40 @@ async function start(){
   if(!firebase.apps.length)firebase.initializeApp(cfg);
   const auth=firebase.auth();if(!auth.currentUser){try{await auth.signInAnonymously()}catch(_){}}
   const ref=firebase.database().ref("dnacPublicActiveSession");
-  ref.on("value",snap=>{
-   const d=snap.val();
-   if(d&&d.status==="active"&&d.roomId&&d.sessionId){
-    active=d;enter.classList.remove("hidden");
-    const title=d.title||"Ensaio musical";
-    setStatus("🔴 "+title+" está a decorrer"+(d.director?" com "+d.director:"")+". Toque abaixo para pedir entrada.",true);
-   }else{active=null;enter.classList.add("hidden");setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");}
-  },err=>{console.warn(err);setStatus("Não foi possível verificar o ensaio. Verifique a ligação à Internet e tente novamente.");});
+ let checkToken=0;
+ function showActive(d){
+  if(!d||!d.roomId||!d.sessionId||d.status!=="active")return false;
+  active=d;enter.classList.remove("hidden");
+  const title=d.title||"Ensaio musical";
+  setStatus("🔴 "+title+" está a decorrer"+(d.director?" com "+d.director:"")+". Toque abaixo para pedir entrada.",true);
+  return true;
+ }
+ async function recoverActiveSession(lastKnown){
+  /* Recupera o estado real da sala se o índice público estiver atrasado, sem alterar o link permanente. */
+  if(!lastKnown?.roomId)return false;
+  const token=++checkToken;
+  try{
+   const roomKey=String(lastKnown.roomId).replace(/[.#$\\[\\]\\/]/g,"_");
+   const roomRef=firebase.database().ref("aznyRooms/"+roomKey);
+   const idSnap=await roomRef.child("activeSessionId").once("value");
+   const sessionId=String(idSnap.val()||"").trim();
+   if(!sessionId||token!==checkToken)return false;
+   const sessionSnap=await roomRef.child("sessions").child(sessionId).once("value");
+   const session=sessionSnap.val();
+   if(!session||session.status!=="active"||token!==checkToken)return false;
+   const recovered={...lastKnown,roomId:lastKnown.roomId,sessionId,status:"active",title:session.title||lastKnown.title||"Ensaio musical"};
+   showActive(recovered);
+   ref.set(recovered).catch(e=>console.warn("Não foi possível actualizar o índice público do ensaio:",e));
+   return true;
+  }catch(e){console.warn("Recuperação do estado do ensaio:",e);return false}
+ }
+ ref.on("value",async snap=>{
+  const d=snap.val();
+  if(showActive(d))return;
+  if(await recoverActiveSession(d))return;
+  active=null;enter.classList.add("hidden");
+  setStatus("Os ensaios ainda não iniciaram. Quando o director iniciar uma actividade, ela aparecerá aqui.");
+ },err=>{console.warn(err);setStatus("Não foi possível verificar o ensaio. Verifique a ligação à Internet e tente novamente.");});
  }catch(e){console.warn(e);setStatus("Não foi possível ligar ao serviço de ensaios. Verifique a Internet e volte a abrir o aplicativo.");}
 }
 start();
