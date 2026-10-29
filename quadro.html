@@ -1071,11 +1071,41 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .rightbar #teacherCamera .camera-label,
 .rightbar #teacherCamera .cam-status{display:none!important}
 .rightbar .sidehead#dnac-participants-heading{margin-top:8px!important}
+</style><style id="dnac-province-header-identity">
+/* Cabeçalho institucional DNAC: logótipo completo, identidade dourada e controlos alinhados à direita. */
+body:not(.student-mode) .topbar{gap:10px!important;overflow:hidden!important}
+body:not(.student-mode) .topbar>.church-logo{
+ width:64px!important;height:56px!important;min-width:64px!important;max-width:64px!important;
+ flex:0 0 64px!important;overflow:visible!important;border-radius:0!important;background:transparent!important;
+ padding:0!important;margin:0!important
+}
+body:not(.student-mode) .topbar>.church-logo img{
+ width:100%!important;height:100%!important;object-fit:contain!important;border-radius:0!important;display:block!important
+}
+#dnacProvinceIdentity{
+ display:flex!important;align-items:center!important;justify-content:flex-start!important;flex:0 1 auto!important;
+ min-width:90px!important;max-width:230px!important;white-space:normal!important;
+ font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;
+ font-size:clamp(11px,1.15vw,16px)!important;line-height:1.12!important;letter-spacing:.35px!important;
+ color:#fff!important;text-shadow:0 0 2px #d9ad4b,0 0 5px #b8860b,1px 1px 2px #6f4b08!important;
+}
+body:not(.student-mode) .topbar>.title{display:none!important}
+body:not(.student-mode) #classControlsTop{
+ display:flex!important;flex:1 1 auto!important;min-width:0!important;margin-left:auto!important;
+ justify-content:flex-end!important;align-items:center!important;gap:7px!important;white-space:nowrap!important
+}
+body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!important;margin-left:0!important}
+@media(max-width:900px){
+ body:not(.student-mode) .topbar{gap:5px!important;padding-left:5px!important;padding-right:5px!important}
+ body:not(.student-mode) .topbar>.church-logo{width:54px!important;height:48px!important;min-width:54px!important;max-width:54px!important;flex-basis:54px!important}
+ #dnacProvinceIdentity{font-size:10px!important;min-width:68px!important;max-width:110px!important;letter-spacing:0!important}
+ body:not(.student-mode) #classControlsTop{gap:3px!important}
+}
 </style></head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="logo church-logo"><img src="icons/logo-jesus-luz.svg" alt="Jesus — A Luz do Mundo"></div><div id="institutionalIdentity" hidden aria-live="polite"></div>
+  <div class="logo church-logo"><img src="icons/logo-jesus-luz.svg" alt="Logótipo da Igreja Fé Apostólica Americana"></div><div id="dnacProvinceIdentity" aria-live="polite"></div>
   <div class="title"><input id="boardTitle" value="Nova aula" aria-label="Nome da aula"></div>
   <div class="class-controls" id="classControlsTop">
     <div class="class-timer" id="classTimer">00:00:00</div>
@@ -3461,6 +3491,27 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  document.getElementById("boardTitle")?.addEventListener("input",setParticipantsLabel);
  document.getElementById("boardTitle")?.addEventListener("change",setParticipantsLabel);
  setTimeout(setParticipantsLabel,700);
+})();
+</script><script id="dnac-province-identity-render">
+(function(){
+ const el=document.getElementById("dnacProvinceIdentity");
+ if(!el)return;
+ const p=new URLSearchParams(location.search);
+ const clean=v=>String(v||"").trim();
+ const province=clean(p.get("provincia")||p.get("dirProvincia")||p.get("dp")||"");
+ const activity=clean(p.get("atividade")||p.get("a")||"").toLowerCase();
+ const title=clean(p.get("titulo")||document.getElementById("boardTitle")?.value||"").toLowerCase();
+ const isNational=/nacional/.test(activity)||/nacional/.test(title);
+ const isMeeting=/encontro|reuni[aã]o/.test(activity)||/encontro nacional|reuni[aã]o nacional/.test(title);
+ let label;
+ if(isNational)label=isMeeting?"IFA · ENCONTRO NACIONAL":"IFA · ENSAIO NACIONAL";
+ else if(province){
+  const normalized=province.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+  const official=normalized==="cun ene"?"Cunene":province;
+  label="IFA · CORAL DO "+official.toLocaleUpperCase("pt");
+ }else label="IFA · DIRECÇÃO NACIONAL DA MÚSICA";
+ el.textContent=label;
+ el.title=label;
 })();
 </script></body>
 </html>
