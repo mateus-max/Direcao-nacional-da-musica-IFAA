@@ -1102,21 +1102,22 @@ body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!import
  body:not(.student-mode) #classControlsTop{gap:3px!important}
 }
 </style><style id="dnac-director-name-camera-spacing">
-/* Nome do director acima do vídeo; a câmara desce apenas o necessário para criar espaço. */
-.rightbar .camera-panel{display:flex!important;flex-direction:column!important;gap:5px!important}
+/* Nome compacto em linha única; câmara posicionada logo abaixo, sem espaço excessivo. */
+.rightbar .camera-panel{display:flex!important;flex-direction:column!important;gap:1px!important}
 #dnacDirectorName{
  display:block!important;flex:0 0 auto!important;width:100%!important;box-sizing:border-box!important;
- margin:0!important;padding:4px 7px!important;min-height:22px!important;
- color:#173451!important;background:#eaf1f8!important;border-left:3px solid #c99b35!important;
- border-radius:5px!important;font-family:Georgia,"Times New Roman",serif!important;
- font-weight:700!important;font-size:clamp(11px,1.05vw,14px)!important;line-height:1.2!important;
- overflow-wrap:anywhere!important;text-align:left!important
+ margin:0!important;padding:1px 4px!important;min-height:0!important;height:auto!important;
+ color:#fff!important;background:transparent!important;border:0!important;border-radius:0!important;
+ font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;
+ font-size:11px!important;line-height:1.15!important;letter-spacing:.1px!important;
+ white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
+ text-shadow:0 0 2px #d9ad4b,0 0 5px #b8860b,1px 1px 2px #6f4b08!important;text-align:left!important
 }
 #dnacDirectorName[hidden]{display:none!important}
 .rightbar #teacherCamera{margin-top:0!important;flex:0 0 auto!important}
 @media(max-width:900px){
- #dnacDirectorName{font-size:11px!important;padding:3px 5px!important;min-height:20px!important}
- .rightbar .camera-panel{gap:4px!important}
+ #dnacDirectorName{font-size:10px!important;padding:1px 3px!important;line-height:1.1!important}
+ .rightbar .camera-panel{gap:0!important}
 }
 </style></head>
 <body>
@@ -3538,9 +3539,10 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  const p=new URLSearchParams(location.search);
  const isStudent=p.get("p")==="1"||p.get("aluno")==="1";
  const name=String(p.get("dn")||p.get("dirNome")||p.get("directorName")||(!isStudent?p.get("nome"):"")||"").trim();
- if(name){
-  label.textContent="Director dos ensaios: "+name;
-  label.title=label.textContent;
+ const firstName=name.split(/\s+/).filter(Boolean)[0]||"";
+ if(firstName){
+  label.textContent="DR "+firstName;
+  label.title="Director dos ensaios: "+name;
   label.hidden=false;
  }else{
   label.hidden=true;
