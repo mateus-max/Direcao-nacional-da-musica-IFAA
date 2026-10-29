@@ -1842,8 +1842,10 @@ function aznyApplySharedMediaAsset(id,data){
   const obj={kind:"image",id:safeId,src,left:Number(data.left)||100,top:Number(data.top)||80,
    width:Number(data.width)||360,height:Number(data.height)||260,innerPanX:Number(data.innerPanX)||0,
    innerPanY:Number(data.innerPanY)||0,uploadPending:false};
-  host=createFromData(obj);
-  if(host){board.appendChild(host);makeInteractive(host);updateHint();}
+  /* createFromData cria e adiciona o elemento ao quadro por conta própria. */
+  createFromData(obj);
+  host=board.querySelector('.mediaobj[data-id="'+safeId+'"]');
+  if(host)updateHint();
  }
  if(!host)return;
  const img=host.querySelector("img");
