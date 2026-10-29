@@ -1831,7 +1831,7 @@ function aznyRemoveLegacyPinnedDocuments(){
 /* Publicação persistente de imagens por sala: não depende de um único evento efémero
    viewSync nem do canal WebRTC estar aberto no exacto instante do upload. */
 function aznyApplySharedMediaAsset(id,data){
- if(!id||!data||!/^https?:\\/\\//i.test(String(data.src||"")))return;
+ if(!id||!data||!/^https?:\/\//i.test(String(data.src||"")))return;
  const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");
  if(!safeId)return;
  const src=String(data.src);
