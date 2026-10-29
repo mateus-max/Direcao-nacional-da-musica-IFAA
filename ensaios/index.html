@@ -70,7 +70,7 @@ async function start(){
    if(!lastKnown?.roomId)return false;
    const token=++checkToken;
    try{
-    const roomKey=String(lastKnown.roomId).replace(/[.#$\\[\\]\\/]/g,"_");
+    const roomKey=String(lastKnown.roomId).split("").map(ch=>".#$[]/".includes(ch)?"_":ch).join("");
     const roomRef=db.ref("aznyRooms/"+roomKey);
     const idSnap=await roomRef.child("activeSessionId").once("value");
     const sessionId=String(idSnap.val()||"").trim();
