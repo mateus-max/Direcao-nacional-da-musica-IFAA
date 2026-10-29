@@ -1208,6 +1208,54 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
  body:not(.student-mode) .camera-panel .join-request .jr-actions{flex-direction:row!important}
 }
 </style>
+<style id="dnac-join-request-compact-layout">
+/* Cartões de pedidos compactos: texto legível, sem colunas esmagadas nem letras empilhadas. */
+body:not(.student-mode) .camera-panel .camera-join-requests{
+  width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  gap:5px!important;margin:5px 0 6px!important;padding:2px!important;
+  max-height:min(32vh,250px)!important;overflow-y:auto!important;overflow-x:hidden!important;
+}
+body:not(.student-mode) .camera-panel .camera-join-requests .join-request{
+  display:flex!important;flex-direction:column!important;align-items:stretch!important;
+  width:100%!important;min-width:0!important;box-sizing:border-box!important;
+  padding:7px 8px!important;gap:4px!important;border-width:1px!important;border-radius:8px!important;
+  overflow:hidden!important;white-space:normal!important;overflow-wrap:break-word!important;word-break:normal!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-heading{
+  font-size:10px!important;line-height:1.2!important;margin:0!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-name{
+  display:block!important;width:100%!important;min-width:0!important;
+  font-size:13px!important;line-height:1.2!important;margin:0!important;
+  overflow-wrap:break-word!important;word-break:normal!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-details{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:start!important;gap:3px 8px!important;width:100%!important;min-width:0!important;
+  font-size:10px!important;line-height:1.25!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-detail-row{
+  display:grid!important;grid-template-columns:max-content minmax(0,1fr)!important;
+  align-items:start!important;gap:3px!important;min-width:0!important;width:100%!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-detail-row strong{
+  font-size:10px!important;white-space:nowrap!important;word-break:normal!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-detail-row span{
+  min-width:0!important;overflow-wrap:break-word!important;word-break:normal!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-actions{
+  display:flex!important;flex-direction:row!important;gap:5px!important;margin-top:2px!important;
+}
+body:not(.student-mode) .camera-panel .join-request .jr-actions button{
+  flex:1 1 0!important;min-width:0!important;min-height:30px!important;height:30px!important;
+  padding:4px 6px!important;font-size:11px!important;line-height:1.1!important;white-space:nowrap!important;
+}
+@media(max-width:760px){
+ body:not(.student-mode) .camera-panel .camera-join-requests{max-height:28vh!important}
+ body:not(.student-mode) .camera-panel .join-request .jr-details{grid-template-columns:minmax(0,1fr)!important}
+}
+</style>
 <style id="dnac-document-scroll-without-select">
 /* Com a ferramenta Selecionar desligada, o toque pode percorrer o conteúdo
    interno dos documentos sem arrastar o documento inteiro no quadro. */
