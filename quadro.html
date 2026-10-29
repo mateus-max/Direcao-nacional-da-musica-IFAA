@@ -2003,43 +2003,66 @@ function makeInteractive(el){
  if(el.classList.contains("mediaobj")&&!el.dataset.aznyInnerImagePan){
   el.dataset.aznyInnerImagePan="1";
   const img=el.querySelector("img");
-  let pan=null;
+  let pan=null, momentumFrame=0, velocityX=0, velocityY=0, lastMoveTime=0;
   const getOffset=()=>({x:Number(el.dataset.innerPanX)||0,y:Number(el.dataset.innerPanY)||0});
+  const stopMomentum=()=>{if(momentumFrame)cancelAnimationFrame(momentumFrame);momentumFrame=0;velocityX=velocityY=0};
   const applyOffset=()=>{
    if(!img)return;
    const p=getOffset();
    img.style.transform="translate3d("+p.x+"px,"+p.y+"px,0)";
    img.style.transformOrigin="0 0";
-   img.style.willChange=pan?"transform":"auto";
+   img.style.willChange=(pan||momentumFrame)?"transform":"auto";
+  };
+  const setOffset=(x,y)=>{
+   el.dataset.innerPanX=String(x);el.dataset.innerPanY=String(y);applyOffset();
+  };
+  const runMomentum=()=>{
+   momentumFrame=0;
+   if(pan||(!velocityX&&!velocityY)){applyOffset();return}
+   const p=getOffset();
+   /* Inércia natural: um gesto rápido continua; tocar e puxar no sentido oposto trava/reverte. */
+   setOffset(p.x+velocityX,p.y+velocityY);
+   velocityX*=0.965;velocityY*=0.965;
+   if(Math.abs(velocityX)>.35||Math.abs(velocityY)>.35){
+    momentumFrame=requestAnimationFrame(runMomentum);
+   }else{velocityX=velocityY=0;applyOffset()}
   };
   el.addEventListener("pointerdown",e=>{
    if(tool!=="view"||!img||e.target.closest?.(".resize,button,input,select,textarea"))return;
    if(e.pointerType==="mouse"&&e.button!==0)return;
-   pan={id:e.pointerId,x:e.clientX,y:e.clientY,baseX:getOffset().x,baseY:getOffset().y};
+   stopMomentum();
+   pan={id:e.pointerId,x:e.clientX,y:e.clientY,lastX:e.clientX,lastY:e.clientY};
+   lastMoveTime=performance.now();
    try{el.setPointerCapture(e.pointerId)}catch(_){}
    e.preventDefault();e.stopPropagation();
   },{passive:false});
   el.addEventListener("pointermove",e=>{
    if(!pan||e.pointerId!==pan.id)return;
-   /* Movimento 1:1 com o dedo, sem easing nem atraso. */
-   el.dataset.innerPanX=String(pan.baseX+(e.clientX-pan.x));
-   el.dataset.innerPanY=String(pan.baseY+(e.clientY-pan.y));
-   applyOffset();
+   const now=performance.now(),dt=Math.max(1,now-lastMoveTime);
+   const dx=e.clientX-pan.lastX,dy=e.clientY-pan.lastY;
+   const p=getOffset();
+   /* Resposta imediata 1:1: a imagem não fica atrás do dedo. */
+   setOffset(p.x+dx,p.y+dy);
+   const sampleX=dx/dt*16.67,sampleY=dy/dt*16.67;
+   velocityX=velocityX*.35+sampleX*.65;
+   velocityY=velocityY*.35+sampleY*.65;
+   pan.lastX=e.clientX;pan.lastY=e.clientY;lastMoveTime=now;
    e.preventDefault();e.stopPropagation();
   },{passive:false});
   const endPan=e=>{
    if(!pan||e.pointerId!==pan.id)return;
-   pan=null;applyOffset();
+   pan=null;
    try{if(el.hasPointerCapture(e.pointerId))el.releasePointerCapture(e.pointerId)}catch(_){}
+   if(Math.abs(velocityX)>.7||Math.abs(velocityY)>.7)momentumFrame=requestAnimationFrame(runMomentum);
+   else{velocityX=velocityY=0;applyOffset()}
   };
   el.addEventListener("pointerup",endPan);
   el.addEventListener("pointercancel",endPan);
   el.addEventListener("lostpointercapture",endPan);
   el.addEventListener("wheel",e=>{
    if(tool!=="view"||!img)return;
-   el.dataset.innerPanX=String(getOffset().x-e.deltaX);
-   el.dataset.innerPanY=String(getOffset().y-e.deltaY);
-   applyOffset();e.preventDefault();
+   stopMomentum();const p=getOffset();
+   setOffset(p.x-e.deltaX*1.8,p.y-e.deltaY*1.8);e.preventDefault();
   },{passive:false});
   applyOffset();
  }
