@@ -1072,8 +1072,8 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .rightbar #teacherCamera .cam-status{display:none!important}
 .rightbar .sidehead#dnac-participants-heading{margin-top:8px!important}
 </style><style id="dnac-province-header-identity">
-/* Cabeçalho institucional DNAC: logótipo completo, identidade dourada e controlos alinhados à direita. */
-body:not(.student-mode) .topbar{gap:10px!important;overflow:hidden!important}
+/* Logótipo encostado à esquerda; identificação institucional numa linha quando houver espaço. */
+body:not(.student-mode) .topbar{gap:6px!important;overflow:hidden!important;padding-left:0!important}
 body:not(.student-mode) .topbar>.church-logo{
  width:64px!important;height:56px!important;min-width:64px!important;max-width:64px!important;
  flex:0 0 64px!important;overflow:visible!important;border-radius:0!important;background:transparent!important;
@@ -1084,9 +1084,9 @@ body:not(.student-mode) .topbar>.church-logo img{
 }
 #dnacProvinceIdentity{
  display:flex!important;align-items:center!important;justify-content:flex-start!important;flex:0 1 auto!important;
- min-width:90px!important;max-width:230px!important;white-space:normal!important;
+ min-width:0!important;max-width:220px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
  font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;
- font-size:clamp(11px,1.15vw,16px)!important;line-height:1.12!important;letter-spacing:.35px!important;
+ font-size:clamp(10px,1.05vw,15px)!important;line-height:1.05!important;letter-spacing:.15px!important;
  color:#fff!important;text-shadow:0 0 2px #d9ad4b,0 0 5px #b8860b,1px 1px 2px #6f4b08!important;
 }
 body:not(.student-mode) .topbar>.title{display:none!important}
@@ -1096,9 +1096,9 @@ body:not(.student-mode) #classControlsTop{
 }
 body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!important;margin-left:0!important}
 @media(max-width:900px){
- body:not(.student-mode) .topbar{gap:5px!important;padding-left:5px!important;padding-right:5px!important}
+ body:not(.student-mode) .topbar{gap:4px!important;padding-left:0!important;padding-right:3px!important}
  body:not(.student-mode) .topbar>.church-logo{width:54px!important;height:48px!important;min-width:54px!important;max-width:54px!important;flex-basis:54px!important}
- #dnacProvinceIdentity{font-size:10px!important;min-width:68px!important;max-width:110px!important;letter-spacing:0!important}
+ #dnacProvinceIdentity{font-size:10px!important;min-width:0!important;max-width:160px!important;letter-spacing:0!important;flex:0 1 auto!important}
  body:not(.student-mode) #classControlsTop{gap:3px!important}
 }
 </style><style id="dnac-director-name-camera-spacing">
@@ -1107,11 +1107,11 @@ body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!import
 #dnacDirectorName{
  display:block!important;flex:0 0 auto!important;width:100%!important;box-sizing:border-box!important;
  margin:0!important;padding:1px 4px!important;min-height:0!important;height:auto!important;
- color:#fff!important;background:transparent!important;border:0!important;border-radius:0!important;
+ color:#000!important;background:transparent!important;border:0!important;border-radius:0!important;
  font-family:Georgia,"Times New Roman",serif!important;font-weight:700!important;
  font-size:11px!important;line-height:1.15!important;letter-spacing:.1px!important;
  white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important;
- text-shadow:0 0 2px #d9ad4b,0 0 5px #b8860b,1px 1px 2px #6f4b08!important;text-align:left!important
+ text-shadow:none!important;text-align:left!important
 }
 #dnacDirectorName[hidden]{display:none!important}
 .rightbar #teacherCamera{margin-top:0!important;flex:0 0 auto!important}
