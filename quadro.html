@@ -1227,6 +1227,46 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
 #stage.document-scroll-enabled .dochead{touch-action:pan-y!important}
 #stage.document-scroll-enabled .docpdf-pages{overflow-y:auto!important;overflow-x:auto!important}
 </style>
+
+<style id="dnac-fixed-frame-inner-scroll">
+/* Quando Selecionar está desligado, a moldura azul fica fixa no quadro.
+   O gesto percorre apenas o conteúdo interno da imagem/documento. */
+#stage.document-scroll-enabled #board .mediaobj,
+#stage.document-scroll-enabled #board .docobj{
+  touch-action:pan-x pan-y!important;
+  -webkit-user-select:auto!important;
+  user-select:auto!important;
+}
+#stage.document-scroll-enabled #board .mediaobj{
+  overflow:auto!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#stage.document-scroll-enabled #board .mediaobj img{
+  display:block!important;
+  width:auto!important;
+  height:auto!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:initial!important;
+  pointer-events:auto!important;
+  -webkit-user-drag:none!important;
+}
+#stage.document-scroll-enabled #board .docobj{
+  overflow:hidden!important;
+}
+#stage.document-scroll-enabled #board .docbody,
+#stage.document-scroll-enabled #board .docpdf-viewer,
+#stage.document-scroll-enabled #board .docpdf-pages{
+  touch-action:pan-x pan-y!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+}
+#stage.document-scroll-enabled #board .dochead{
+  touch-action:pan-x pan-y!important;
+  cursor:default!important;
+}
+</style>
 </head>
 <body>
 <div class="app">
