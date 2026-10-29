@@ -3407,7 +3407,7 @@ try{
   }else sessionStorage.removeItem("dnacNetworkRecoveryPending");
  }
 }catch(_){}
-function forceRefreshBoard(forStudent){
+async function forceRefreshBoard(forStudent){
  try{
   if(!forStudent){
    pageStates[currentPage-1]=snapshot();
@@ -3415,8 +3415,14 @@ function forceRefreshBoard(forStudent){
   }
   sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),student:!!forStudent,room:roomId,session:classSessionId}));
  }catch(e){console.warn("Não foi possível guardar o estado antes de atualizar:",e);}
- /* Isto é um recarregamento real do documento, como o botão Atualizar do Chrome.
-    A sessão activa é recuperada no arranque; não se chama endClass nem se apagam participantes. */
+ /* Actualiza primeiro o service worker para evitar que o botão volte a servir uma versão antiga em cache.
+    Mantém exactamente o mesmo endereço e não encerra nem reinicia o ensaio. */
+ try{
+  if("serviceWorker" in navigator){
+   const reg=await navigator.serviceWorker.getRegistration();
+   if(reg)await Promise.race([reg.update(),new Promise(resolve=>setTimeout(resolve,1800))]);
+  }
+ }catch(e){console.warn("Actualização do service worker:",e);}
  window.location.reload();
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
