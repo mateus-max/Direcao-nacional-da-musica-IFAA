@@ -243,6 +243,8 @@ async function loadDivisions(){try{const response=await fetch("./data/provincias
 let dnmInstallPrompt=null;
 const dnmInstallButton=$("installAppButton"),dnmInstallHint=$("installAppHint");
 function showInstallButton(){dnmInstallButton.hidden=false;}
+// Mantém o botão acessível mesmo em navegadores que não disparam beforeinstallprompt.
+if(!window.matchMedia("(display-mode: standalone)").matches && navigator.standalone!==true){showInstallButton();dnmInstallHint.textContent="Instale pelo botão ou pelo menu do navegador.";}
 window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();dnmInstallPrompt=event;showInstallButton();dnmInstallHint.textContent="Instale no seu dispositivo para abrir como aplicação.";});
 dnmInstallButton.addEventListener("click",async()=>{
  if(dnmInstallPrompt){
