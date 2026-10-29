@@ -1022,7 +1022,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 <style id="dnac-pointer-label-fix">#pointerTool,#studentPointerBtn{font-weight:700!important;cursor:pointer!important}</style>
 
 <style id="dnac-camera-footer-controls-fix">
-/* Botões pequenos, com símbolos visíveis, encostados ao limite inferior da câmara. */
+/* Ícones transparentes no rodapé: sem quadrados nem fundos brancos. */
 .camera-panel #teacherCamera{position:relative!important;isolation:isolate!important;overflow:hidden!important}
 .camera-panel #teacherCamera #teacherVideo{object-fit:cover!important;object-position:center 28%!important;z-index:1!important}
 .camera-panel #teacherCamera .cam-off{z-index:2!important;pointer-events:none!important}
@@ -1032,18 +1032,22 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
  position:absolute!important;left:0!important;right:0!important;bottom:2px!important;top:auto!important;
  width:100%!important;display:flex!important;flex-direction:row!important;justify-content:space-between!important;
  align-items:flex-end!important;gap:0!important;padding:0 5px!important;margin:0!important;
- z-index:20!important;pointer-events:none!important;transform:none!important
+ z-index:20!important;pointer-events:none!important;transform:none!important;background:transparent!important;
+ border:0!important;box-shadow:none!important
 }
 .camera-panel #teacherCamera>.cam-buttons.cam-overlay-controls button{
  pointer-events:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;
  flex:0 0 24px!important;width:24px!important;min-width:24px!important;max-width:24px!important;
  height:22px!important;min-height:22px!important;max-height:22px!important;padding:0!important;margin:0!important;
- border:1px solid #c9d8e7!important;border-radius:5px!important;background:#f7fbff!important;color:#173451!important;
- font-size:13px!important;line-height:1!important;text-indent:0!important;box-shadow:0 1px 3px #0005!important;opacity:1!important
+ border:0!important;border-radius:0!important;background:transparent!important;color:#fff!important;
+ font-size:13px!important;line-height:1!important;text-indent:0!important;box-shadow:none!important;
+ opacity:1!important;appearance:none!important;-webkit-appearance:none!important;text-shadow:0 1px 3px #000!important
 }
-.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:13px!important;display:block!important}
-.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:13px!important;display:block!important}
+.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:17px!important;display:block!important}
+.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:17px!important;display:block!important}
 .camera-panel #teacherCamera #cameraBtn::after,.camera-panel #teacherCamera #micBtn::after{content:none!important;display:none!important}
+.camera-panel #teacherCamera #cameraBtn[data-media-state="off"],.camera-panel #teacherCamera #micBtn[data-media-state="off"]{background:transparent!important}
+.camera-panel #teacherCamera #cameraBtn[data-media-state="on"],.camera-panel #teacherCamera #micBtn[data-media-state="on"]{background:transparent!important}
 </style>
 </head>
 <body>
