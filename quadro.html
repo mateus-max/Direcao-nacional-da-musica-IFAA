@@ -1126,11 +1126,14 @@ body:not(.student-mode) .top-actions{display:flex!important;flex:0 0 auto!import
  #dnacDirectorName{font-size:11px!important;padding:1px 3px!important;line-height:1.1!important;text-align:center!important}
  .rightbar .camera-panel{gap:0!important}
 }
+.install-app-header{flex:0 0 auto!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:4px!important;min-height:30px!important;padding:5px 8px!important;border:1px solid #c99b42!important;border-radius:9px!important;background:linear-gradient(135deg,#ffe49a,#c78924)!important;color:#172538!important;font-size:11px!important;font-weight:800!important;white-space:nowrap!important;cursor:pointer!important;box-shadow:0 2px 7px #0002!important}
+.student-mode .install-app-header{font-size:10px!important;min-height:32px!important;padding:5px 7px!important}
+@media(max-width:500px){.student-mode .topbar{gap:5px!important;padding-left:5px!important;padding-right:5px!important}.student-mode .topbar>.church-logo{flex-basis:38px!important;width:38px!important;height:38px!important;min-width:38px!important;max-width:38px!important}.student-mode .install-app-header{font-size:9px!important;padding:4px 5px!important}}
 </style></head>
 <body>
 <div class="app">
 <header class="topbar">
-  <div class="logo church-logo"><img src="icons/logo-jesus-luz.svg" alt="Logótipo da Igreja Fé Apostólica Americana"></div><div id="dnacProvinceIdentity" aria-live="polite"></div>
+  <div class="logo church-logo"><img src="icons/logo-jesus-luz.svg" alt="Logótipo da Igreja Fé Apostólica Americana"></div><div id="dnacProvinceIdentity" aria-live="polite"></div><button type="button" id="installAppHeaderBtn" class="install-app-header" aria-label="Instalar aplicação" title="Instalar aplicação no telefone ou computador">⬇ Instalar</button>
   <div class="title"><input id="boardTitle" value="Nova aula" aria-label="Nome da aula"></div>
   <div class="class-controls" id="classControlsTop">
     <div class="class-timer" id="classTimer">00:00:00</div>
@@ -2397,7 +2400,7 @@ function saveRecording(){
  if(btn){btn.textContent="⏺ Gravar ensaio";btn.classList.remove("recording")}screenRecorder=null;recordedChunks=[];
  if(!blob.size){toast("A gravação ficou vazia. Tente novamente e permita a captura do ecrã.");return}
  const url=URL.createObjectURL(blob),name="dnm-musica-"+(recorder?._aznyForStudent?"aluno-":"aula-")+new Date().toISOString().slice(0,10)+"-"+new Date().toTimeString().slice(0,8).replace(/:/g,"-")+".webm";
- if(box){box.style.display="block";box.innerHTML="";const label=document.createElement("div");label.textContent="Gravação pronta ("+Math.round(blob.size/1024/1024*10)/10+" MB).";box.appendChild(label);const link=document.createElement("a");link.href=url;link.download=name;link.textContent="⬇ Baixar gravação para o dispositivo";link.style.cssText="display:inline-block;padding:8px 10px;margin-top:6px;background:#e8f2ff;border-radius:7px;color:#075ecf;font-weight:800;text-decoration:none";box.appendChild(link);const open=document.createElement("button");open.type="button";open.textContent="Abrir vídeo";open.style.marginLeft="6px";open.onclick=()=>window.open(url,"_blank","noopener");box.appendChild(open);box.scrollIntoView?.({block:"nearest",behavior:"smooth"})}
+ if(box){box.style.display="block";box.innerHTML="";const label=document.createElement("div");label.textContent="Gravação pronta ("+Math.round(blob.size/1024/1024*10)/10+" MB).";box.appendChild(label);const link=document.createElement("a");link.href=url;link.download=name;link.textContent="⬇ Baixar gravação para o dispositivo";link.style.cssText="display:inline-block;padding:8px 10px;margin-top:6px;background:#e8f2ff;border-radius:7px;color:#075ecf;font-weight:800;text-decoration:none";link.addEventListener("click",()=>{link.textContent="Download iniciado…";setTimeout(()=>{if(box){box.replaceChildren();box.style.display="none"}},1800);setTimeout(()=>URL.revokeObjectURL(url),60000)},{once:true});box.appendChild(link);const open=document.createElement("button");open.type="button";open.textContent="Abrir vídeo";open.style.marginLeft="6px";open.onclick=()=>window.open(url,"_blank","noopener");box.appendChild(open);box.scrollIntoView?.({block:"nearest",behavior:"smooth"})}
  toast("Gravação guardada. Use «Baixar gravação para o dispositivo» para a guardar no telefone ou computador.");
 }
 function escapeHtml(v){return String(v).replace(/[&<>'"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[c]))}
@@ -3607,6 +3610,22 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  const firstName=name.split(/\s+/).filter(Boolean)[0]||"";
  label.textContent=firstName?"DR "+firstName:"Director";
  label.title=name?"Director dos ensaios: "+name:"Director dos ensaios";
+})();
+</script><script id="dnm-install-controls">
+(function(){
+ let promptEvent=null;
+ const buttons=[document.getElementById("installAppHeaderBtn")].filter(Boolean);
+ const isStandalone=()=>window.matchMedia("(display-mode: standalone)").matches||window.navigator.standalone===true;
+ const tell=message=>{if(typeof toast==="function")toast(message);else alert(message)};
+ if(isStandalone()){buttons.forEach(b=>b.hidden=true);return}
+ window.addEventListener("beforeinstallprompt",event=>{event.preventDefault();promptEvent=event;buttons.forEach(b=>{b.hidden=false;b.title="Instalar aplicação no telefone ou computador"});});
+ window.addEventListener("appinstalled",()=>{promptEvent=null;buttons.forEach(b=>b.hidden=true);tell("Aplicação instalada com sucesso.")});
+ async function install(){if(promptEvent){promptEvent.prompt();try{const choice=await promptEvent.userChoice;if(choice?.outcome==="accepted")buttons.forEach(b=>b.hidden=true)}catch(_){}promptEvent=null;return}
+ const ua=navigator.userAgent||"";
+ if(/iphone|ipad|ipod/i.test(ua)){tell("Para instalar no iPhone/iPad: abra no Safari, toque em Partilhar e escolha “Adicionar ao ecrã principal”.");return}
+ tell("Para instalar no Android ou computador, abra o menu do navegador (⋮) e escolha “Instalar aplicação” ou “Adicionar ao ecrã inicial”. Se essa opção não aparecer, abra primeiro a página principal do Departamento e tente novamente.");}
+ buttons.forEach(b=>b.addEventListener("click",install));
+ if("serviceWorker" in navigator&&location.protocol.startsWith("http"))navigator.serviceWorker.register("./service-worker.js").catch(e=>console.warn("PWA DNM:",e));
 })();
 </script></body>
 </html>
