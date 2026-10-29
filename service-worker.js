@@ -1,5 +1,5 @@
-const CACHE_NAME="dnm-shell-v3";
-const CORE_FILES=["./","./index.html","./manifest-dnm.webmanifest","./icons/dnm-pwa-192.png","./icons/logo-jesus-luz.svg"];
+const CACHE_NAME="dnm-shell-v4";
+const CORE_FILES=["./","./index.html","./ensaio.html","./manifest-dnm.webmanifest","./manifest-ensaios.webmanifest","./icons/dnm-pwa-192.png","./icons/logo-jesus-luz.svg"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(cache=>cache.addAll(CORE_FILES).catch(()=>{})).then(()=>self.skipWaiting()))});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE_NAME).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
 self.addEventListener("fetch",event=>{
