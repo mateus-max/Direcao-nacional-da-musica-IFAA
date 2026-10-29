@@ -3345,7 +3345,6 @@ async function resolveStudentActiveSession(){
   if(explicitSession&&explicitSession!==active.sessionId)return false;
   roomId=String(active.roomId);
   if(!explicitSession)classSessionId=String(active.sessionId);
-  try{localStorage.setItem(aznyStudentSessionStorageKey(),localStorage.getItem(aznyStudentSessionStorageKey())||"")}catch(_){}
   return !!classSessionId;
  }catch(e){console.warn("DNAC: não foi possível localizar o ensaio activo:",e);return false}
 }
