@@ -1889,12 +1889,12 @@ function aznyApplySharedDocumentAsset(id,data){
  const src=String(data.src),name=String(data.name||"Documento");
  let el=board.querySelector('.docobj[data-id="'+safeId+'"]');
  if(!el){
-  createFromData({kind:"doc",id:safeId,name,pdf:src,left:Number(data.left)||100,top:Number(data.top)||80,
+  createFromData({kind:"doc",id:safeId,name,pdf:src,fileType:data.fileType||"application/pdf",left:Number(data.left)||100,top:Number(data.top)||80,
    width:Number(data.width)||620,height:Number(data.height)||450,pdfPage:1,pdfScale:1});
   el=board.querySelector('.docobj[data-id="'+safeId+'"]');
  }
  if(!el)return;
- el.dataset.name=name;el.dataset.pdf=src;delete el.dataset.uploadPending;
+ el.dataset.name=name;el.dataset.pdf=src;el.dataset.fileType=data.fileType||"application/pdf";delete el.dataset.uploadPending;
  el.querySelector(".docpdf-viewer")?.remove();el.querySelector(".docbody")?.remove();el.querySelector(".doc-file-link")?.remove();
  if(String(data.fileType||"").toLowerCase()==="application/pdf"||/\.pdf$/i.test(name)){
   el.appendChild(createAZNYPdfViewer(src,Number(data.pdfPage)||1,Number(data.pdfScale)||1));
