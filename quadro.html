@@ -1208,6 +1208,25 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
  body:not(.student-mode) .camera-panel .join-request .jr-actions{flex-direction:row!important}
 }
 </style>
+<style id="dnac-document-scroll-without-select">
+/* Com a ferramenta Selecionar desligada, o toque pode percorrer o conteúdo
+   interno dos documentos sem arrastar o documento inteiro no quadro. */
+#stage.document-scroll-enabled,
+#stage.document-scroll-enabled #board,
+#stage.document-scroll-enabled .object,
+#stage.document-scroll-enabled .docobj{
+  touch-action:pan-y!important;
+}
+#stage.document-scroll-enabled .docbody,
+#stage.document-scroll-enabled .docpdf-viewer,
+#stage.document-scroll-enabled .docpdf-pages{
+  touch-action:pan-y!important;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+}
+#stage.document-scroll-enabled .dochead{touch-action:pan-y!important}
+#stage.document-scroll-enabled .docpdf-pages{overflow-y:auto!important;overflow-x:auto!important}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1760,6 +1779,7 @@ function setTool(t){
  /* Clicking an already selected mode switches it off; "view" means no active tool. */
  if(t!=="view"&&tool===t)t="view";
  tool=t;
+ stage.classList.toggle("document-scroll-enabled",t==="view");
  document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",t!=="view"&&b.dataset.tool===t));
  [["studentSelectBtn","select"],["studentTextBtn","text"],["studentEraseBtn","eraser"]].forEach(([id,mode])=>document.getElementById(id)?.classList.toggle("active",t===mode));
  // In drawing/erasing mode, raise the transparent drawing layer above every
