@@ -228,6 +228,8 @@ $("profileForm").addEventListener("submit",e=>{
    const room="DNM-"+(crypto.randomUUID?crypto.randomUUID():Date.now().toString(36)+Math.random().toString(36).slice(2));
    next.searchParams.set("sala",room);next.searchParams.set("acesso","institucional");
  }
+ /* Guardar o perfil no próprio dispositivo para que actualizar o navegador não obrigue a preencher o formulário novamente. */
+ try{localStorage.setItem("dnm_profile_v1",JSON.stringify({name,role,province,municipality,activity,voice,instrument,room:inviteRoom,session:inviteSession,savedAt:Date.now()}))}catch(_){}
  $("enterButton").disabled=true;$("enterButton").textContent="A abrir o quadro…";
  location.href=next.href;
 });
