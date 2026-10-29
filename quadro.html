@@ -4460,5 +4460,28 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  });
 })();
 </script>
+
+<style id="dnac-permanent-top-wooden-frame">
+/* Moldura superior independente do canvas: permanece visível mesmo quando o quadro é deslocado/transformado. */
+#canvasWrap{
+  position:relative!important;
+  isolation:isolate!important;
+}
+#canvasWrap::before{
+  content:""!important;
+  display:block!important;
+  position:absolute!important;
+  top:0!important;
+  left:0!important;
+  right:0!important;
+  height:8px!important;
+  min-height:8px!important;
+  background:#8b5a2b!important;
+  border-bottom:1px solid #6f431f!important;
+  z-index:2147483647!important;
+  pointer-events:none!important;
+}
+</style>
+
 </body>
 </html>
