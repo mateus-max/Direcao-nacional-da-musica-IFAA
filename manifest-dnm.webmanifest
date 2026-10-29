@@ -10,7 +10,7 @@
     "fullscreen",
     "standalone"
   ],
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "any",
   "background_color": "#ffffff",
   "theme_color": "#071b33",
