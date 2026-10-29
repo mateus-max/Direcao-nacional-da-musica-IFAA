@@ -1317,56 +1317,6 @@ body:not(.student-mode) .camera-panel .join-request .jr-actions button{
   cursor:default!important;
 }
 </style>
-<style id="dnac-mobile-join-request-fix">
-/* Corrige os pedidos de entrada no painel estreito do telemóvel do director. */
-@media (max-width: 760px){
- body:not(.student-mode) .camera-panel .camera-join-requests{
-  width:100%!important;max-width:100%!important;min-width:0!important;
-  max-height:42vh!important;overflow-x:hidden!important;overflow-y:auto!important;
-  box-sizing:border-box!important;padding:3px!important;
- }
- body:not(.student-mode) .camera-panel .camera-join-requests .join-request{
-  display:flex!important;flex-direction:column!important;align-items:stretch!important;
-  width:100%!important;max-width:100%!important;min-width:0!important;
-  height:auto!important;max-height:none!important;box-sizing:border-box!important;
-  overflow:visible!important;white-space:normal!important;word-break:normal!important;
-  padding:9px!important;gap:6px!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-heading,
- body:not(.student-mode) .camera-panel .join-request .jr-name{
-  display:block!important;width:100%!important;min-width:0!important;
-  white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;
-  line-height:1.3!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-details{
-  display:flex!important;flex-direction:column!important;align-items:stretch!important;
-  width:100%!important;min-width:0!important;gap:5px!important;
-  font-size:11px!important;line-height:1.3!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-detail-row{
-  display:grid!important;grid-template-columns:minmax(68px,82px) minmax(0,1fr)!important;
-  align-items:start!important;gap:5px!important;width:100%!important;min-width:0!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-detail-row strong{
-  display:block!important;min-width:0!important;white-space:normal!important;
-  overflow-wrap:normal!important;word-break:normal!important;font-size:11px!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-detail-row span{
-  display:block!important;min-width:0!important;width:100%!important;
-  white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;
-  font-size:11px!important;line-height:1.3!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-actions{
-  display:flex!important;flex-direction:row!important;align-items:stretch!important;
-  gap:7px!important;width:100%!important;margin:3px 0 0!important;
- }
- body:not(.student-mode) .camera-panel .join-request .jr-actions button{
-  display:block!important;flex:1 1 0!important;width:50%!important;min-width:0!important;
-  min-height:36px!important;height:auto!important;padding:8px 5px!important;
-  white-space:normal!important;overflow-wrap:normal!important;font-size:12px!important;
- }
-}
-</style>
 </head>
 <body>
 <div class="app">
@@ -1628,31 +1578,7 @@ function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(u
 function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());scheduleSave()}
 function scheduleSave(){localBoardMutationAt=Date.now();clearTimeout(saveTimer);saveTimer=setTimeout(save,250);if(!isStudent&&!remoteBoardApplying){clearTimeout(remoteSaveTimer);remoteSaveTimer=setTimeout(publishLiveBoardState,8)}}
 function save(){try{pageStates[currentPage-1]=snapshot();localStorage.setItem(STORAGE,JSON.stringify({version:2,currentPage,pages:pageStates}));document.getElementById("storageState").textContent="● Guardado"}catch(e){toast("Limite do Local Storage atingido")}}
-async function aznyPublishAuthoritativeBoardSnapshot(){
- if(isStudent||!AZNY_DB||!aznyRoomRef())return false;
- try{
-  pageStates[currentPage-1]=snapshot();
-  const payload={currentPage,title:document.getElementById("boardTitle").value,zoom,
-   boardSize:{width:board.clientWidth,height:board.clientHeight},
-   pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds],
-   updatedAt:firebase.database.ServerValue.TIMESTAMP};
-  await aznyRoomRef().child("board").update(payload);
-  return true;
- }catch(e){console.warn("DNAC: não foi possível publicar o quadro completo:",e);return false}
-}
-function publishBoardState(){
- if(remoteBoardApplying||!AZNY_DB||isStudent)return;
- try{
-  /* O snapshot actual tem de ser colocado na página activa antes da escrita.
-     Sem isto, a gravação podia enviar páginas antigas/vazias para os coristas. */
-  pageStates[currentPage-1]=snapshot();
-  const ref=aznyRoomRef().child("board");
-  ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,
-   boardSize:{width:board.clientWidth,height:board.clientHeight},
-   pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds],
-   updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(e=>console.warn("AZNY board sync:",e));
- }catch(e){console.warn("AZNY board sync:",e)}
-}
+function publishBoardState(){if(remoteBoardApplying||!AZNY_DB)return;try{const ref=aznyRoomRef().child("board");ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds]}).catch(e=>console.warn("AZNY board sync:",e))}catch(e){console.warn("AZNY board sync:",e)}}
 const aznyBoardSendQueues=new WeakMap();
 function sendBoardSnapshotToChannel(ch){
  if(!ch||ch.readyState!=="open")return false;
@@ -1750,30 +1676,13 @@ function aznyPatchObjectGeometry(page){
  strokes=page?.strokes||[];redraw();updateHint();return true;
 }
 
-/* O Firebase Realtime Database pode devolver pages como objecto numérico
-   em vez de Array quando a lista contém páginas vazias/null. Converter antes
-   de testar/aplicar; caso contrário o participante ignora o quadro inteiro e
-   fica com a página branca mesmo que o director tenha conteúdo. */
-function aznyCoerceBoardPages(value){
- if(Array.isArray(value))return value;
- if(!value||typeof value!=="object")return null;
- const out=Array(5).fill(null);
- Object.keys(value).forEach(key=>{
-  if(/^\d+$/.test(key)){
-   const index=Number(key);
-   if(index>=0&&index<5)out[index]=value[key];
-  }
- });
- return out.some(page=>page!==null&&page!==undefined)?out:null;
-}
 function applyRemoteBoardState(d){
  if(!d||remoteBoardApplying)return;
  try{
   if(Array.isArray(d.deletedObjectIds))d.deletedObjectIds.forEach(id=>deletedObjectIds.add(String(id)));
   if(Number.isFinite(Number(d.zoom))&&Number(d.zoom)>=0.5&&Number(d.zoom)<=2&&Math.abs(Number(d.zoom)-zoom)>0.001)setZoom(Number(d.zoom),false);if(d.pan)applyBoardPan(d.pan);
-  const storedPages=aznyCoerceBoardPages(d.pages);
-  if(storedPages){
-   const normalizedIncoming=normalizeRemoteBoardPages(storedPages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
+  if(Array.isArray(d.pages)){
+   const normalizedIncoming=normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
    /* Firebase/WebRTC pode enviar páginas ainda não inicializadas como null. Não substituir uma página já guardada localmente por esse vazio: isso fazia imagens das páginas 2–5 desaparecerem ao regressar à página 1. */
    const mergedIncoming=normalizedIncoming.map((page,index)=>page==null&&pageStates[index]!=null?pageStates[index]:page);
    const incomingPages=aznyFilterDeletedPages(mergedIncoming);
@@ -1811,19 +1720,11 @@ function applyRemoteBoardState(d){
 }
 function updatePointerTrail(){/* Intencionalmente sem rasto: a lupa mostra apenas a posição atual. */}
 const aznyPendingMediaReady=new Map();
-/* Carrega a imagem sem deixar o ícone de imagem quebrada aparecer. Se o URL falhar, tenta renovar o URL no Firebase Storage. */
-function aznySetSharedImageSource(img,src){
- const url=String(src||"");if(!img||!(url.toLowerCase().startsWith("http://")||url.toLowerCase().startsWith("https://")))return;
- img.dataset.aznySource=url;img.style.visibility="hidden";let retried=false;
- img.onload=()=>{img.style.visibility="visible";img.dataset.aznyLoaded="1";};
- img.onerror=async()=>{if(!retried&&window.firebase?.storage){retried=true;try{const fresh=await firebase.storage().refFromURL(url).getDownloadURL();if(fresh){img.dataset.aznySource=fresh;img.src=fresh;return}}catch(err){console.warn("DNAC: falha ao renovar o URL da imagem:",err)}}img.style.visibility="hidden";console.warn("DNAC: imagem indisponível; ícone de erro ocultado.");};
- if(img.src!==url)img.src=url;else if(img.complete&&img.naturalWidth>0)img.style.visibility="visible";
-}
 function aznyApplyMediaReady(m){
  const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,""),src=String(m.src||"");
- if(!id||!(src.toLowerCase().startsWith("http://")||src.toLowerCase().startsWith("https://")))return;
+ if(!id||!/^https?:\/\//i.test(src))return;
  const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
- if(host&&img){host.dataset.mediaUrl=src;delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");aznySetSharedImageSource(img,src);host.dataset.aznyMediaReady="1";scheduleSave();}
+ if(host&&img){host.dataset.mediaUrl=src;delete host.dataset.uploadPending;img.src=src;host.dataset.aznyMediaReady="1";scheduleSave();}
  else aznyPendingMediaReady.set(id,src);
 }
 function handleBoardChannelMessage(raw){
@@ -1884,42 +1785,8 @@ function handleBoardChannelMessage(raw){
   }
  }catch(e){console.warn("AZNY board packet:",e)}
 }
-/* Recupera imagens antigas que ficaram guardadas como dataURL apenas no dispositivo do director.
-   URLs base64 tornam o snapshot enorme e impedem a sincronização com os coristas; migrá-las
-   para Firebase Storage antes de publicar o estado do quadro. */
-let aznyInlineMediaRepairRunning=false,aznyInlineMediaRepairNeeded=false;
-async function aznyRepairInlineImages(){
- if(isStudent||!AZNY_DB||!window.firebase?.storage||aznyInlineMediaRepairRunning)return false;
- const imgs=[...board.querySelectorAll(".mediaobj")].filter(el=>{
-  const img=el.querySelector("img"),src=String(el.dataset.mediaUrl||img?.getAttribute("src")||"");
-  return src.startsWith("data:image/");
- });
- if(!imgs.length)return false;
- aznyInlineMediaRepairRunning=true;let repaired=false;
- try{
-  for(const el of imgs){
-   const img=el.querySelector("img");if(!img)continue;
-   const src=String(el.dataset.mediaUrl||img.getAttribute("src")||"");if(!src.startsWith("data:image/"))continue;
-   try{
-    const response=await fetch(src);const blob=await response.blob();
-    const name=String(el.dataset.name||"imagem-partilhada.png").replace(/[^a-zA-Z0-9._-]/g,"_");
-    const file=new File([blob],name,{type:blob.type||"image/png"});
-    const remoteUrl=await uploadBoardFile(file);
-    el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;
-    aznySetSharedImageSource(img,remoteUrl);
-    const stored=await aznyPublishSharedMediaAsset(el,remoteUrl);
-    if(stored)repaired=true;
-   }catch(err){console.warn("DNAC: não foi possível recuperar uma imagem antiga para partilha:",err)}
-  }
- }finally{aznyInlineMediaRepairRunning=false}
- return repaired;
-}
 function publishLiveBoardState(){
  if(remoteBoardApplying)return;
- if(!isStudent&&!aznyInlineMediaRepairRunning&&[...board.querySelectorAll(".mediaobj")].some(el=>String(el.dataset.mediaUrl||el.querySelector("img")?.getAttribute("src")||"").startsWith("data:image/"))){
-  if(!aznyInlineMediaRepairNeeded){aznyInlineMediaRepairNeeded=true;aznyRepairInlineImages().then(repaired=>{aznyInlineMediaRepairNeeded=false;if(repaired){scheduleSave();publishBoardState();publishLiveBoardState()}}).catch(err=>{aznyInlineMediaRepairNeeded=false;console.warn("DNAC: recuperação das imagens:",err)})}
-  return;
- }
  clearTimeout(liveBoardTimer);
  /* Coalesce rapid pointer events into a steady frame rate instead of flooding
     WebRTC with a complete board snapshot for every pointer movement. */
@@ -1961,50 +1828,9 @@ function aznyRemoveLegacyPinnedDocuments(){
   localStorage.setItem(marker,"1");
  }catch(err){console.warn("Limpeza de documentos antigos:",err)}
 }
-/* Publicação persistente de imagens por sala: não depende de um único evento efémero
-   viewSync nem do canal WebRTC estar aberto no exacto instante do upload. */
-function aznyApplySharedMediaAsset(id,data){
- if(!id||!data||!/^https?:\/\//i.test(String(data.src||"")))return;
- const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");
- if(!safeId)return;
- const src=String(data.src);
- let host=board.querySelector('.mediaobj[data-id="'+safeId+'"]');
- if(!host){
-  /* Se o snapshot do quadro ainda não chegou, materializar a imagem a partir
-     do registo persistente para que o participante não fique sem a ver. */
-  const obj={kind:"image",id:safeId,src,left:Number(data.left)||100,top:Number(data.top)||80,
-   width:Number(data.width)||360,height:Number(data.height)||260,innerPanX:Number(data.innerPanX)||0,
-   innerPanY:Number(data.innerPanY)||0,uploadPending:false};
-  /* createFromData cria e adiciona o elemento ao quadro por conta própria. */
-  createFromData(obj);
-  host=board.querySelector('.mediaobj[data-id="'+safeId+'"]');
-  if(host)updateHint();
- }
- if(!host)return;
- const img=host.querySelector("img");
- if(!img)return;
- host.dataset.mediaUrl=src;host.dataset.name=String(data.name||host.dataset.name||"Imagem");
- delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");
- aznySetSharedImageSource(img,src);
- aznyPendingMediaReady.delete(safeId);
-}
-function aznyPublishSharedMediaAsset(el,src){
- if(!AZNY_DB||!el||!src)return Promise.resolve(false);
- const payload={id:el.dataset.id,src:String(src),name:el.dataset.name||"Imagem",
-  left:parseFloat(el.style.left)||100,top:parseFloat(el.style.top)||80,
-  width:parseFloat(el.style.width)||el.offsetWidth||360,height:parseFloat(el.style.height)||el.offsetHeight||260,
-  innerPanX:Number(el.dataset.innerPanX)||0,innerPanY:Number(el.dataset.innerPanY)||0,
-  updatedAt:firebase.database.ServerValue.TIMESTAMP};
- return aznyRoomRef().child("mediaAssets").child(String(el.dataset.id)).set(payload)
-  .then(()=>true).catch(err=>{console.warn("DNAC: falha ao guardar imagem partilhada:",err);return false});
-}
 function setupBoardRealtime(){
  if(!AZNY_DB)return;
  const roomRef=aznyRoomRef();
- const mediaRef=roomRef.child("mediaAssets");
- const applyMediaSnapshot=snap=>{const data=snap.val();if(data)aznyApplySharedMediaAsset(snap.key,data)};
- mediaRef.on("child_added",applyMediaSnapshot,err=>console.warn("DNAC: leitura das imagens partilhadas:",err));
- mediaRef.on("child_changed",applyMediaSnapshot,err=>console.warn("DNAC: actualização das imagens partilhadas:",err));
  roomRef.child("viewSync").on("value",snap=>{
   const event=snap.val();
   if(!event||!event.type||event.sender===(aznyUid||studentRequestId))return;
@@ -2024,8 +1850,7 @@ function setupBoardRealtime(){
      Rebuilding the DOM for an unchanged snapshot was dropping object selection. */
   try{
    const local=snapshot();
-   const storedPages=aznyCoerceBoardPages(d.pages);
-   const remotePages=storedPages?normalizeRemoteBoardPages(storedPages.concat(Array(5).fill(null)).slice(0,5),d.boardSize):null;
+   const remotePages=Array.isArray(d.pages)?normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize):null;
    const remotePage=remotePages?remotePages[Math.max(0,Math.min(4,(+d.currentPage||1)-1))]:null;
    if(remotePage&&Math.max(1,Math.min(5,+d.currentPage||1))===currentPage&&aznySameBoardPage(local,remotePage))return;
   }catch(_){}
@@ -2195,7 +2020,7 @@ function createFromData(o){
   Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px",fontSize:o.style?.fontSize,fontFamily:o.style?.fontFamily,fontWeight:o.style?.fontWeight,fontStyle:o.style?.fontStyle,textDecoration:o.style?.textDecoration,color:o.style?.color,textAlign:o.style?.textAlign});
   if(o.anchorId){el.dataset.anchorId=o.anchorId;el.dataset.anchorX=o.anchorX??0;el.dataset.anchorY=o.anchorY??0;el.dataset.anchorW=o.anchorW??1;el.dataset.anchorH=o.anchorH??1;el.dataset.anchorFontSize=(o.anchorFontSize??parseFloat(el.style.fontSize)??16);}
  }else if(o.kind==="image"){
-  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";const readySrc=aznyPendingMediaReady.get(String(o.id||""));if(readySrc){el.dataset.mediaUrl=readySrc;aznyPendingMediaReady.delete(String(o.id||""));}if(o.uploadPending&&!readySrc)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain;visibility:hidden";el.appendChild(img);if(readySrc||o.src){aznySetSharedImageSource(img,readySrc||o.src)}else{img.removeAttribute("src");el.classList.add("media-uploading-silent");}if(o.uploadPending&&!readySrc&&!o.src)el.classList.add("media-uploading-silent");img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
+  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";const readySrc=aznyPendingMediaReady.get(String(o.id||""));if(readySrc){el.dataset.mediaUrl=readySrc;aznyPendingMediaReady.delete(String(o.id||""));}if(o.uploadPending&&!readySrc)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.src=readySrc||o.src||"";img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain";el.appendChild(img);if(o.uploadPending&&!readySrc&&!o.src){img.removeAttribute("src");el.classList.add("media-uploading-silent");}img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
  }else if(o.kind==="chart"){ el=createChartObject(o.chartType||"bar",o.values||"12,19,8,15,10",o.title||"Gráfico"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="music"){ el=createMusicObject(o.musicType||"blank",o.title||"Música"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="resource"){ el=createResourceObject(o.resourceType||"bible",o.language||"pt"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
@@ -2366,37 +2191,25 @@ function resizeStart(e){
  if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
  if(!/^image\//i.test(file.type||"")&&!/\.(jpe?g|png|gif|webp|bmp|svg|heic|heif)$/i.test(file.name||"")){toast("Escolha um ficheiro de imagem válido.");return}
  pushHistory();
- const el=document.createElement("div");el.className="object mediaobj";/* IDs globais únicos evitam que a imagem do professor colida com o o1/o2 de um corista e seja substituída em vez de aparecer. */const mediaOwner=String(aznyUid||studentRequestId||(isStudent?"corista":"director")).replace(/[^a-zA-Z0-9_-]/g,"").slice(-12)||"user";el.dataset.id="img_"+mediaOwner+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,8);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
+ const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
  const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";
  Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});el.appendChild(img);board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
  /* Mostrar imediatamente localmente; não enviar dataURL/base64 nos snapshots partilhados. */
- try{const preview=await fileAsDataUrl(file);img.src=preview;/* A pré-visualização é apenas local. Nunca publicar dataURL/base64 como URL partilhado antes do upload. */}
+ try{const preview=await fileAsDataUrl(file);img.src=preview;if(file.size<=1024*1024){el.dataset.mediaUrl=preview;delete el.dataset.uploadPending;}}
  catch(previewErr){console.warn("Pré-visualização da imagem:",previewErr);el.remove();toast("Não foi possível abrir esta imagem.");return}
  scheduleSave();publishLiveBoardState();
  try{
   const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);
   if(!el.isConnected)return;
   el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;
-  /* Guardar o URL e a geometria num registo persistente da sala. Cada corista
-     recebe child_added/child_changed, mesmo se o canal WebRTC falhar ou abrir depois. */
-  await aznyPublishSharedMediaAsset(el,remoteUrl);
-  /* Publicação autoritativa após o upload: grava a página completa com o URL
-     permanente no Realtime Database, sem depender apenas do canal WebRTC. */
-  pageStates[currentPage-1]=snapshot();
-  if(AZNY_DB){
-   const boardPayload={currentPage,title:document.getElementById("boardTitle").value,zoom,boardSize:{width:board.clientWidth,height:board.clientHeight},pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds],updatedAt:firebase.database.ServerValue.TIMESTAMP};
-   await aznyRoomRef().child("board").update(boardPayload);
-  }
-  /* Publicar também o URL como evento directo para participantes já ligados. */
+  /* Publicar também o URL como evento pequeno e directo: não depender apenas do snapshot completo do quadro, que pode ficar atrasado em ligações lentas. */
   const mediaReady={type:"media-ready",id:el.dataset.id,src:remoteUrl};
   publishViewportSync(mediaReady);
   const mediaPacket=JSON.stringify(mediaReady);
   if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}}
   else{Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(mediaPacket)}catch(e){console.warn("Partilha directa da imagem:",e)}}})}
-  scheduleSave();publishLiveBoardState();publishBoardState();
-  setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState();publishBoardState()},180);
-  setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState();publishBoardState()},700);
-  toast("Imagem disponibilizada aos participantes do ensaio.");
+  scheduleSave();publishLiveBoardState();setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},250);setTimeout(()=>{publishViewportSync(mediaReady);publishLiveBoardState()},900);
+  toast("Imagem disponível para todos os participantes.");
  }catch(err){
   console.warn("Falha ao partilhar imagem:",err);
   /* Fallback limitado a ficheiros pequenos: evita deixar a imagem presa no dispositivo de origem. */
@@ -3265,13 +3078,7 @@ async function connectStudentPeer(id,d){
   pc._aznyBoardChannel=ch;ch.bufferedAmountLowThreshold=65536;
   ch.onopen=()=>sendBoardSnapshotToChannel(ch);
   ch.onmessage=ev=>{
-   try{const m=JSON.parse(ev.data);if(m.type==="board-request"){
-    /* Um corista que regressa pede o quadro mais recente; guardar também no
-       Firebase para que a recuperação não dependa exclusivamente do WebRTC. */
-    sendBoardSnapshotToChannel(ch);
-    aznyPublishAuthoritativeBoardSnapshot();
-    return
-   }handleBoardChannelMessage(ev.data)}catch(err){console.warn("AZNY student board packet:",err)}
+   try{const m=JSON.parse(ev.data);if(m.type==="board-request"){sendBoardSnapshotToChannel(ch);return}handleBoardChannelMessage(ev.data)}catch(err){console.warn("AZNY student board packet:",err)}
   };
   ch.onclose=()=>{if(pc._aznyBoardChannel===ch)pc._aznyBoardChannel=null};
  };
@@ -3350,22 +3157,6 @@ function showStudentJoinReady(){
  const h=modal?.querySelector("h3"),p=modal?.querySelector(".card p");if(h)h.textContent="Entrar no ensaio";if(p)p.textContent="Identifique-se com o seu nome. O director terá de aprovar a sua entrada.";
  if(waiting)waiting.style.display="none";
 }
-async function resolveStudentActiveSession(){
- if(!isStudent||!AZNY_DB)return false;
- try{
-  const explicitRoom=AZNY_URL_PARAMS.get("r")||AZNY_URL_PARAMS.get("sala")||"";
-  const explicitSession=AZNY_URL_PARAMS.get("s")||AZNY_URL_PARAMS.get("sess")||"";
-  const snap=await AZNY_DB.ref("dnacPublicActiveSession").once("value");
-  const active=snap.val();
-  if(!active||active.status!=="active"||!active.roomId||!active.sessionId)return false;
-  const normRoom=v=>String(v||"").replace(/[.#$\[\]\/]/g,"_");
-  if(explicitRoom&&normRoom(explicitRoom)!==normRoom(active.roomId))return false;
-  if(explicitSession&&explicitSession!==active.sessionId)return false;
-  roomId=String(active.roomId);
-  if(!explicitSession)classSessionId=String(active.sessionId);
-  return !!classSessionId;
- }catch(e){console.warn("DNAC: não foi possível localizar o ensaio activo:",e);return false}
-}
 async function restoreStudentSessionIfApproved(){
  if(!isStudent||!classSessionId||!AZNY_DB)return false;
  try{
@@ -3393,21 +3184,8 @@ async function restoreStudentSessionIfApproved(){
  }catch(e){console.warn("AZNY restore student session:",e);showStudentJoinReady();return false}
 }
 async function dnmEnterImmersiveMode(){try{if(!document.fullscreenElement&&document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen()}catch(e){console.info("Ecrã inteiro não permitido pelo navegador:",e)}try{if(screen.orientation?.lock)await screen.orientation.lock("landscape")}catch(_){}}
-function setupStudent(){document.body.classList.add("student-mode","azny-landscape-view");document.body.classList.remove("student-approved");setTool("view");syncStudentAutoOrientation();if(!window.aznyStudentOrientationBound){window.aznyStudentOrientationBound=true;window.addEventListener("resize",syncStudentAutoOrientation,{passive:true});window.addEventListener("orientationchange",syncStudentAutoOrientation,{passive:true});if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener("change",syncStudentAutoOrientation)}const rotateBtn=document.getElementById("studentRotateBtn");if(rotateBtn){rotateBtn.hidden=true;rotateBtn.style.display="none"}showStudentWaitingForClass();const bindStudentButton=(id,fn)=>{const b=document.getElementById(id);if(!b||b.dataset.aznyBound==="1")return;b.dataset.aznyBound="1";b.disabled=false;b.style.pointerEvents="auto";b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();try{fn()}catch(err){console.error("AZNY student tool "+id,err);toast("Não foi possível ativar esta ferramenta.")}},{passive:false})};bindStudentButton("studentPointerBtn",()=>{const active=!pointerMode;if(active){setTool("view");setPointerMode(true);stage.style.cursor="none"}else{setPointerMode(false);stage.style.cursor="default"}});bindStudentButton("studentSelectBtn",()=>setTool(tool==="select"?"view":"select"));bindStudentButton("studentDeleteBtn",()=>deleteSelected());bindStudentButton("studentTextBtn",()=>setTool(tool==="text"?"view":"text"));bindStudentButton("studentEraseBtn",()=>setTool(tool==="eraser"?"view":"eraser"));bindStudentButton("studentUploadImageBtn",()=>document.getElementById("imageInput")?.click());bindStudentButton("studentUploadDocBtn",()=>document.getElementById("docInput")?.click());bindStudentButton("studentRecordBtn",()=>screenRecorder?.state==="recording"?stopRecording():startRecording(true));bindStudentButton("studentScreenShareBtn",()=>aznyToggleScreenShare(true));if(!document.getElementById("studentRecordDownload")){const box=document.createElement("div");box.id="studentRecordDownload";box.className="record-download";box.style.cssText="display:none;position:fixed;left:10px;bottom:10px;z-index:9999;max-width:min(92vw,360px);background:#fff;color:#172536;box-shadow:0 5px 20px #0004;font-size:12px";document.body.appendChild(box)}bindStudentButton("studentMicBtn",()=>toggleStudentMic());bindStudentButton("studentCameraBtn",()=>toggleStudentCamera());bindStudentButton("studentRaiseHandBtn",()=>{const b=document.getElementById("studentRaiseHandBtn");setStudentRaisedHand(!(b?.classList.contains("is-raised")))});bindStudentButton("studentLeaveClassBtn",leaveStudentClass);if(!classSessionId){document.getElementById("studentWaiting").textContent="A procurar o ensaio activo desta sala…";document.getElementById("studentWaiting").style.display="block";document.getElementById("studentJoinBtn").disabled=false}bindTeacherPresenceWatch();
-const resumeBtn=document.getElementById("studentResumeBtn");if(resumeBtn)resumeBtn.onclick=async()=>{const input=document.getElementById("studentNameInput"),waiting=document.getElementById("studentWaiting"),join=document.getElementById("studentJoinBtn");const n=input?.value.trim();if(!n){input?.focus();if(waiting){waiting.textContent="Digite o nome que usou ao entrar na aula.";waiting.style.display="block"}return}resumeBtn.disabled=true;if(join)join.disabled=true;if(waiting){waiting.textContent="A verificar se já participou nesta aula…";waiting.style.display="block"}try{const ready=await ensureAZNYRealtime();if(!ready||!AZNY_DB)throw new Error("Sem ligação");const sessionSnap=await aznySessionRef().child("status").once("value");if(sessionSnap.val()!=="active"){if(waiting)waiting.textContent="Esta aula já não está a decorrer. Peça à Direção o link da sessão atual.";return}const ref=aznySessionRef().child("joinRequests");let approved=null;const norm=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("pt");const previous=await ref.once("value");previous.forEach(item=>{const d=item.val()||{};if(!approved&&d.status==="approved"&&norm(d.name)===norm(n)&&(!DNM_PROFILE.role||!d.role||d.role===DNM_PROFILE.role)&&(!DNM_PROFILE.province||!d.province||d.province===DNM_PROFILE.province)&&(!DNM_PROFILE.municipality||!d.municipality||d.municipality===DNM_PROFILE.municipality))approved={id:item.key,data:d}});if(approved){
- /* Reutilizar o pedido já aprovado. Não clicar em "Pedir entrada", pois esse
-    handler cria um pedido pendente novo e volta a exigir autorização. */
- studentRequestId=approved.id;studentName=approved.data.name||n;studentApproved=true;
- document.body.classList.add("student-approved","azny-landscape-view");
- document.getElementById("studentNameModal")?.classList.remove("show");
- document.getElementById("studentControls").style.display="flex";
- try{localStorage.setItem(aznyStudentSessionStorageKey(),JSON.stringify({id:studentRequestId,name:studentName,status:"approved"}))}catch(_){}
- if(waiting)waiting.style.display="none";if(join)join.disabled=false;
- watchStudentRequest();await startStudentWebRTC({reconnect:true});
- toast("Bem-vindo de volta. Entrada restaurada sem nova autorização.");return
-}if(waiting){waiting.textContent="Não encontramos o seu nome entre os participantes já aprovados nesta aula. Para entrar, clique em “Pedir entrada” e aguarde a autorização da Direção.";waiting.style.display="block"}if(join){join.textContent="Pedir entrada";join.disabled=false}}catch(e){console.warn("Verificação de regresso à aula:",e);if(waiting){waiting.textContent="Não foi possível verificar a participação. Verifique a ligação e tente novamente.";waiting.style.display="block"}if(join)join.disabled=false}finally{resumeBtn.disabled=false}};document.getElementById("studentJoinBtn").onclick=async()=>{const n=document.getElementById("studentNameInput").value.trim();if(!n){toast("Digite o seu nome.");return}studentName=n;/* Use the join tap to request fullscreen and lock landscape automatically. */await dnmEnterImmersiveMode();document.body.classList.add("azny-landscape-view");const btn=document.getElementById("studentJoinBtn");btn.disabled=true;document.getElementById("studentWaiting").textContent="A ligar ao serviço da aula…";document.getElementById("studentWaiting").style.display="block";try{const ready=await ensureAZNYRealtime();if(!ready||!AZNY_DB){btn.disabled=false;document.getElementById("studentWaiting").textContent="Não foi possível ligar ao serviço. Tente novamente.";return}
-if(!classSessionId){const found=await resolveStudentActiveSession();if(found){if(!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom()}else setupBoardRealtime();bindClassSessionRealtime()}else{btn.disabled=false;document.getElementById("studentWaiting").textContent="Ainda não há ensaio activo nesta sala. Aguarde que o director inicie o ensaio.";return}}
-const sref=aznySessionRef();const sessionSnap=await sref.once("value");const sessionData=sessionSnap.val()||{};if(sessionData.status!=="active"){btn.disabled=false;document.getElementById("studentWaiting").textContent="Os ensaios ainda não iniciaram.";return}const ref=sref.child("joinRequests");
+function setupStudent(){document.body.classList.add("student-mode","azny-landscape-view");document.body.classList.remove("student-approved");setTool("view");syncStudentAutoOrientation();if(!window.aznyStudentOrientationBound){window.aznyStudentOrientationBound=true;window.addEventListener("resize",syncStudentAutoOrientation,{passive:true});window.addEventListener("orientationchange",syncStudentAutoOrientation,{passive:true});if(screen.orientation&&screen.orientation.addEventListener)screen.orientation.addEventListener("change",syncStudentAutoOrientation)}const rotateBtn=document.getElementById("studentRotateBtn");if(rotateBtn){rotateBtn.hidden=true;rotateBtn.style.display="none"}showStudentWaitingForClass();const bindStudentButton=(id,fn)=>{const b=document.getElementById(id);if(!b||b.dataset.aznyBound==="1")return;b.dataset.aznyBound="1";b.disabled=false;b.style.pointerEvents="auto";b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();try{fn()}catch(err){console.error("AZNY student tool "+id,err);toast("Não foi possível ativar esta ferramenta.")}},{passive:false})};bindStudentButton("studentPointerBtn",()=>{const active=!pointerMode;if(active){setTool("view");setPointerMode(true);stage.style.cursor="none"}else{setPointerMode(false);stage.style.cursor="default"}});bindStudentButton("studentSelectBtn",()=>setTool(tool==="select"?"view":"select"));bindStudentButton("studentDeleteBtn",()=>deleteSelected());bindStudentButton("studentTextBtn",()=>setTool(tool==="text"?"view":"text"));bindStudentButton("studentEraseBtn",()=>setTool(tool==="eraser"?"view":"eraser"));bindStudentButton("studentUploadImageBtn",()=>document.getElementById("imageInput")?.click());bindStudentButton("studentUploadDocBtn",()=>document.getElementById("docInput")?.click());bindStudentButton("studentRecordBtn",()=>screenRecorder?.state==="recording"?stopRecording():startRecording(true));bindStudentButton("studentScreenShareBtn",()=>aznyToggleScreenShare(true));if(!document.getElementById("studentRecordDownload")){const box=document.createElement("div");box.id="studentRecordDownload";box.className="record-download";box.style.cssText="display:none;position:fixed;left:10px;bottom:10px;z-index:9999;max-width:min(92vw,360px);background:#fff;color:#172536;box-shadow:0 5px 20px #0004;font-size:12px";document.body.appendChild(box)}bindStudentButton("studentMicBtn",()=>toggleStudentMic());bindStudentButton("studentCameraBtn",()=>toggleStudentCamera());bindStudentButton("studentRaiseHandBtn",()=>{const b=document.getElementById("studentRaiseHandBtn");setStudentRaisedHand(!(b?.classList.contains("is-raised")))});bindStudentButton("studentLeaveClassBtn",leaveStudentClass);if(!classSessionId){document.getElementById("studentWaiting").textContent="Este link permanente continua válido. Aguarde que o director inicie o próximo ensaio.";document.getElementById("studentWaiting").style.display="block";document.getElementById("studentJoinBtn").disabled=true;return}bindTeacherPresenceWatch();
+const resumeBtn=document.getElementById("studentResumeBtn");if(resumeBtn)resumeBtn.onclick=async()=>{const input=document.getElementById("studentNameInput"),waiting=document.getElementById("studentWaiting"),join=document.getElementById("studentJoinBtn");const n=input?.value.trim();if(!n){input?.focus();if(waiting){waiting.textContent="Digite o nome que usou ao entrar na aula.";waiting.style.display="block"}return}resumeBtn.disabled=true;if(join)join.disabled=true;if(waiting){waiting.textContent="A verificar se já participou nesta aula…";waiting.style.display="block"}try{const ready=await ensureAZNYRealtime();if(!ready||!AZNY_DB)throw new Error("Sem ligação");const sessionSnap=await aznySessionRef().child("status").once("value");if(sessionSnap.val()!=="active"){if(waiting)waiting.textContent="Esta aula já não está a decorrer. Peça à Direção o link da sessão atual.";return}const ref=aznySessionRef().child("joinRequests");let approved=null;const norm=v=>String(v||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().replace(/\\s+/g," ").toLocaleLowerCase("pt");const previous=await ref.once("value");previous.forEach(item=>{const d=item.val()||{};if(!approved&&d.status==="approved"&&norm(d.name)===norm(n)&&(!DNM_PROFILE.role||!d.role||d.role===DNM_PROFILE.role)&&(!DNM_PROFILE.province||!d.province||d.province===DNM_PROFILE.province)&&(!DNM_PROFILE.municipality||!d.municipality||d.municipality===DNM_PROFILE.municipality))approved={id:item.key,data:d}});if(approved){/* O handler normal de entrada reconhece o registo aprovado pelo nome e restaura a ligação sem nova autorização. */if(waiting)waiting.style.display="none";if(join)join.disabled=false;join?.click();return}if(waiting){waiting.textContent="Não encontramos o seu nome entre os participantes já aprovados nesta aula. Para entrar, clique em “Pedir entrada” e aguarde a autorização da Direção.";waiting.style.display="block"}if(join){join.textContent="Pedir entrada";join.disabled=false}}catch(e){console.warn("Verificação de regresso à aula:",e);if(waiting){waiting.textContent="Não foi possível verificar a participação. Verifique a ligação e tente novamente.";waiting.style.display="block"}if(join)join.disabled=false}finally{resumeBtn.disabled=false}};document.getElementById("studentJoinBtn").onclick=async()=>{const n=document.getElementById("studentNameInput").value.trim();if(!n){toast("Digite o seu nome.");return}studentName=n;/* Use the join tap to request fullscreen and lock landscape automatically. */await dnmEnterImmersiveMode();document.body.classList.add("azny-landscape-view");const btn=document.getElementById("studentJoinBtn");btn.disabled=true;document.getElementById("studentWaiting").textContent="A ligar ao serviço da aula…";document.getElementById("studentWaiting").style.display="block";try{const ready=await ensureAZNYRealtime();if(!ready||!AZNY_DB){btn.disabled=false;document.getElementById("studentWaiting").textContent="Não foi possível ligar ao serviço. Tente novamente.";return}const sref=aznySessionRef();const sessionSnap=await sref.once("value");const sessionData=sessionSnap.val()||{};if(sessionData.status!=="active"){btn.disabled=false;document.getElementById("studentWaiting").textContent="Os ensaios ainda não iniciaram.";return}const ref=sref.child("joinRequests");
 /* Cada nova tentativa de entrada gera um pedido pendente novo. Nunca reutilizar uma aprovação antiga apenas porque o nome/UID coincide. */
 studentRequestId=ref.push().key;
 try{localStorage.setItem(aznyStudentSessionStorageKey(),JSON.stringify({id:studentRequestId,name:n,status:"pending"}))}catch(_){}
@@ -3538,11 +3316,9 @@ async function leaveStudentClass(){
 function showClassEnded(){if(!isStudent)return;let endedNotice=document.getElementById("aznyClassEndedNotice");if(!endedNotice){endedNotice=document.createElement("div");endedNotice.id="aznyClassEndedNotice";endedNotice.setAttribute("role","alert");endedNotice.setAttribute("aria-live","assertive");endedNotice.style.cssText="position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(5,16,31,.94);color:#fff;text-align:center;font-size:clamp(30px,6vw,64px);font-weight:900;line-height:1.2";const directorName=DNM_PROFILE.hostName||DNM_PROFILE.name||aznyTeacherDisplayName||"responsável";const activityName=String(DNM_PROFILE.activity||"ensaio").toLowerCase();const activityLabel=activityName.includes("aula")?"A AULA":activityName.includes("encontro")?"O ENCONTRO":"OS ENSAIOS";endedNotice.textContent=activityLabel+" FORAM ENCERRADOS PELO DIRETOR "+directorName.toLocaleUpperCase("pt-PT");document.body.appendChild(endedNotice)}endedNotice.style.display="flex";aznyStopStudentMesh();studentApproved=false;try{studentPeer?.close()}catch(_){}studentPeer=null;try{studentLocalStream?.getTracks?.().forEach(t=>t.stop())}catch(_){}studentLocalStream=null;document.getElementById("studentControls").style.display="none";document.getElementById("studentNameModal").classList.add("show");document.getElementById("studentJoinBtn").disabled=false;document.getElementById("studentWaiting").textContent="Os ensaios foram encerrados pelo diretor "+(DNM_PROFILE.hostName||DNM_PROFILE.name||aznyTeacherDisplayName||"responsável")+". Pode voltar a entrar por este mesmo link quando o diretor iniciar novos ensaios.";document.getElementById("studentWaiting").style.display="block";const remoteVideo=document.getElementById("studentTeacherVideo");if(remoteVideo){remoteVideo.pause?.();remoteVideo.srcObject=null;remoteVideo.removeAttribute("src");remoteVideo.load?.();remoteVideo.style.display="none"}const remoteCard=remoteVideo?.closest(".student-video-card");if(remoteCard)remoteCard.classList.add("teacher-camera-ended");toast("Os ensaios foram encerrados pelo diretor "+(DNM_PROFILE.hostName||DNM_PROFILE.name||aznyTeacherDisplayName||"responsável")+".")}
 function setupRoomChannel(){if(!roomChannel)return;roomChannel.onmessage=e=>{const m=e.data||{};if(isStudent&&m.type==="join-response"&&m.name===studentName){if(m.approved){studentApproved=true;const endedNotice=document.getElementById("aznyClassEndedNotice");if(endedNotice)endedNotice.style.display="none";document.getElementById("studentNameModal").classList.remove("show");document.getElementById("studentControls").style.display="flex";toast("Entrada aprovada pelo director");startStudentWebRTC()}else{document.getElementById("studentWaiting").textContent="O director rejeitou a solicitação de entrada.";document.getElementById("studentWaiting").style.display="block";document.getElementById("studentJoinBtn").disabled=false}}if(isStudent&&m.type==="class-ended"&&m.session===classSessionId)showClassEnded()}}
 function getClassLink(){
-  /* Link permanente da sala: mantém o identificador do coral/sala, mas não
-     fixa o ID da sessão, para funcionar também nos próximos ensaios. */
-  const url=new URL("../ensaios/",location.href);
-  url.searchParams.set("r",String(roomId));
-  return url.href;
+  /* Link permanente do aplicativo de ensaios. Não inclui ID de sessão; funciona para todos os ensaios futuros. */
+  /* URL limpa e permanente, sem nome de ficheiro HTML; relativa à raiz do portal mesmo quando o quadro está dentro de /aula/. */
+  return new URL("../ensaios/",location.href).href;
 }
 async function copyClassLink(){
  const link=getClassLink();if(!link)return;
@@ -3572,16 +3348,7 @@ document.getElementById("closeMusic").onclick=()=>document.getElementById("music
 document.querySelectorAll("[data-music]").forEach(b=>b.onclick=()=>addMusic(b.dataset.music));
 // Bíblia e Gramática — abrir e fechar os respetivos menus e inserir o recurso no quadro.
 document.getElementById("startClassBtn").onclick=startClass;document.getElementById("endClassBtn").onclick=endClass;document.getElementById("recordClassBtn").onclick=()=>screenRecorder?.state==="recording"?stopRecording():startRecording(false);
-setupObjectActions();const AZNY_READY=initAZNYRealtime();if(isStudent)setupStudent();setupRoomChannel();AZNY_READY.then(async ready=>{
- if(ready&&isStudent)await resolveStudentActiveSession();
- if(ready&&!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();toast("Ligação em tempo real ativa")}
- else if(!ready){console.warn("AZNY realtime aguardará nova tentativa quando necessário")}
- if(ready&&!isStudent)await restoreActiveTeacherSession();
- if(ready&&isStudent&&classSessionId){
-  bindClassSessionRealtime();
-  await restoreStudentSessionIfApproved();
- }
-}).catch(e=>console.error(e));
+setupObjectActions();const AZNY_READY=initAZNYRealtime();if(isStudent)setupStudent();setupRoomChannel();AZNY_READY.then(async ready=>{if(ready&&!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();toast("Ligação em tempo real ativa")}else if(!ready){console.warn("AZNY realtime aguardará nova tentativa quando necessário")}if(ready&&!isStudent)await restoreActiveTeacherSession()}).catch(e=>console.error(e));
 window.addEventListener("beforeunload",()=>{
  /* Um refresh nunca deve marcar o ensaio como terminado nem apagar participantes.
     As ligações locais fecham por exigência do navegador; a sessão persistida é recuperada no arranque. */
