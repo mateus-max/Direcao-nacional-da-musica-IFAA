@@ -1511,7 +1511,11 @@ function handleBoardChannelMessage(raw){
   if(m.type==="stroke-live"){const id=String(m.id||"");if(id){if(m.done)aznyRemoteLiveStrokes.delete(id);else aznyRemoteLiveStrokes.set(id,{color:m.color||"#000",width:Number(m.width)||3,points:Array.isArray(m.points)?m.points:[]});redraw()}return;}
   if(m.type==="live-pointer"){
    const p=document.getElementById("livePointer");
-   if(p){const px=m.normalized?Number(m.x)*board.clientWidth:Number(m.x)*(board.clientWidth/(Number(m.boardWidth)||board.clientWidth)),py=m.normalized?Number(m.y)*board.clientHeight:Number(m.y)*(board.clientHeight/(Number(m.boardHeight)||board.clientHeight));p.style.transform="translate("+(px-44)+"px,"+(py-2)+"px)";p.classList.toggle("active",!!m.visible)}
+   if(p){const px=m.normalized?Number(m.x)*board.clientWidth:Number(m.x)*(board.clientWidth/(Number(m.boardWidth)||board.clientWidth)),py=m.normalized?Number(m.y)*board.clientHeight:Number(m.y)*(board.clientHeight/(Number(m.boardHeight)||board.clientHeight));p.style.transform="translate("+(px-44)+"px,"+(py-2)+"px)";p.classList.toggle("touch-pointer",!!m.touch);p.classList.toggle("active",!!m.visible)}
+   /* Relay participant cursor updates to every other connected participant. The
+      normalized board coordinates keep the pointer in the same relative place
+      even when screens, zoom levels or device orientations differ. */
+   if(!isStudent){const packet=JSON.stringify(m);Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<65536){try{ch.send(packet)}catch(_){}}})}
    return;
   }
   if(m.type==="text-live"){
@@ -1646,27 +1650,30 @@ function setPointerMode(on){
  const p=document.getElementById("livePointer"),b=document.getElementById("pointerTool");
  p.classList.toggle("active",pointerMode);b.classList.toggle("pointer-tool-on",pointerMode);
  stage.style.cursor=pointerMode?"none":(tool==="text"?"text":(tool==="pen"||tool==="eraser"?"crosshair":"default"));
- {const packet=JSON.stringify({type:"live-pointer",x:0,y:0,boardWidth:board.clientWidth,boardHeight:board.clientHeight,visible:pointerMode});if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}}else Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}})}
+ {const packet=JSON.stringify({type:"live-pointer",x:0,y:0,normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,visible:pointerMode});if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}}else Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"){try{ch.send(packet)}catch(_){}}})}
 }
 let lastPointerPacketAt=0;
 function updateLivePointer(e){
  if(!board.contains(e.target)&&!pointerMode)return;
  const r=board.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/Math.max(1,r.width))),y=Math.max(0,Math.min(1,(e.clientY-r.top)/Math.max(1,r.height)));
  const p=document.getElementById("livePointer");
- if(pointerMode){const touchOffset=e.pointerType==="touch";const px=x*board.clientWidth,py=y*board.clientHeight,tipX=px+(touchOffset?39:0),tipY=py+(touchOffset?-47:0);p.style.transform=`translate(${tipX-44}px,${tipY-2}px)`;p.classList.toggle("touch-pointer",touchOffset);p.classList.add("active")}
+ if(pointerMode){const px=x*board.clientWidth,py=y*board.clientHeight;p.style.transform=`translate(${px-44}px,${py-2}px)`;p.classList.toggle("touch-pointer",e.pointerType==="touch");p.classList.add("active")}
  {
   const now=performance.now();
   if(now-lastPointerPacketAt>=16){
    lastPointerPacketAt=now;
-   const touchOffset=e.pointerType==="touch";const packet=JSON.stringify({type:"live-pointer",x:x+(touchOffset?39/Math.max(1,board.clientWidth):0),y:y+(touchOffset?-47/Math.max(1,board.clientHeight):0),normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,visible:!!pointerMode});
+   const packet=JSON.stringify({type:"live-pointer",x,y,normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,touch:e.pointerType==="touch",visible:!!pointerMode});
    if(isStudent){const ch=studentBoardChannel;if(ch?.readyState==="open"&&ch.bufferedAmount<65536){try{ch.send(packet)}catch(_){}}}
    else Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<65536){try{ch.send(packet)}catch(_){}}});
   }
  }
 }
 function setTool(t){
+ /* Clicking an already selected mode switches it off; "view" means no active tool. */
+ if(t!=="view"&&tool===t)t="view";
  tool=t;
- document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",b.dataset.tool===t));
+ document.querySelectorAll("[data-tool]").forEach(b=>b.classList.toggle("active",t!=="view"&&b.dataset.tool===t));
+ [["studentSelectBtn","select"],["studentTextBtn","text"],["studentEraseBtn","eraser"]].forEach(([id,mode])=>document.getElementById(id)?.classList.toggle("active",t===mode));
  // In drawing/erasing mode, raise the transparent drawing layer above every
  // object and temporarily let pointer events pass through objects. This makes
  // the pen/eraser work visually and interactively over images, PDFs, charts,
@@ -1677,15 +1684,15 @@ function setTool(t){
 }
 
 document.querySelectorAll("[data-tool]").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
-document.getElementById("pointerTool").onclick=()=>setPointerMode(!pointerMode);
+document.getElementById("pointerTool").onclick=()=>{if(!pointerMode)setTool("view");setPointerMode(!pointerMode)};
 /* Touch-drag pointer for student: capture pointer until finger is released. */
 let aznyPointerDragId=null,lastStudentPointerSend=0;
 function moveStudentPointer(e){
  if(!isStudent||!pointerMode||aznyPointerDragId===null||e.pointerId!==aznyPointerDragId)return;
  const r=board.getBoundingClientRect(),x=Math.max(0,Math.min(1,(e.clientX-r.left)/Math.max(1,r.width))),y=Math.max(0,Math.min(1,(e.clientY-r.top)/Math.max(1,r.height)));
- const p=document.getElementById("livePointer");const px=x*board.clientWidth,py=y*board.clientHeight,tipX=px+39,tipY=py-47;p.style.transform="translate("+(tipX-44)+"px,"+(tipY-2)+"px)";p.classList.add("touch-pointer","active");
+ const p=document.getElementById("livePointer");const px=x*board.clientWidth,py=y*board.clientHeight;p.style.transform="translate("+(px-44)+"px,"+(py-2)+"px)";p.classList.add("touch-pointer","active");
  const now=performance.now();if(now-lastStudentPointerSend<16)return;lastStudentPointerSend=now;
- const packet=JSON.stringify({type:"live-pointer",x:x+39/Math.max(1,board.clientWidth),y:y-47/Math.max(1,board.clientHeight),normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,visible:true});
+ const packet=JSON.stringify({type:"live-pointer",x,y,normalized:true,boardWidth:board.clientWidth,boardHeight:board.clientHeight,touch:true,visible:true});
  const ch=studentBoardChannel;if(ch&&ch.readyState==="open"&&ch.bufferedAmount<65536){try{ch.send(packet)}catch(_){}}
 }
 stage.addEventListener("pointerdown",function(e){if(!isStudent||!pointerMode||!board.contains(e.target))return;aznyPointerDragId=e.pointerId;try{stage.setPointerCapture(e.pointerId)}catch(_){}e.preventDefault();moveStudentPointer(e)},{passive:false});
