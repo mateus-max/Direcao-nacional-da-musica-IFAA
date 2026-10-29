@@ -1716,7 +1716,7 @@ function applyRemoteBoardState(d){
   if(Array.isArray(d.deletedObjectIds))d.deletedObjectIds.forEach(id=>deletedObjectIds.add(String(id)));
   if(Number.isFinite(Number(d.zoom))&&Number(d.zoom)>=0.5&&Number(d.zoom)<=2&&Math.abs(Number(d.zoom)-zoom)>0.001)setZoom(Number(d.zoom),false);if(d.pan)applyBoardPan(d.pan);
   if(Array.isArray(d.pages)){
-   const normalizedIncoming=normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
+   const normalizedIncoming=aznyMergeSharedAssetsIntoPages(normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize));
    /* Firebase/WebRTC pode enviar páginas ainda não inicializadas como null. Não substituir uma página já guardada localmente por esse vazio: isso fazia imagens das páginas 2–5 desaparecerem ao regressar à página 1. */
    const mergedIncoming=normalizedIncoming.map((page,index)=>page==null&&pageStates[index]!=null?pageStates[index]:page);
    const incomingPages=aznyFilterDeletedPages(mergedIncoming);
@@ -1837,9 +1837,9 @@ function publishLiveBoardState(){
    firebaseBoardWriteTimer=setTimeout(()=>{
     const ref=aznyRoomRef().child("board");
     ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,boardSize:{width:board.clientWidth,height:board.clientHeight},pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds],updatedAt:firebase.database.ServerValue.TIMESTAMP}).catch(e=>console.warn("AZNY live board:",e));
-   },700);
+   },60);
   }
- },30)
+ },20)
 }
 let firebaseBoardWriteTimer=null;
 let localBoardMutationAt=0;
@@ -1864,9 +1864,33 @@ function aznyRemoveLegacyPinnedDocuments(){
 }
 /* Partilha persistente de imagens: o URL final fica guardado na sala,
    independentemente da ordem em que o snapshot e o upload chegam ao telefone. */
+const aznySharedAssetRegistry=new Map();
+function aznyRememberSharedAsset(id,data){
+ if(!id||!data||!data.src)return;
+ const kind=data.kind==="document"?"document":"image";
+ aznySharedAssetRegistry.set(String(id),{...data,id:String(id),kind});
+}
+function aznyMergeSharedAssetsIntoPages(inputPages){
+ const pages=(Array.isArray(inputPages)?inputPages:[]).map(p=>p?JSON.parse(JSON.stringify(p)):p);
+ for(const [id,data] of aznySharedAssetRegistry){
+  const pageNumber=Math.max(1,Math.min(5,Number(data.page)||currentPage||1));
+  const index=pageNumber-1;
+  if(!pages[index])pages[index]={strokes:[],objects:[],title:document.getElementById("boardTitle").value};
+  if(!Array.isArray(pages[index].objects))pages[index].objects=[];
+  if(pages[index].objects.some(o=>String(o.id)===id))continue;
+  const base={id,left:Number(data.left)||100,top:Number(data.top)||80,width:Number(data.width)||(data.kind==="document"?620:360),height:Number(data.height)||(data.kind==="document"?450:260),createdBy:data.createdBy||null};
+  if(data.kind==="document"){
+   pages[index].objects.push({kind:"doc",...base,name:data.name||"Documento",pdf:data.src,fileType:data.fileType||"application/pdf",pdfPage:Number(data.pdfPage)||1,pdfScale:Number(data.pdfScale)||1,content:""});
+  }else{
+   pages[index].objects.push({kind:"image",...base,src:data.src,uploadPending:false,innerPanX:Number(data.innerPanX)||0,innerPanY:Number(data.innerPanY)||0});
+  }
+ }
+ return pages;
+}
 function aznyApplySharedMediaAsset(id,data){
  if(!id||!data||!/^https?:\/\//i.test(String(data.src||"")))return;
  const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");if(!safeId)return;
+ aznyRememberSharedAsset(safeId,{...data,kind:"image"});
  const src=String(data.src);aznyPendingMediaReady.set(safeId,src);
  let host=board.querySelector('.mediaobj[data-id="'+safeId+'"]');
  if(!host){
@@ -1881,12 +1905,13 @@ function aznyApplySharedMediaAsset(id,data){
  delete host.dataset.uploadPending;host.classList.remove("media-uploading-silent");
  img.onerror=()=>console.warn("DNAC: a imagem partilhada não carregou:",src);
  if(img.src!==src)img.src=src;
- host.dataset.aznyMediaReady="1";updateHint();
+ host.dataset.aznyMediaReady="1";localBoardMutationAt=Date.now();pageStates[currentPage-1]=snapshot();save();updateHint();
 }
 function aznyApplySharedDocumentAsset(id,data){
  if(!id||!data||!/^https?:\/\//i.test(String(data.src||"")))return;
  const safeId=String(id).replace(/[^a-zA-Z0-9_-]/g,"");if(!safeId)return;
  const src=String(data.src),name=String(data.name||"Documento");
+ aznyRememberSharedAsset(id,{...data,kind:"document"});
  let el=board.querySelector('.docobj[data-id="'+safeId+'"]');
  if(!el){
   createFromData({kind:"doc",id:safeId,name,pdf:src,fileType:data.fileType||"application/pdf",left:Number(data.left)||100,top:Number(data.top)||80,
@@ -1904,11 +1929,11 @@ function aznyApplySharedDocumentAsset(id,data){
   const link=document.createElement("a");link.className="doc-file-link";link.href=src;link.target="_blank";link.rel="noopener noreferrer";link.textContent="Abrir / descarregar documento";link.style.cssText="display:inline-block;padding:10px 16px;border-radius:8px;background:#173b60;color:#fff;text-decoration:none;font-weight:700";
   body.append(label,link);el.appendChild(body);
  }
- el.dataset.aznyMediaReady="1";updateHint();
+ el.dataset.aznyMediaReady="1";localBoardMutationAt=Date.now();pageStates[currentPage-1]=snapshot();save();updateHint();
 }
 function aznyPublishSharedDocumentAsset(el,src){
  if(!AZNY_DB||!el||!src)return Promise.resolve(false);
- const payload={kind:"document",id:el.dataset.id,src:String(src),name:el.dataset.name||"Documento",
+ const payload={kind:"document",id:el.dataset.id,src:String(src),name:el.dataset.name||"Documento",page:currentPage,fileType:el.dataset.fileType||"application/pdf",createdBy:el.dataset.createdBy||null,
   left:parseFloat(el.style.left)||100,top:parseFloat(el.style.top)||80,
   width:parseFloat(el.style.width)||el.offsetWidth||620,height:parseFloat(el.style.height)||el.offsetHeight||450,
   pdfPage:Number(el.dataset.pdfPage)||1,pdfScale:Number(el.dataset.pdfScale)||1,fileType:el.dataset.fileType||"application/pdf",
@@ -1918,7 +1943,7 @@ function aznyPublishSharedDocumentAsset(el,src){
 }
 function aznyPublishSharedMediaAsset(el,src){
  if(!AZNY_DB||!el||!src)return Promise.resolve(false);
- const payload={id:el.dataset.id,src:String(src),name:el.dataset.name||"Imagem",
+ const payload={kind:"image",id:el.dataset.id,src:String(src),name:el.dataset.name||"Imagem",page:currentPage,createdBy:el.dataset.createdBy||null,
   left:parseFloat(el.style.left)||100,top:parseFloat(el.style.top)||80,
   width:parseFloat(el.style.width)||el.offsetWidth||360,height:parseFloat(el.style.height)||el.offsetHeight||260,
   innerPanX:Number(el.dataset.innerPanX)||0,innerPanY:Number(el.dataset.innerPanY)||0,
@@ -1951,7 +1976,7 @@ function setupBoardRealtime(){
      Rebuilding the DOM for an unchanged snapshot was dropping object selection. */
   try{
    const local=snapshot();
-   const remotePages=Array.isArray(d.pages)?normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize):null;
+   const remotePages=Array.isArray(d.pages)?aznyMergeSharedAssetsIntoPages(normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize)):null;
    const remotePage=remotePages?remotePages[Math.max(0,Math.min(4,(+d.currentPage||1)-1))]:null;
    if(remotePage&&Math.max(1,Math.min(5,+d.currentPage||1))===currentPage&&aznySameBoardPage(local,remotePage))return;
   }catch(_){}
