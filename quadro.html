@@ -4461,25 +4461,25 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
 })();
 </script>
 
-<style id="dnac-permanent-top-wooden-frame">
-/* Moldura superior independente do canvas: permanece visível mesmo quando o quadro é deslocado/transformado. */
-#canvasWrap{
-  position:relative!important;
-  isolation:isolate!important;
-}
-#canvasWrap::before{
-  content:""!important;
-  display:block!important;
+
+
+
+<style id="dnac-student-frame-border-correction">
+/* A moldura pertence ao próprio quadro: não criar camadas sobre a área de trabalho. */
+body.student-mode #canvasWrap::before{content:none!important;display:none!important}
+body.student-mode #board{
   position:absolute!important;
-  top:0!important;
-  left:0!important;
-  right:0!important;
-  height:8px!important;
-  min-height:8px!important;
-  background:#8b5a2b!important;
-  border-bottom:1px solid #6f431f!important;
-  z-index:2147483647!important;
-  pointer-events:none!important;
+  top:0!important;left:0!important;
+  width:100%!important;height:100%!important;
+  min-width:0!important;min-height:0!important;
+  max-width:none!important;max-height:none!important;
+  margin:0!important;padding:0!important;
+  box-sizing:border-box!important;
+  border:8px solid #8b5a2b!important;
+  border-radius:0!important;
+  outline:0!important;
+  box-shadow:inset 0 0 0 1px #6f431f!important;
+  overflow:hidden!important;
 }
 </style>
 
