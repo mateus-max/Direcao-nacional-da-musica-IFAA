@@ -2428,7 +2428,13 @@ function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=
   el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name||"Documento")+'</span></div>';
   Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
   try{
-   el.appendChild(createAZNYPdfViewer(URL.createObjectURL(file)));
+   if(isPdf){
+    el.appendChild(createAZNYPdfViewer(URL.createObjectURL(file)));
+   }else{
+    const body=document.createElement("div");body.className="docbody";body.style.cssText="display:flex;align-items:center;justify-content:center";
+    const link=document.createElement("a");link.href=URL.createObjectURL(file);link.target="_blank";link.rel="noopener noreferrer";link.textContent="Abrir documento enquanto é partilhado";link.style.cssText="padding:10px 16px;border-radius:8px;background:#173b60;color:#fff;text-decoration:none;font-weight:700";
+    body.appendChild(link);el.appendChild(body);
+   }
    scheduleSave();
   }catch(previewErr){console.warn("Pré-visualização do documento:",previewErr)}
   try{
