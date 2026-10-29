@@ -2291,10 +2291,20 @@ function createAZNYPdfViewer(dataUrl,initialPage=1,initialScale=1){const viewer=
  const isPdf=file.type==="application/pdf"||/\.pdf$/i.test(file.name||"");
  if(isPdf){
   pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.dataset.uploadPending="1";
-  el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div><div class="docbody">A sincronizar documento para todos os participantes…</div>';
-  Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Documento adicionado ao quadro; a sincronizar para todos…");
-  try{const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.pdf=remoteUrl;delete el.dataset.uploadPending;el.querySelector(".docbody")?.remove();el.appendChild(createAZNYPdfViewer(remoteUrl));scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);toast("Documento disponível para todos os participantes.");}
-  catch(err){console.warn("Falha ao partilhar PDF:",err);scheduleSave();toast("O documento ficou no quadro local, mas não foi possível partilhá-lo. Verifique Firebase Storage e as regras de acesso.")}return
+  el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div>';
+  Object.assign(el.style,{left:"100px",top:"80px",width:"620px",height:"450px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
+  /* PDFs pequenos: partilhar a pré-visualização imediatamente; substituir pelo URL definitivo após o upload. Evita gravar PDFs grandes em Firebase Realtime Database. */
+  try{
+   if(file.size<=400*1024){
+    const preview=await fileAsDataUrl(file);
+    if(!el.isConnected)return;
+    el.dataset.pdf=preview;delete el.dataset.uploadPending;el.appendChild(createAZNYPdfViewer(preview));scheduleSave();publishLiveBoardState();
+   }else{
+    el.appendChild(createAZNYPdfViewer(URL.createObjectURL(file)));scheduleSave();publishLiveBoardState();
+   }
+  }catch(previewErr){console.warn("Pré-visualização PDF:",previewErr);el.querySelector(".docpdf-viewer")?.remove();}
+  try{const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.pdf=remoteUrl;delete el.dataset.uploadPending;el.querySelector(".docpdf-viewer")?.remove();el.appendChild(createAZNYPdfViewer(remoteUrl));scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);}
+  catch(err){console.warn("Falha ao partilhar PDF:",err);delete el.dataset.uploadPending;scheduleSave();publishLiveBoardState();toast("O PDF continua aberto neste dispositivo, mas o envio para todos falhou. Verifique Firebase Storage.")}return
  }
  try{const content=await file.text();pushHistory();const el=document.createElement("div");el.className="object docobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name;el.innerHTML='<div class="dochead">📄 <span>'+escapeHtml(file.name)+'</span></div><div class="docbody"></div>';el.querySelector(".docbody").textContent=content;Object.assign(el.style,{left:"100px",top:"80px",width:"500px",height:"350px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Documento aberto e partilhado");}catch(err){console.error("Leitura do documento:",err);toast("Não foi possível abrir este documento.")}
 }
