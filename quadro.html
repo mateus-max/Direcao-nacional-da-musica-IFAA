@@ -1750,13 +1750,30 @@ function aznyPatchObjectGeometry(page){
  strokes=page?.strokes||[];redraw();updateHint();return true;
 }
 
+/* O Firebase Realtime Database pode devolver pages como objecto numérico
+   em vez de Array quando a lista contém páginas vazias/null. Converter antes
+   de testar/aplicar; caso contrário o participante ignora o quadro inteiro e
+   fica com a página branca mesmo que o director tenha conteúdo. */
+function aznyCoerceBoardPages(value){
+ if(Array.isArray(value))return value;
+ if(!value||typeof value!=="object")return null;
+ const out=Array(5).fill(null);
+ Object.keys(value).forEach(key=>{
+  if(/^\\d+$/.test(key)){
+   const index=Number(key);
+   if(index>=0&&index<5)out[index]=value[key];
+  }
+ });
+ return out.some(page=>page!==null&&page!==undefined)?out:null;
+}
 function applyRemoteBoardState(d){
  if(!d||remoteBoardApplying)return;
  try{
   if(Array.isArray(d.deletedObjectIds))d.deletedObjectIds.forEach(id=>deletedObjectIds.add(String(id)));
   if(Number.isFinite(Number(d.zoom))&&Number(d.zoom)>=0.5&&Number(d.zoom)<=2&&Math.abs(Number(d.zoom)-zoom)>0.001)setZoom(Number(d.zoom),false);if(d.pan)applyBoardPan(d.pan);
-  if(Array.isArray(d.pages)){
-   const normalizedIncoming=normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
+  const storedPages=aznyCoerceBoardPages(d.pages);
+  if(storedPages){
+   const normalizedIncoming=normalizeRemoteBoardPages(storedPages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
    /* Firebase/WebRTC pode enviar páginas ainda não inicializadas como null. Não substituir uma página já guardada localmente por esse vazio: isso fazia imagens das páginas 2–5 desaparecerem ao regressar à página 1. */
    const mergedIncoming=normalizedIncoming.map((page,index)=>page==null&&pageStates[index]!=null?pageStates[index]:page);
    const incomingPages=aznyFilterDeletedPages(mergedIncoming);
@@ -2007,7 +2024,8 @@ function setupBoardRealtime(){
      Rebuilding the DOM for an unchanged snapshot was dropping object selection. */
   try{
    const local=snapshot();
-   const remotePages=Array.isArray(d.pages)?normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize):null;
+   const storedPages=aznyCoerceBoardPages(d.pages);
+   const remotePages=storedPages?normalizeRemoteBoardPages(storedPages.concat(Array(5).fill(null)).slice(0,5),d.boardSize):null;
    const remotePage=remotePages?remotePages[Math.max(0,Math.min(4,(+d.currentPage||1)-1))]:null;
    if(remotePage&&Math.max(1,Math.min(5,+d.currentPage||1))===currentPage&&aznySameBoardPage(local,remotePage))return;
   }catch(_){}
