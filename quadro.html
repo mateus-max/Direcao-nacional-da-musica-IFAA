@@ -1682,7 +1682,10 @@ function applyRemoteBoardState(d){
   if(Array.isArray(d.deletedObjectIds))d.deletedObjectIds.forEach(id=>deletedObjectIds.add(String(id)));
   if(Number.isFinite(Number(d.zoom))&&Number(d.zoom)>=0.5&&Number(d.zoom)<=2&&Math.abs(Number(d.zoom)-zoom)>0.001)setZoom(Number(d.zoom),false);if(d.pan)applyBoardPan(d.pan);
   if(Array.isArray(d.pages)){
-   const incomingPages=aznyFilterDeletedPages(normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize));
+   const normalizedIncoming=normalizeRemoteBoardPages(d.pages.concat(Array(5).fill(null)).slice(0,5),d.boardSize);
+   /* Firebase/WebRTC pode enviar páginas ainda não inicializadas como null. Não substituir uma página já guardada localmente por esse vazio: isso fazia imagens das páginas 2–5 desaparecerem ao regressar à página 1. */
+   const mergedIncoming=normalizedIncoming.map((page,index)=>page==null&&pageStates[index]!=null?pageStates[index]:page);
+   const incomingPages=aznyFilterDeletedPages(mergedIncoming);
    const incomingPage=Math.max(1,Math.min(5,+d.currentPage||1));
    const localPage=snapshot();
    /* Never tear down and recreate objects just because a Firebase/WebRTC echo
@@ -1871,7 +1874,7 @@ function restore(s){
  if(selectedId){const keep=[...board.querySelectorAll(".object")].find(node=>node.dataset.id===selectedId);if(keep)selectObject(keep)}
  redraw();updateHint();updateObjectActions();
 }
-function switchPage(n){n=Math.max(1,Math.min(5,n));if(n===currentPage)return;pageStates[currentPage-1]=snapshot();currentPage=n;undoStack=[];redoStack=[];restore(pageStates[currentPage-1]||{strokes:[],objects:[],title:document.getElementById("boardTitle").value});updatePageLabel();scheduleSave();toast("Página "+currentPage+" selecionada")}
+function switchPage(n){n=Math.max(1,Math.min(5,n));if(n===currentPage)return;pageStates[currentPage-1]=snapshot();save();publishBoardState();currentPage=n;undoStack=[];redoStack=[];restore(pageStates[currentPage-1]||{strokes:[],objects:[],title:document.getElementById("boardTitle").value});updatePageLabel();scheduleSave();publishLiveBoardState();toast("Página "+currentPage+" selecionada")}
 function updatePageLabel(){document.getElementById("pageLabel").textContent="Página "+currentPage+"/5";document.querySelectorAll("#pageChoices [data-page]").forEach(b=>b.classList.toggle("active",+b.dataset.page===currentPage))}
 function load(){try{const raw=localStorage.getItem(STORAGE);if(!raw)return;const s=JSON.parse(raw);if(Array.isArray(s.pages)){pageStates=s.pages.concat(Array(5).fill(null)).slice(0,5);currentPage=Math.max(1,Math.min(5,s.currentPage||1));restore(pageStates[currentPage-1]||{strokes:[],objects:[],title:"Nova aula"});updatePageLabel()}else{restore(s)}}catch(e){console.warn(e)}}
 function updateHint(){hint.style.display=board.querySelector(".object")||strokes.length?"none":"block"}
