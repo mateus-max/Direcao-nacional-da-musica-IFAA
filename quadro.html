@@ -2091,9 +2091,14 @@ function resizeStart(e){
  if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
  if(!/^image\//i.test(file.type||"")){toast("Escolha um ficheiro de imagem válido.");return}
  pushHistory();const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
- const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="260"><rect width="100%" height="100%" fill="#e8edf3"/><text x="50%" y="48%" text-anchor="middle" font-family="Arial" font-size="16" fill="#26384b">A sincronizar imagem…</text></svg>');el.appendChild(img);
+ const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="260"><rect width="100%" height="100%" fill="#e8edf3"/><text x="50%" y="48%" text-anchor="middle" font-family="Arial" font-size="16" fill="#26384b">A carregar imagem…</text></svg>');el.appendChild(img);
  Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Imagem adicionada ao quadro; a sincronizar para todos…");
- try{const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);toast("Imagem disponível para todos os participantes.");}
+ try{
+  if(file.size<=2*1024*1024){
+   const dataUrl=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(String(reader.result||""));reader.onerror=()=>reject(new Error("Não foi possível ler a imagem"));reader.readAsDataURL(file)});
+   if(el.isConnected){img.src=dataUrl;el.dataset.mediaUrl=dataUrl;delete el.dataset.uploadPending;scheduleSave();publishLiveBoardState();}
+  }
+  const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);toast("Imagem disponível para todos os participantes.");}
  catch(err){console.warn("Falha ao partilhar imagem:",err);scheduleSave();toast("A imagem ficou no quadro local, mas não foi possível partilhá-la. Verifique Firebase Storage e as regras de acesso.")}
 }
 async function renderAZNYPdfViewer(viewer,dataUrl){
@@ -3149,7 +3154,11 @@ document.querySelectorAll("[data-music]").forEach(b=>b.onclick=()=>addMusic(b.da
 // Bíblia e Gramática — abrir e fechar os respetivos menus e inserir o recurso no quadro.
 document.getElementById("startClassBtn").onclick=startClass;document.getElementById("endClassBtn").onclick=endClass;document.getElementById("recordClassBtn").onclick=()=>screenRecorder?.state==="recording"?stopRecording():startRecording(false);
 setupObjectActions();const AZNY_READY=initAZNYRealtime();if(isStudent)setupStudent();setupRoomChannel();AZNY_READY.then(async ready=>{if(ready&&!aznyRealtimeBound){aznyRealtimeBound=true;setupRealtimeRoom();toast("Ligação em tempo real ativa")}else if(!ready){console.warn("AZNY realtime aguardará nova tentativa quando necessário")}if(ready&&!isStudent)await restoreActiveTeacherSession()}).catch(e=>console.error(e));
-window.addEventListener("beforeunload",()=>{if(screenRecorder?.state==="recording")screenRecorder.stop();if(studentPeer)studentPeer.close();if(roomChannel)roomChannel.close();/* Atualizar/fechar o separador não encerra a sessão da aula. */});
+window.addEventListener("beforeunload",()=>{
+ /* Um refresh nunca deve marcar o ensaio como terminado nem apagar participantes.
+    As ligações locais fecham por exigência do navegador; a sessão persistida é recuperada no arranque. */
+ try{if(AZNY_DB&&classSessionId&&!isStudent)aznySessionRef().child("teacherPresence").update({online:false,network:"reconnecting",updatedAt:firebase.database.ServerValue.TIMESTAMP});}catch(_){}
+});
 window.addEventListener("resize",resizeCanvas);
 if(!isStudent)load();setTimeout(()=>{setZoom(1);updateZoomExtent();resizeCanvas()},80);
 
