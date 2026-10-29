@@ -1050,7 +1050,21 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .camera-panel #teacherCamera #cameraBtn[data-media-state="off"],.camera-panel #teacherCamera #micBtn[data-media-state="off"]{background:transparent!important}
 .camera-panel #teacherCamera #cameraBtn[data-media-state="on"],.camera-panel #teacherCamera #micBtn[data-media-state="on"]{background:transparent!important}
 </style>
-</head>
+<style id="dnac-single-camera-mic-icons-final">
+/* Evita duplicação: o símbolo existe apenas no pseudo-elemento, sem texto dentro do botão. */
+.camera-panel #teacherCamera #cameraBtn,
+.camera-panel #teacherCamera #micBtn{
+ width:18px!important;min-width:18px!important;max-width:18px!important;
+ height:18px!important;min-height:18px!important;max-height:18px!important;
+ padding:0!important;margin:0!important;border:0!important;border-radius:0!important;
+ background:transparent!important;box-shadow:none!important;color:transparent!important;
+ font-size:0!important;line-height:0!important;overflow:visible!important
+}
+.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:12px!important;line-height:18px!important;color:#fff!important;text-shadow:0 1px 3px #000!important}
+.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:12px!important;line-height:18px!important;color:#fff!important;text-shadow:0 1px 3px #000!important}
+.camera-panel #teacherCamera #cameraBtn::after,
+.camera-panel #teacherCamera #micBtn::after{content:none!important;display:none!important}
+</style></head>
 <body>
 <div class="app">
 <header class="topbar">
@@ -1137,8 +1151,8 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
       <div class="camera-label">Director</div>
       <div class="cam-status" id="camStatus">Desligada</div>
       <div class="cam-buttons cam-overlay-controls">
-        <button id="cameraBtn" type="button" title="Ligar câmera" aria-label="Ligar câmera" data-media-state="off">🎥</button>
-        <button id="micBtn" type="button" title="Ligar microfone" aria-label="Ligar microfone" data-media-state="off">🎙</button>
+        <button id="cameraBtn" type="button" title="Ligar câmera" aria-label="Ligar câmera" data-media-state="off"></button>
+        <button id="micBtn" type="button" title="Ligar microfone" aria-label="Ligar microfone" data-media-state="off"></button>
       </div>
     </div>
     <div class="cam-buttons cam-legacy-controls" aria-hidden="true" style="display:none!important">
