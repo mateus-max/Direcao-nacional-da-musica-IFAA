@@ -1360,6 +1360,48 @@ body.student-mode #board{top:8px!important;height:calc(100% - 8px)!important}
  body.student-mode #studentClassTimer{padding:5px 7px!important;font-size:12px!important}
 }
 </style>
+
+<style id="dnac-student-board-below-header">
+/* Participante do ensaio: manter o quadro imediatamente abaixo do cabeçalho azul e da faixa de câmaras. */
+body.student-mode .topbar{
+  position:fixed!important;top:0!important;left:0!important;right:0!important;
+  height:var(--dnac-student-header-height,54px)!important;
+  min-height:var(--dnac-student-header-height,54px)!important;z-index:110!important
+}
+body.student-mode .student-live{
+  position:fixed!important;
+  top:var(--dnac-student-header-height,54px)!important;
+  left:0!important;right:0!important;bottom:auto!important;
+  height:94px!important;min-height:94px!important;margin:0!important;z-index:105!important
+}
+body.student-mode .workspace{
+  position:fixed!important;
+  top:calc(var(--dnac-student-header-height,54px) + 94px)!important;
+  left:0!important;right:0!important;bottom:60px!important;
+  height:auto!important;min-height:0!important;margin:0!important;padding:0!important;
+  overflow:hidden!important
+}
+body.student-mode .main{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  min-height:0!important;padding:4px 6px!important;margin:0!important;overflow:hidden!important
+}
+body.student-mode .canvas-wrap{
+  position:relative!important;width:100%!important;height:100%!important;
+  min-height:0!important;max-height:none!important;margin:0!important
+}
+body.student-mode #board{width:100%!important;height:100%!important;max-height:none!important}
+@media(max-width:600px){
+  body.student-mode .student-live{
+    top:var(--dnac-student-header-height,54px)!important;
+    height:86px!important;min-height:86px!important
+  }
+  body.student-mode .workspace{
+    top:calc(var(--dnac-student-header-height,54px) + 86px)!important;
+    bottom:55px!important
+  }
+  body.student-mode .main{padding:3px 4px!important}
+}
+</style>
 </head>
 <body>
 <div class="app">
