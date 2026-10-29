@@ -6,7 +6,7 @@
   "lang": "pt-AO",
   "start_url": "./ensaio.html",
   "scope": "./",
-  "display": "standalone",
+  "display": "fullscreen",
   "orientation": "any",
   "background_color": "#071b33",
   "theme_color": "#071b33",
@@ -22,5 +22,9 @@
     "education",
     "music"
   ],
-  "prefer_related_applications": false
+  "prefer_related_applications": false,
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ]
 }
