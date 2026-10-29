@@ -362,7 +362,7 @@ body.student-mode.azny-landscape-view .topbar,
 body.student-mode.azny-landscape-view .toolbar{display:none!important}
 body.student-mode.azny-landscape-view .workspace{position:static!important;display:block!important;width:100vw!important;height:100dvh!important;min-height:0!important;overflow:hidden!important}
 body.student-mode.azny-landscape-view .main{display:block!important;width:100%!important;height:100%!important;min-height:0!important;overflow:visible!important}
-body.student-mode.azny-landscape-view .canvas-wrap{position:fixed!important;z-index:41!important;top:54px!important;bottom:0!important;left:58px!important;right:clamp(112px,27vw,210px)!important;width:auto!important;height:calc(100dvh - 54px)!important;min-height:0!important;padding:0!important;margin:0!important;overflow:hidden!important}
+body.student-mode.azny-landscape-view .canvas-wrap{position:fixed!important;z-index:41!important;top:58px!important;bottom:0!important;left:58px!important;right:clamp(112px,27vw,210px)!important;width:auto!important;height:calc(100dvh - 58px)!important;min-height:0!important;padding:0!important;margin:0!important;overflow:hidden!important}
 body.student-mode.azny-landscape-view #stage{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;overflow:hidden!important}
 body.student-mode.azny-landscape-view #board{position:absolute!important;left:0!important;top:0!important;width:100%!important;height:100%!important;min-width:0!important;min-height:0!important;max-height:none!important;border-width:4px!important}
 body.student-mode.azny-landscape-view .student-controls{position:fixed!important;z-index:95!important;top:0!important;bottom:0!important;left:0!important;right:auto!important;width:54px!important;height:100dvh!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:center!important;gap:6px!important;padding:5px!important;overflow-y:auto!important;background:#0b1726!important}
@@ -2120,14 +2120,38 @@ function resizeStart(e){
  if(!file)return;
  if(file.size>20*1024*1024){toast("A imagem excede 20 MB.");return}
  if(!/^image\//i.test(file.type||"")){toast("Escolha um ficheiro de imagem válido.");return}
- pushHistory();const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";el.dataset.uploadPending="1";
- const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="260"><rect width="100%" height="100%" fill="#e8edf3"/><text x="50%" y="48%" text-anchor="middle" font-family="Arial" font-size="16" fill="#26384b">A carregar imagem…</text></svg>');el.appendChild(img);
- Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();scheduleSave();publishLiveBoardState();toast("Imagem adicionada ao quadro; a sincronizar para todos…");
+ pushHistory();
+ const el=document.createElement("div");el.className="object mediaobj";el.dataset.id="o"+(++objectId);if(isStudent)el.dataset.createdBy=studentRequestId;el.dataset.name=file.name||"Imagem";
+ const img=document.createElement("img");img.alt=file.name||"Imagem";img.style.cssText="width:100%;height:100%;object-fit:contain";
+ Object.assign(el.style,{left:"100px",top:"80px",width:"360px",height:"260px"});el.appendChild(img);board.appendChild(el);makeInteractive(el);selectObject(isStudent?null:el);updateHint();
+ /* Mostra imediatamente a imagem local; não deixar o placeholder preso enquanto o Storage carrega. */
  try{
-  /* Primeiro guardar o ficheiro no Storage partilhado; só publicar o URL depois do upload terminar.
-    Assim nenhum participante recebe um placeholder como se fosse a imagem final. */
-  const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);if(!el.isConnected)return;el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);toast("Imagem disponível para todos os participantes.");}
- catch(err){console.warn("Falha ao partilhar imagem:",err);scheduleSave();toast("A imagem ficou no quadro local, mas não foi possível partilhá-la. Verifique Firebase Storage e as regras de acesso.")}
+  const preview=await fileAsDataUrl(file);
+  if(!el.isConnected)return;
+  img.src=preview;
+  /* Imagens até 2 MB são partilhadas de imediato como preview para os outros participantes.
+     O URL definitivo do Storage substitui o preview em segundo plano. */
+  if(file.size<=2*1024*1024){
+   el.dataset.mediaUrl=preview;delete el.dataset.uploadPending;scheduleSave();publishLiveBoardState();
+  }else{
+   el.dataset.uploadPending="1";scheduleSave();publishLiveBoardState();
+  }
+ }catch(previewErr){
+  console.warn("Não foi possível criar a pré-visualização da imagem:",previewErr);
+  toast("Não foi possível abrir esta imagem. Tente outro ficheiro.");return;
+ }
+ toast("Imagem aberta no quadro; a preparar a partilha para todos…");
+ try{
+  const remoteUrl=await Promise.race([uploadBoardFile(file),new Promise((_,reject)=>setTimeout(()=>reject(new Error("Tempo de carregamento excedido")),60000))]);
+  if(!el.isConnected)return;
+  el.dataset.mediaUrl=remoteUrl;delete el.dataset.uploadPending;img.src=remoteUrl;scheduleSave();publishLiveBoardState();setTimeout(()=>publishLiveBoardState(),180);setTimeout(()=>publishLiveBoardState(),600);
+  toast("Imagem disponível para todos os participantes.");
+ }catch(err){
+  console.warn("Falha ao partilhar imagem:",err);
+  /* Mantém a imagem visível; o preview já sincronizado continua disponível para imagens pequenas. */
+  scheduleSave();publishLiveBoardState();
+  toast(file.size<=2*1024*1024?"Imagem visível; o servidor não guardou a cópia definitiva.":"Imagem aberta neste dispositivo, mas a partilha falhou. Verifique Firebase Storage.");
+ }
 }
 async function renderAZNYPdfViewer(viewer,dataUrl){
  const pages=viewer.querySelector('.docpdf-pages'),status=viewer.querySelector('.docpdf-status'),prev=viewer.querySelector('.docpdf-prev'),next=viewer.querySelector('.docpdf-next'),zoomOut=viewer.querySelector('.docpdf-zoom-out'),zoomIn=viewer.querySelector('.docpdf-zoom-in'),zoomLabel=viewer.querySelector('.docpdf-zoom-label');
