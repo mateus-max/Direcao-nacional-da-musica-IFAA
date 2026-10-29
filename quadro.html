@@ -2837,25 +2837,59 @@ setupAznyContextMenu();
 async function forceRefreshBoard(forStudent){
  const btn=document.getElementById(forStudent?"studentRefreshBoardBtn":"refreshBoardBtn");
  const originalText=btn?.textContent||"↻";
- if(btn){btn.disabled=true;btn.textContent="A restabelecer ligação…"}
+ if(btn){btn.disabled=true;btn.textContent="A recuperar rede…"}
  try{
-  /* Never reload or restore a historical snapshot: deletions must remain deleted. */
+  /* Recuperação sem recarregar o documento: preserva o quadro e evita terminar o ensaio. */
+  pageStates[currentPage-1]=snapshot();
+  save();
+  if(!navigator.onLine)throw new Error("O dispositivo continua sem ligação à Internet");
   resizeCanvas();
-  if(forStudent){
-   if(!AZNY_DB)throw new Error("Sem ligação ao serviço");
-   if(studentApproved){
-    if(studentBoardChannel?.readyState==="open"&&studentPeer?.connectionState==="connected"){studentBoardChannel.send(JSON.stringify({type:"board-request"}))}
-    else{await aznyReconnectStudentMedia();if(studentBoardChannel?.readyState==="open")studentBoardChannel.send(JSON.stringify({type:"board-request"}))}
-   }
-   toast("Ligação verificada. A aula continua; a aguardar a sincronização em tempo real.");
+  if(!window.firebase)throw new Error("Firebase ainda não está disponível");
+  if(!AZNY_DB){
+   const ok=await initAZNYRealtime();
+   if(!ok||!AZNY_DB)throw new Error("Não foi possível restabelecer o Firebase");
+   aznyRealtimeBound=false;
+   await ensureAZNYRealtime();
   }else{
-   /* Do not overwrite the saved board when refreshing; request current live state from connected students. */
-   Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"){try{ch.send(JSON.stringify({type:"board-request"}))}catch(_){}}});
-   if(AZNY_DB)await aznyRoomRef().child("board").child("teacherRefreshAt").set(firebase.database.ServerValue.TIMESTAMP);
-   toast("Pedido de sincronização enviado. O conteúdo atual foi preservado.");
+   /* Reabrir o canal de dados sem limpar a sessão persistente nem o conteúdo guardado. */
+   try{firebase.database().goOffline()}catch(_){}
+   await new Promise(resolve=>setTimeout(resolve,180));
+   try{firebase.database().goOnline()}catch(_){}
+   await new Promise((resolve,reject)=>{
+    let settled=false;
+    const finish=(err)=>{if(settled)return;settled=true;try{firebase.database().ref(".info/connected").off("value",listener)}catch(_){};err?reject(err):resolve()};
+    const timer=setTimeout(()=>finish(new Error("Tempo excedido ao recuperar a rede")),6500);
+    const listener=snap=>{if(snap.val()===true){clearTimeout(timer);finish()}};
+    firebase.database().ref(".info/connected").on("value",listener);
+   });
   }
-}catch(e){console.warn("AZNY force refresh:",e);toast("A ligação ainda não foi restabelecida. Tente novamente quando houver rede.")}
- finally{if(btn){btn.disabled=false;btn.textContent=originalText}}
+  if(forStudent){
+   if(studentApproved){
+    if(studentBoardChannel?.readyState==="open")studentBoardChannel.send(JSON.stringify({type:"board-request"}));
+    else{
+     await aznyReconnectStudentMedia();
+     if(studentBoardChannel?.readyState==="open")studentBoardChannel.send(JSON.stringify({type:"board-request"}));
+    }
+   }
+  }else{
+   /* Recheck each participant connection and request fresh board state. */
+   Object.entries(window.aznyTeacherPeers||{}).forEach(([id,pc])=>{
+    if(pc&&pc.connectionState!=="connected"){
+     try{pc.restartIce()}catch(_){}
+    }
+    const ch=pc?pc._aznyBoardChannel:null;
+    if(ch?.readyState==="open"){try{ch.send(JSON.stringify({type:"board-request"}))}catch(_){}}
+   });
+   await aznyRoomRef().child("board").child("teacherRefreshAt").set(firebase.database.ServerValue.TIMESTAMP);
+   publishLiveBoardState();
+  }
+  toast("Rede recuperada. O quadro foi preservado e a sincronização foi solicitada.");
+ }catch(e){
+  console.warn("AZNY force refresh:",e);
+  toast("Não foi possível recuperar totalmente a rede: "+(e?.message||"tente novamente quando houver ligação."));
+ }finally{
+  if(btn){btn.disabled=false;btn.textContent=originalText}
+ }
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
 document.getElementById("studentRefreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(true)});
