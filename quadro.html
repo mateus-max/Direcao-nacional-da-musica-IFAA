@@ -1425,7 +1425,7 @@ body:not(.student-mode) .camera-panel .join-request .jr-actions button{
 </div>
 
 <div class="student-controls" id="studentControls">
-    <button id="studentPointerBtn" type="button" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Restabelecer ligação e sincronizar sem sair do ensaio" aria-label="Restabelecer ligação sem sair do ensaio">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
+    <button id="studentPointerBtn" type="button" title="Cursor de ponteiro para indicar no quadro" aria-label="Cursor de ponteiro">➤ Cursor</button><button id="studentSelectBtn" type="button" title="Ativar seleção para mover, redimensionar ou eliminar os seus objetos">↖ Selecionar</button><button id="studentDeleteBtn" type="button" title="Eliminar o objeto selecionado">🗑 Eliminar</button><button id="studentTextBtn">T Texto</button><button id="studentEraseBtn">⌫ Apagar</button><button id="studentUploadImageBtn" type="button" title="Partilhar uma imagem no quadro">🖼 Imagem</button><button id="studentUploadDocBtn" type="button" title="Partilhar um documento no quadro">📄 Documento</button><button id="studentInstallBtn" type="button" title="Instalar o aplicativo de ensaios">⬇ Instalar app</button><button id="studentRecordBtn">⏺ Gravar ensaio</button><button id="studentScreenShareBtn" type="button" title="Partilhar o ecrã com o professor">▣ Partilhar ecrã</button><button id="studentMicBtn">🎙 Desligar microfone</button><button id="studentCameraBtn">📷 Desligar câmera</button><button id="studentRaiseHandBtn" type="button" aria-pressed="false">✋ Levantar mão</button><button id="studentRefreshBoardBtn" type="button" title="Restabelecer ligação e sincronizar sem sair do ensaio" aria-label="Restabelecer ligação sem sair do ensaio">⟳ Atualizar</button><button id="studentLeaveClassBtn" type="button" title="Sair da aula">↩ Sair da aula</button>
 </div>
 <div class="student-live" id="studentLive"><div class="student-video-pair"><div class="student-video-card"><video id="studentTeacherVideo" autoplay playsinline></video><span id="studentTeacherNameLabel">Director</span></div><div class="student-video-card azny-self-video-card"><video id="studentSelfVideo" autoplay muted playsinline></video><span>Você</span><b id="studentSelfRaisedHand" class="azny-self-raised-hand" aria-live="polite" hidden>✋</b><div class="azny-self-media-overlay" aria-label="Controlos da sua câmera e microfone"><button type="button" id="studentSelfCameraOverlay" title="Ligar ou desligar a sua câmera" aria-label="Ligar ou desligar a sua câmera">📷</button><button type="button" id="studentSelfMicOverlay" title="Ligar ou desligar o seu microfone" aria-label="Ligar ou desligar o seu microfone">🎙</button></div></div></div></div>
 <div class="modal student-name-modal" id="studentNameModal"><div class="card">
@@ -4006,5 +4006,33 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  }
 }
 </style>
+<script>
+/* Instalação directa do aplicativo de ensaios no ecrã dos coristas, quando o navegador suporta o prompt PWA. */
+(function(){
+ const button=document.getElementById("studentInstallBtn");if(!button)return;
+ const studentMode=document.body.classList.contains("student-mode");
+ if(!studentMode)return;
+ const manifest=document.querySelector('link[rel="manifest"]');
+ if(manifest)manifest.href="../manifest-ensaios.webmanifest";
+ let installPrompt=null;
+ const installed=()=>window.matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+ if(installed()){button.textContent="✓ App instalado";button.disabled=true;return}
+ window.addEventListener("beforeinstallprompt",event=>{
+  event.preventDefault();installPrompt=event;button.disabled=false;button.textContent="⬇ Instalar app de ensaios";
+ });
+ window.addEventListener("appinstalled",()=>{installPrompt=null;button.textContent="✓ App instalado";button.disabled=true});
+ button.addEventListener("click",async()=>{
+  if(installed()){button.textContent="✓ App instalado";button.disabled=true;return}
+  if(installPrompt){
+   const event=installPrompt;installPrompt=null;
+   try{await event.prompt();const choice=await event.userChoice;if(choice?.outcome==="accepted"){button.textContent="✓ App instalado";button.disabled=true}else{button.textContent="⬇ Instalar app de ensaios"}}
+   catch(error){console.warn("Instalação PWA:",error);button.textContent="⬇ Instalar app de ensaios"}
+  }else{
+   /* A instalação silenciosa é bloqueada pelos navegadores quando não existe evento de instalação elegível. */
+   location.href="../ensaios/";
+  }
+ });
+})();
+</script>
 </body>
 </html>
