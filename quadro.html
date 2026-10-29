@@ -1318,14 +1318,8 @@ body:not(.student-mode) .camera-panel .join-request .jr-actions button{
 }
 </style>
 <style id="dnac-student-top-frame-visible-fix">
-/* Apenas no visual dos coristas: a barra castanha fica sobre a borda real do quadro, não sobre a área externa. */
+/* A borda castanha coincide com o topo real da pauta, sem faixa deslocada. */
 body.student-mode #board{position:absolute!important;box-sizing:border-box!important;border:8px solid #8b5a2b!important;overflow:hidden!important}
-body.student-mode #board::before{
- content:""!important;display:block!important;position:absolute!important;
- top:0!important;left:0!important;right:0!important;height:8px!important;
- background:#8b5a2b!important;z-index:2147483001!important;
- pointer-events:none!important
-}
 </style>
 <style id="dnac-board-top-frame-and-shared-clock">
 /* Moldura castanha no topo do quadro, separada do cabeçalho, sem alterar ferramentas ou ficheiros. */
@@ -1348,8 +1342,8 @@ body.student-mode #studentClassTimer{
  font-variant-numeric:tabular-nums;white-space:nowrap
 }
 body.student-mode .main,body.student-mode .workspace{height:calc(100vh - var(--dnac-student-header-height))!important;min-height:0!important}
-body.student-mode .canvas-wrap{height:calc(100vh - var(--dnac-student-header-height))!important;min-height:0!important;padding-top:8px!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;background:#071b33!important}
-body.student-mode #stage{top:8px!important;inset:8px 0 0 0!important;height:calc(100% - 8px)!important;box-sizing:border-box!important}
+body.student-mode .canvas-wrap{height:calc(100vh - var(--dnac-student-header-height))!important;min-height:0!important;padding-top:0!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;background:#071b33!important}
+body.student-mode #stage{top:0!important;inset:0!important;height:100%!important;box-sizing:border-box!important}
 body.student-mode #board{box-sizing:border-box!important;border:8px solid #8b5a2b!important;border-radius:0!important;box-shadow:inset 0 0 0 1px #6f431f,0 0 0 1px #6f431f!important}
 @media(max-width:700px){
  body.student-mode .topbar{gap:6px!important;padding:4px 7px!important}
