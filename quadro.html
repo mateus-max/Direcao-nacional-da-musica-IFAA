@@ -1716,6 +1716,14 @@ function applyRemoteBoardState(d){
  }finally{remoteBoardApplying=false}
 }
 function updatePointerTrail(){/* Intencionalmente sem rasto: a lupa mostra apenas a posição atual. */}
+const aznyPendingMediaReady=new Map();
+function aznyApplyMediaReady(m){
+ const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,""),src=String(m.src||"");
+ if(!id||!/^https?:\/\//i.test(src))return;
+ const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
+ if(host&&img){host.dataset.mediaUrl=src;delete host.dataset.uploadPending;img.src=src;host.dataset.aznyMediaReady="1";scheduleSave();}
+ else aznyPendingMediaReady.set(id,src);
+}
 function handleBoardChannelMessage(raw){
  try{
   const m=JSON.parse(raw);
@@ -1736,13 +1744,7 @@ function handleBoardChannelMessage(raw){
   }
   if(m.type==="board-zoom"){if(Number.isFinite(Number(m.zoom)))setZoom(Number(m.zoom),false);return}if(m.type==="board-pan"){applyBoardPan(m.pan);return}
   if(m.type==="media-ready"){
-   const id=String(m.id||"").replace(/[^a-zA-Z0-9_-]/g,"");
-   const src=String(m.src||"");
-   const host=board.querySelector('.mediaobj[data-id="'+id+'"]'),img=host?.querySelector("img");
-   if(host&&img&&/^https?:\/\//i.test(src)){
-    host.dataset.mediaUrl=src;delete host.dataset.uploadPending;img.src=src;
-    if(!remoteBoardApplying){scheduleSave();}
-   }
+   aznyApplyMediaReady(m);
    if(!isStudent){const packet=JSON.stringify(m);Object.values(window.aznyTeacherPeers||{}).forEach(pc=>{const ch=pc?pc._aznyBoardChannel:null;if(ch?.readyState==="open"&&ch.bufferedAmount<262144){try{ch.send(packet)}catch(_){}}})}
    return;
   }
@@ -2015,7 +2017,7 @@ function createFromData(o){
   Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px",fontSize:o.style?.fontSize,fontFamily:o.style?.fontFamily,fontWeight:o.style?.fontWeight,fontStyle:o.style?.fontStyle,textDecoration:o.style?.textDecoration,color:o.style?.color,textAlign:o.style?.textAlign});
   if(o.anchorId){el.dataset.anchorId=o.anchorId;el.dataset.anchorX=o.anchorX??0;el.dataset.anchorY=o.anchorY??0;el.dataset.anchorW=o.anchorW??1;el.dataset.anchorH=o.anchorH??1;el.dataset.anchorFontSize=(o.anchorFontSize??parseFloat(el.style.fontSize)??16);}
  }else if(o.kind==="image"){
-  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";if(o.uploadPending)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.src=o.src||"";img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain";el.appendChild(img);if(o.uploadPending){img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="260"><rect width="100%" height="100%" fill="#e8edf3"/><text x="50%" y="48%" text-anchor="middle" font-family="Arial" font-size="16" fill="#26384b">A sincronizar imagem…</text></svg>')}img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
+  el=document.createElement("div");el.className="object mediaobj";el.dataset.mediaUrl=o.src||"";const readySrc=aznyPendingMediaReady.get(String(o.id||""));if(readySrc){el.dataset.mediaUrl=readySrc;aznyPendingMediaReady.delete(String(o.id||""));}if(o.uploadPending&&!readySrc)el.dataset.uploadPending="1";el.dataset.innerPanX=String(Number(o.innerPanX)||0);el.dataset.innerPanY=String(Number(o.innerPanY)||0);const img=document.createElement("img");img.src=readySrc||o.src||"";img.alt="Imagem partilhada";img.style.cssText="width:100%;height:100%;object-fit:contain";el.appendChild(img);if(o.uploadPending&&!readySrc){img.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="360" height="260"><rect width="100%" height="100%" fill="#e8edf3"/><text x="50%" y="48%" text-anchor="middle" font-family="Arial" font-size="16" fill="#26384b">A sincronizar imagem…</text></svg>')}img.style.transform="translate3d("+(Number(o.innerPanX)||0)+"px,"+(Number(o.innerPanY)||0)+"px,0)";img.style.transformOrigin="0 0";Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"});
  }else if(o.kind==="chart"){ el=createChartObject(o.chartType||"bar",o.values||"12,19,8,15,10",o.title||"Gráfico"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="music"){ el=createMusicObject(o.musicType||"blank",o.title||"Música"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
  else if(o.kind==="resource"){ el=createResourceObject(o.resourceType||"bible",o.language||"pt"); Object.assign(el.style,{left:o.left+"px",top:o.top+"px",width:o.width+"px",height:o.height+"px"}); el.dataset.id=o.id||"o"+(++objectId); }
