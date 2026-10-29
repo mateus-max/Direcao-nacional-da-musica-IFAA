@@ -1628,6 +1628,18 @@ function undo(){if(!undoStack.length)return;redoStack.push(snapshot());restore(u
 function redo(){if(!redoStack.length)return;undoStack.push(snapshot());restore(redoStack.pop());scheduleSave()}
 function scheduleSave(){localBoardMutationAt=Date.now();clearTimeout(saveTimer);saveTimer=setTimeout(save,250);if(!isStudent&&!remoteBoardApplying){clearTimeout(remoteSaveTimer);remoteSaveTimer=setTimeout(publishLiveBoardState,8)}}
 function save(){try{pageStates[currentPage-1]=snapshot();localStorage.setItem(STORAGE,JSON.stringify({version:2,currentPage,pages:pageStates}));document.getElementById("storageState").textContent="● Guardado"}catch(e){toast("Limite do Local Storage atingido")}}
+async function aznyPublishAuthoritativeBoardSnapshot(){
+ if(isStudent||!AZNY_DB||!aznyRoomRef())return false;
+ try{
+  pageStates[currentPage-1]=snapshot();
+  const payload={currentPage,title:document.getElementById("boardTitle").value,zoom,
+   boardSize:{width:board.clientWidth,height:board.clientHeight},
+   pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds],
+   updatedAt:firebase.database.ServerValue.TIMESTAMP};
+  await aznyRoomRef().child("board").update(payload);
+  return true;
+ }catch(e){console.warn("DNAC: não foi possível publicar o quadro completo:",e);return false}
+}
 function publishBoardState(){if(remoteBoardApplying||!AZNY_DB)return;try{const ref=aznyRoomRef().child("board");ref.update({currentPage:currentPage,title:document.getElementById("boardTitle").value,zoom,pages:aznyFilterDeletedPages(pageStates),deletedObjectIds:[...deletedObjectIds]}).catch(e=>console.warn("AZNY board sync:",e))}catch(e){console.warn("AZNY board sync:",e)}}
 const aznyBoardSendQueues=new WeakMap();
 function sendBoardSnapshotToChannel(ch){
@@ -3223,7 +3235,13 @@ async function connectStudentPeer(id,d){
   pc._aznyBoardChannel=ch;ch.bufferedAmountLowThreshold=65536;
   ch.onopen=()=>sendBoardSnapshotToChannel(ch);
   ch.onmessage=ev=>{
-   try{const m=JSON.parse(ev.data);if(m.type==="board-request"){sendBoardSnapshotToChannel(ch);return}handleBoardChannelMessage(ev.data)}catch(err){console.warn("AZNY student board packet:",err)}
+   try{const m=JSON.parse(ev.data);if(m.type==="board-request"){
+    /* Um corista que regressa pede o quadro mais recente; guardar também no
+       Firebase para que a recuperação não dependa exclusivamente do WebRTC. */
+    sendBoardSnapshotToChannel(ch);
+    aznyPublishAuthoritativeBoardSnapshot();
+    return
+   }handleBoardChannelMessage(ev.data)}catch(err){console.warn("AZNY student board packet:",err)}
   };
   ch.onclose=()=>{if(pc._aznyBoardChannel===ch)pc._aznyBoardChannel=null};
  };
