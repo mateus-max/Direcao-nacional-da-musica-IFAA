@@ -3215,7 +3215,8 @@ function showClassEnded(){if(!isStudent)return;let endedNotice=document.getEleme
 function setupRoomChannel(){if(!roomChannel)return;roomChannel.onmessage=e=>{const m=e.data||{};if(isStudent&&m.type==="join-response"&&m.name===studentName){if(m.approved){studentApproved=true;const endedNotice=document.getElementById("aznyClassEndedNotice");if(endedNotice)endedNotice.style.display="none";document.getElementById("studentNameModal").classList.remove("show");document.getElementById("studentControls").style.display="flex";toast("Entrada aprovada pelo director");startStudentWebRTC()}else{document.getElementById("studentWaiting").textContent="O director rejeitou a solicitação de entrada.";document.getElementById("studentWaiting").style.display="block";document.getElementById("studentJoinBtn").disabled=false}}if(isStudent&&m.type==="class-ended"&&m.session===classSessionId)showClassEnded()}}
 function getClassLink(){
   /* Link permanente do aplicativo de ensaios. Não inclui ID de sessão; funciona para todos os ensaios futuros. */
-  return new URL("ensaio.html",location.href).href;
+  /* URL limpa e permanente, sem nome de ficheiro HTML; relativa à raiz do portal mesmo quando o quadro está dentro de /aula/. */
+  return new URL("../ensaios/",location.href).href;
 }
 async function copyClassLink(){
  const link=getClassLink();if(!link)return;
