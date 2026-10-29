@@ -1243,13 +1243,15 @@ body:not(.student-mode) .camera-panel .join-request [data-reject]{background:#ff
   -webkit-overflow-scrolling:touch;
 }
 #stage.document-scroll-enabled #board .mediaobj img{
+  /* Manter exatamente o tamanho visual da imagem dentro da moldura;
+     desativar Selecionar nunca deve ampliar a imagem automaticamente. */
   display:block!important;
-  width:auto!important;
-  height:auto!important;
-  max-width:none!important;
-  max-height:none!important;
-  object-fit:initial!important;
-  pointer-events:auto!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  object-fit:contain!important;
+  pointer-events:none!important;
   -webkit-user-drag:none!important;
 }
 #stage.document-scroll-enabled #board .docobj{
