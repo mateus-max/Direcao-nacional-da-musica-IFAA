@@ -1,0 +1,26 @@
+{
+  "id": "./ensaio.html",
+  "name": "Aplicativo de Ensaios — DNAC",
+  "short_name": "Ensaios DNAC",
+  "description": "Aplicativo independente para encontrar e entrar nos ensaios do Departamento Nacional da Música.",
+  "lang": "pt-AO",
+  "start_url": "./ensaio.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#071b33",
+  "theme_color": "#071b33",
+  "icons": [
+    {
+      "src": "icons/dnm-pwa-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": [
+    "education",
+    "music"
+  ],
+  "prefer_related_applications": false
+}
