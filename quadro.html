@@ -1065,9 +1065,11 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .camera-panel #teacherCamera #cameraBtn::after,
 .camera-panel #teacherCamera #micBtn::after{content:none!important;display:none!important}
 </style><style id="dnac-camera-panel-top">
-/* Retira o cabeçalho acima da câmara e utiliza esse espaço para a pré-visualização. */
+/* Esconde etiquetas sobrepostas à imagem do director, sem mexer nos controlos. */
 .rightbar .camera-panel{margin-top:0!important;padding-top:0!important}
 .rightbar #teacherCamera{margin-top:0!important;width:100%!important}
+.rightbar #teacherCamera .camera-label,
+.rightbar #teacherCamera .cam-status{display:none!important}
 .rightbar .sidehead#dnac-participants-heading{margin-top:8px!important}
 </style></head>
 <body>
