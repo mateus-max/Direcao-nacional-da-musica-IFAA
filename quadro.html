@@ -1022,29 +1022,28 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 <style id="dnac-pointer-label-fix">#pointerTool,#studentPointerBtn{font-weight:700!important;cursor:pointer!important}</style>
 
 <style id="dnac-camera-footer-controls-fix">
-/* DNAC: controlos pequenos, alinhados no rodapé da pré-visualização do director. */
+/* Botões pequenos, com símbolos visíveis, encostados ao limite inferior da câmara. */
 .camera-panel #teacherCamera{position:relative!important;isolation:isolate!important;overflow:hidden!important}
-.camera-panel #teacherVideo{object-fit:cover!important;object-position:center 28%!important;z-index:1!important}
-.camera-panel #teacherCamera .cam-off{z-index:2!important}
-.camera-panel #teacherCamera .camera-label,.camera-panel #teacherCamera .cam-status{z-index:4!important}
+.camera-panel #teacherCamera #teacherVideo{object-fit:cover!important;object-position:center 28%!important;z-index:1!important}
+.camera-panel #teacherCamera .cam-off{z-index:2!important;pointer-events:none!important}
+.camera-panel #teacherCamera .camera-label{left:5px!important;bottom:5px!important;z-index:3!important;max-width:45%!important}
+.camera-panel #teacherCamera .cam-status{right:4px!important;top:4px!important;z-index:4!important}
 .camera-panel #teacherCamera>.cam-buttons.cam-overlay-controls{
- position:absolute!important;left:0!important;right:0!important;top:auto!important;bottom:4px!important;
- width:100%!important;display:flex!important;justify-content:center!important;align-items:center!important;
- gap:6px!important;padding:0 6px!important;margin:0!important;z-index:12!important;
- pointer-events:none!important;transform:none!important
+ position:absolute!important;left:0!important;right:0!important;bottom:2px!important;top:auto!important;
+ width:100%!important;display:flex!important;flex-direction:row!important;justify-content:space-between!important;
+ align-items:flex-end!important;gap:0!important;padding:0 5px!important;margin:0!important;
+ z-index:20!important;pointer-events:none!important;transform:none!important
 }
 .camera-panel #teacherCamera>.cam-buttons.cam-overlay-controls button{
- pointer-events:auto!important;flex:0 0 29px!important;width:29px!important;min-width:29px!important;
- max-width:29px!important;height:25px!important;min-height:25px!important;padding:0!important;
- border-radius:7px!important;font-size:0!important;line-height:1!important;box-shadow:0 1px 4px #0005!important;
- opacity:.96!important
+ pointer-events:auto!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ flex:0 0 24px!important;width:24px!important;min-width:24px!important;max-width:24px!important;
+ height:22px!important;min-height:22px!important;max-height:22px!important;padding:0!important;margin:0!important;
+ border:1px solid #c9d8e7!important;border-radius:5px!important;background:#f7fbff!important;color:#173451!important;
+ font-size:13px!important;line-height:1!important;text-indent:0!important;box-shadow:0 1px 3px #0005!important;opacity:1!important
 }
-.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:13px!important}
-.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:13px!important}
-.camera-panel #teacherCamera #cameraBtn::after,.camera-panel #teacherCamera #micBtn::after{content:none!important}
-.camera-panel #teacherCamera .cam-off{pointer-events:none!important}
-.camera-panel #teacherCamera .camera-label{bottom:5px!important;left:5px!important;z-index:3!important;max-width:45%!important}
-.camera-panel #teacherCamera .cam-status{top:4px!important;right:4px!important;z-index:3!important}
+.camera-panel #teacherCamera #cameraBtn::before{content:"📷"!important;font-size:13px!important;display:block!important}
+.camera-panel #teacherCamera #micBtn::before{content:"🎙"!important;font-size:13px!important;display:block!important}
+.camera-panel #teacherCamera #cameraBtn::after,.camera-panel #teacherCamera #micBtn::after{content:none!important;display:none!important}
 </style>
 </head>
 <body>
@@ -1125,7 +1124,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 </main>
 
 <aside class="rightbar">
-  <div class="sidehead">Aula / Participantes</div>
+  <div class="sidehead">Ensaio / Encontro — Participantes</div>
   <div class="camera-panel">
     <div class="camera" id="teacherCamera">
       <div class="cam-off"><div class="big">🎥</div><div>Câmera do director desligada</div><div>Autorize o acesso à câmera para aparecer aqui.</div></div>
@@ -1145,9 +1144,9 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
     <label class="azny-audio-output-picker" for="aznyAudioOutputSelect">🔊 Saída de som <select id="aznyAudioOutputSelect"><option value="default">Saída automática do dispositivo</option></select></label><div id="aznyAudioOutputStatus" class="teacher-media-status">Saída automática do dispositivo</div>
     <div class="camera-join-requests" id="cameraJoinRequests"></div>
   </div>
-  <div class="sidehead">Alunos na aula</div>
+  <div class="sidehead" id="dnac-participants-heading">Participantes nos ensaios / encontros</div>
   <div class="students" id="students">
-    <div class="no-students" id="noStudents">Nenhum aluno entrou na aula.</div>
+    <div class="no-students" id="noStudents">Ainda não há participantes neste ensaio ou encontro.</div>
   </div>
 </aside>
 </div>
@@ -3423,5 +3422,20 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
 #teacherCamera .cam-overlay-controls #cameraBtn,
 #teacherCamera .cam-overlay-controls #micBtn{display:flex!important;visibility:visible!important;opacity:1!important}
 </style>
-</body>
+<script id="dnac-contextual-participants-label">
+(function(){
+ function setParticipantsLabel(){
+  const title=(document.getElementById("boardTitle")?.value||"").toLocaleLowerCase("pt");
+  const isMeeting=/reuni[aã]o|encontro|assembleia|confer[eê]ncia/.test(title);
+  const heading=document.getElementById("dnac-participants-heading");
+  const empty=document.getElementById("noStudents");
+  if(heading)heading.textContent=isMeeting?"Participantes no encontro":"Participantes nos ensaios";
+  if(empty)empty.textContent=isMeeting?"Ainda não há participantes neste encontro.":"Ainda não há participantes neste ensaio.";
+ }
+ document.addEventListener("DOMContentLoaded",setParticipantsLabel);
+ document.getElementById("boardTitle")?.addEventListener("input",setParticipantsLabel);
+ document.getElementById("boardTitle")?.addEventListener("change",setParticipantsLabel);
+ setTimeout(setParticipantsLabel,700);
+})();
+</script></body>
 </html>
