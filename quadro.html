@@ -14,7 +14,7 @@ if (window.top === window.self && /\/quadro\.html$/.test(window.location.pathnam
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="theme-color" content="#071b33">
 <meta name="description" content="Quadro Virtual — Departamento Nacional da Música para aulas online interativas.">
-<link rel="manifest" href="manifest-dnm.webmanifest?v=7">
+<link rel="manifest" href="manifest-dnm.webmanifest?v=8">
 <link rel="icon" href="icons/logo-jesus-luz.svg?v=2" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/logo-jesus-luz.svg?v=2">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1321,7 +1321,8 @@ body:not(.student-mode) .camera-panel .join-request .jr-actions button{
 /* Moldura castanha no topo do quadro, separada do cabeçalho, sem alterar ferramentas ou ficheiros. */
 body:not(.student-mode) .canvas-wrap{padding-top:8px!important;box-sizing:border-box!important}
 body:not(.student-mode) #stage{top:8px!important;height:calc(100% - 8px)!important;inset:8px 0 0 0!important}
-body:not(.student-mode) #board{box-sizing:border-box!important;border-top:8px solid #8b5a2b!important}
+body:not(.student-mode) #board{box-sizing:border-box!important;border-top:8px solid #1677ff!important}
+body.student-mode #board{border-top:8px solid #8b5a2b!important}
 #studentClassTimer{display:none}
 body.student-mode{--dnac-student-header-height:clamp(54px,9vh,92px)}
 body.student-mode .topbar{height:var(--dnac-student-header-height)!important;min-height:var(--dnac-student-header-height)!important;gap:clamp(6px,1.4vw,24px)!important;padding:5px clamp(8px,1.6vw,30px)!important;border-bottom:1px solid #35506b!important;background:#071b33!important}
