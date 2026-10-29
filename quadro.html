@@ -1345,6 +1345,8 @@ body.student-mode .main,body.student-mode .workspace{height:calc(100vh - var(--d
 body.student-mode .canvas-wrap{height:calc(100vh - var(--dnac-student-header-height))!important;min-height:0!important;padding-top:0!important;box-sizing:border-box!important;border:0!important;border-radius:0!important;background:#071b33!important}
 body.student-mode #stage{top:0!important;inset:0!important;height:100%!important;box-sizing:border-box!important}
 body.student-mode #board{box-sizing:border-box!important;border:8px solid #8b5a2b!important;border-radius:0!important;box-shadow:inset 0 0 0 1px #6f431f,0 0 0 1px #6f431f!important}
+/* Recuar ligeiramente o quadro e reduzir a altura para libertar a moldura castanha superior logo abaixo do cabeçalho. */
+body.student-mode #board{top:8px!important;height:calc(100% - 8px)!important}
 @media(max-width:700px){
  body.student-mode .topbar{gap:6px!important;padding:4px 7px!important}
  body.student-mode #dnacProvinceIdentity{flex:1 1 auto!important;font-size:clamp(9px,2.2vw,13px)!important}
