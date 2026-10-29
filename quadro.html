@@ -1018,6 +1018,12 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 .camera-panel .camera-join-requests{max-height:42px!important;overflow:auto!important;margin-top:2px!important;font-size:10px!important}
 @media(max-width:760px){.camera-panel .camera{height:clamp(100px,20vh,150px)!important;min-height:100px!important}.camera-panel>.cam-buttons:nth-of-type(2),.camera-panel>.cam-buttons:nth-of-type(3){top:calc(5px + clamp(100px,20vh,150px) - 35px)!important}.camera-panel .camera .cam-off{font-size:10px!important}}
 </style>
+
+<style id="dnac-director-camera-controls-final">
+#teacherCamera .cam-overlay-controls{bottom:3px!important;top:auto!important;left:5px!important;right:5px!important;z-index:2147483000!important;pointer-events:auto!important}
+#teacherCamera .cam-overlay-controls button{pointer-events:auto!important;position:relative!important;z-index:2147483001!important}
+#teacherCamera .cam-off{pointer-events:none!important}
+</style>
 </head>
 <body>
 <div class="app">
@@ -1097,7 +1103,7 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
 </main>
 
 <aside class="rightbar">
-  <div class="sidehead">Aula / Participantes</div>
+  <div class="sidehead" id="activityParticipantsHeading">Ensaio / Participantes</div>
   <div class="camera-panel">
     <div class="camera" id="teacherCamera">
       <div class="cam-off"><div class="big">🎥</div><div>Câmara do director desligada</div><div>Autorize o acesso à câmera para aparecer aqui.</div></div>
@@ -1117,9 +1123,9 @@ body.student-mode .textobj{white-space:pre-wrap;overflow-wrap:anywhere;max-width
     <label class="azny-audio-output-picker" for="aznyAudioOutputSelect">🔊 Saída de som <select id="aznyAudioOutputSelect"><option value="default">Saída automática do dispositivo</option></select></label><div id="aznyAudioOutputStatus" class="teacher-media-status">Saída automática do dispositivo</div>
     <div class="camera-join-requests" id="cameraJoinRequests"></div>
   </div>
-  <div class="sidehead">Alunos na aula</div>
+  <div class="sidehead" id="activityPeopleHeading">Participantes nos ensaios</div>
   <div class="students" id="students">
-    <div class="no-students" id="noStudents">Nenhum aluno entrou na aula.</div>
+    <div class="no-students" id="noStudents">Ainda não há participantes neste ensaio.</div>
   </div>
 </aside>
 </div>
@@ -2156,33 +2162,38 @@ function stopMic(){
 }
 document.getElementById("cameraBtn").onclick=null;document.getElementById("cameraStopBtn").onclick=stopCamera;
 document.getElementById("micBtn").onclick=null;document.getElementById("micStopBtn").onclick=stopMic;
-/* Um único clique alterna o estado real das faixas; não bloquear o botão antes de pedir permissões. */
-for(const id of ["cameraBtn","micBtn"]){
- const el=document.getElementById(id);
- if(!el)continue;
- el.onclick=async ev=>{
-  ev.preventDefault();ev.stopPropagation();
-  if(el.dataset.busy==="1")return;
-  el.dataset.busy="1";
-  try{
-   if(id==="cameraBtn"){
-    const active=!!teacherStream?.getVideoTracks?.().some(t=>t.readyState==="live"&&t.enabled);
-    if(active)stopCamera();else await startCamera();
-   }else{
-    const active=!!teacherAudioStream?.getAudioTracks?.().some(t=>t.readyState==="live"&&t.enabled);
-    if(active)stopMic();else await startMic();
-   }
-  }catch(err){console.error("DNAC media toggle",id,err);toast("Não foi possível alterar "+(id==="cameraBtn"?"a câmara":"o microfone")+". Verifique as permissões do navegador.")}
-  finally{el.dataset.busy="0";el.disabled=false}
- };
-}
+/* Delegação de eventos no documento: continua funcional mesmo se um estilo ou script
+   anterior substituir os handlers dos botões. O pedido de permissão é iniciado directamente pelo toque. */
+document.addEventListener("click",async function dnacDirectorMediaToggle(ev){
+ const el=ev.target.closest("#cameraBtn,#micBtn");
+ if(!el)return;
+ ev.preventDefault();ev.stopPropagation();ev.stopImmediatePropagation();
+ if(el.dataset.busy==="1")return;
+ el.dataset.busy="1";el.disabled=false;
+ const isCamera=el.id==="cameraBtn";
+ try{
+  const stream=isCamera?teacherStream:teacherAudioStream;
+  const track=stream?.getTracks?.().find(t=>t.kind===(isCamera?"video":"audio")&&t.readyState==="live");
+  if(track){
+   track.enabled=!track.enabled;
+   if(isCamera){
+    const v=document.getElementById("teacherVideo");
+    if(track.enabled){if(v){v.hidden=false;v.srcObject=teacherStream;v.play?.().catch(()=>{})}document.querySelector("#teacherCamera .cam-off").style.display="none";document.getElementById("camStatus").textContent="Ligada";el.dataset.mediaState="on";el.title="Desligar câmara"}
+    else{document.getElementById("camStatus").textContent="Desligada";el.dataset.mediaState="off";el.title="Ligar câmara"}
+   }else{el.dataset.mediaState=track.enabled?"on":"off";el.title=track.enabled?"Desligar microfone":"Ligar microfone"}
+   if(!track.enabled){if(isCamera)stopCamera();else stopMic()}
+   else{syncTeacherMediaToPeers();updateTeacherMediaStatus();toast((isCamera?"Câmara":"Microfone")+" do director ligado.")}
+  }else if(isCamera){await startCamera()}else{await startMic()}
+ }catch(err){console.error("DNAC media toggle",el.id,err);toast("Não foi possível activar "+(isCamera?"a câmara":"o microfone")+": "+(err?.name||err?.message||"verifique as permissões"))}
+ finally{el.dataset.busy="0";el.disabled=false}
+},true);
 
 function formatDuration(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;return [h,m,sec].map(v=>String(v).padStart(2,"0")).join(":")}
 function updateClassTimer(){document.getElementById("classTimer").textContent=formatDuration(Date.now()-classStartTime)}
 async function startClass(){if(classStarted)return;if(!await ensureAZNYRealtime()){toast("Não foi possível ligar à aula em tempo real.");return}/* Cada atividade recebe um identificador de sessão novo. O link antigo não deve apontar para a próxima aula. */classSessionId="DNM-"+String(roomId).replace(/[^a-zA-Z0-9_-]/g,"_")+"-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,7);sessionRealtimeBound=false;classStarted=true;classStartTime=Date.now();document.getElementById("startClassBtn").disabled=true;document.getElementById("endClassBtn").disabled=false;classTimerHandle=setInterval(updateClassTimer,1000);updateClassTimer();if(AZNY_DB){await aznyRoomRef().child("activeSessionId").set(classSessionId);await aznySessionRef().set({status:"active",startedAt:firebase.database.ServerValue.TIMESTAMP,title:document.getElementById("boardTitle").value,teacherUid:aznyUid||"",teacherPresence:{online:true,network:"online",updatedAt:firebase.database.ServerValue.TIMESTAMP}});try{aznySessionRef().child("teacherPresence").onDisconnect().update({online:false,network:"disconnected",updatedAt:firebase.database.ServerValue.TIMESTAMP})}catch(_){}}try{localStorage.setItem("azny-active-session-"+String(roomId),classSessionId)}catch(_){}bindClassSessionRealtime();bindTeacherPresenceWatch();loadTeacherDisplayName();roomChannel?.postMessage({type:"class-started",title:document.getElementById("boardTitle").value,session:classSessionId});toast("Atividade iniciada. O link exclusivo desta sessão já está disponível.")}
 
 
-async function restoreActiveTeacherSession(){if(isStudent||!classSessionId||!AZNY_DB)return;try{const snap=await aznySessionRef()?.once("value");const session=snap?.val();if(!session||session.status!=="active"){return}classStarted=true;classStartTime=Number(session.startedAt)||Date.now();document.getElementById("startClassBtn").disabled=true;document.getElementById("endClassBtn").disabled=false;clearInterval(classTimerHandle);classTimerHandle=setInterval(updateClassTimer,1000);updateClassTimer();sessionRealtimeBound=false;bindClassSessionRealtime();bindTeacherPresenceWatch();try{await aznySessionRef().child("teacherPresence").update({online:true,network:navigator.onLine?"online":"disconnected",updatedAt:firebase.database.ServerValue.TIMESTAMP});aznySessionRef().child("teacherPresence").onDisconnect().update({online:false,network:"disconnected",updatedAt:firebase.database.ServerValue.TIMESTAMP})}catch(_){}roomChannel?.postMessage({type:"class-started",title:session.title||document.getElementById("boardTitle").value,session:classSessionId});toast("Aula ativa restaurada após atualizar a página")}catch(e){console.warn("AZNY session restore:",e)}}
+async function restoreActiveTeacherSession(){if(isStudent||!classSessionId||!AZNY_DB)return;try{const snap=await aznySessionRef()?.once("value");const session=snap?.val();if(!session||session.status!=="active"){return}classStarted=true;classStartTime=Number(session.startedAt)||Date.now();document.getElementById("startClassBtn").disabled=true;document.getElementById("endClassBtn").disabled=false;clearInterval(classTimerHandle);classTimerHandle=setInterval(updateClassTimer,1000);updateClassTimer();sessionRealtimeBound=false;bindClassSessionRealtime();bindTeacherPresenceWatch();try{await aznySessionRef().child("teacherPresence").update({online:true,network:navigator.onLine?"online":"disconnected",updatedAt:firebase.database.ServerValue.TIMESTAMP});aznySessionRef().child("teacherPresence").onDisconnect().update({online:false,network:"disconnected",updatedAt:firebase.database.ServerValue.TIMESTAMP})}catch(_){}roomChannel?.postMessage({type:"class-started",title:session.title||document.getElementById("boardTitle").value,session:classSessionId});toast("Ensaio activo restaurado após actualizar a ligação")}catch(e){console.warn("AZNY session restore:",e)}}
 async function endClass(){if(!classStarted)return;classStarted=false;aznyObservedClassStatus="ended";clearInterval(classTimerHandle);classTimerHandle=null;classStartTime=0;document.getElementById("classTimer").textContent="00:00:00";document.getElementById("startClassBtn").disabled=false;document.getElementById("endClassBtn").disabled=true;try{stopCamera()}catch(e){console.warn("AZNY camera cleanup:",e)}try{stopMic()}catch(e){console.warn("AZNY microphone cleanup:",e)}try{if(AZNY_DB&&classSessionId)await aznySessionRef().update({status:"ended",endedAt:firebase.database.ServerValue.TIMESTAMP,endedByName:DNM_PROFILE.hostName||DNM_PROFILE.name||aznyTeacherDisplayName||"diretor",endedByRole:DNM_PROFILE.hostRole||DNM_PROFILE.role||"director","teacherPresence/online":false,"teacherPresence/network":"offline","teacherPresence/updatedAt":firebase.database.ServerValue.TIMESTAMP})}catch(e){console.warn("AZNY class end status:",e)}try{localStorage.removeItem("azny-active-session-"+String(roomId))}catch(_){}clearTeacherStudentCameras();Object.entries(window.aznyTeacherPeers||{}).forEach(([id,pc])=>{try{pc._aznyBoardChannel?.close()}catch(_){}try{pc.close()}catch(_){}removeStudentVideoCard(id)});window.aznyTeacherPeers={};roomChannel?.postMessage({type:"class-ended",session:classSessionId});if(isStudent)showClassEnded();toast("Os ensaios foram encerrados pelo diretor "+(DNM_PROFILE.hostName||DNM_PROFILE.name||aznyTeacherDisplayName||"responsável")+".")}
 
 async function aznyToggleScreenShare(forStudent){
@@ -2878,8 +2889,11 @@ async function forceRefreshBoard(forStudent){
    sessionStorage.setItem("dnacNetworkRecoveryPending",JSON.stringify({at:Date.now(),roomId:String(roomId||""),sessionId:String(classSessionId||""),student:true}));
   }
   if(!navigator.onLine)throw new Error("Sem Internet. Ligue os dados móveis ou Wi-Fi e tente novamente.");
-  /* Recarregamento real do documento. A sessão activa é recuperada pelo ID persistido, sem marcar o ensaio como terminado. */
-  location.reload();
+  /* O browser não permite recarregar o Chrome inteiro a partir de uma página web.
+     Recarrega este separador e restaura a sessão activa sem chamar endClass(). */
+  const reloadUrl=new URL(location.href);
+  reloadUrl.searchParams.set("_dnmrefresh",String(Date.now()));
+  location.replace(reloadUrl.href);
  }catch(e){console.warn("DNAC refresh:",e);if(btn){btn.disabled=false;btn.textContent=forStudent?"⟳ Atualizar":"⟳"}toast("Não foi possível actualizar: "+(e?.message||"tente novamente."))}
 }
 document.getElementById("refreshBoardBtn")?.addEventListener("click",e=>{e.preventDefault();forceRefreshBoard(false)});
@@ -3439,5 +3453,22 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
 #teacherCamera .cam-overlay-controls #cameraBtn{margin-right:auto!important}
 #teacherCamera .cam-overlay-controls #micBtn{margin-left:auto!important}
 </style>
+
+<script id="dnac-activity-participant-labels">
+(function(){
+ function updateActivityLabels(){
+  const title=(document.getElementById("boardTitle")?.value||"").toLocaleLowerCase("pt");
+  const isRehearsal=!title||/ensaio|m[uú]sica|solfejo|coral|coro|piano|dire[cç][aã]o nacional da m[uú]sica/.test(title);
+  const top=document.getElementById("activityParticipantsHeading"),bottom=document.getElementById("activityPeopleHeading"),empty=document.getElementById("noStudents");
+  const activity=isRehearsal?"ensaio":"actividade";
+  if(top)top.textContent=(isRehearsal?"Ensaio":"Actividade")+" / Participantes";
+  if(bottom)bottom.textContent=isRehearsal?"Participantes nos ensaios":"Participantes na actividade";
+  if(empty)empty.textContent="Ainda não há participantes "+(isRehearsal?"neste ensaio.":"nesta actividade.");
+ }
+ document.addEventListener("DOMContentLoaded",updateActivityLabels);
+ const title=document.getElementById("boardTitle");if(title){title.addEventListener("input",updateActivityLabels);title.addEventListener("change",updateActivityLabels)}
+ setTimeout(updateActivityLabels,500);
+})();
+</script>
 </body>
 </html>
