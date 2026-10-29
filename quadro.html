@@ -3886,5 +3886,44 @@ body.azny-custom-keyboard #aznyBoardKeyboard{display:block}
  body:not(.student-mode) .top-actions{order:9!important}
 }
 </style>
+
+<style id="dnac-header-horizontal-scroll-fix">
+/* Telefone: permitir deslizar toda a barra superior horizontalmente para alcançar todos os botões. */
+@media (max-width:900px) and (orientation:landscape){
+ body:not(.student-mode) .topbar{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  justify-content:flex-start!important;
+  overflow-x:auto!important;
+  overflow-y:hidden!important;
+  white-space:nowrap!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior-x:contain!important;
+  touch-action:pan-x pan-y!important;
+  scrollbar-width:thin!important;
+  scroll-behavior:smooth!important;
+ }
+ body:not(.student-mode) .topbar::-webkit-scrollbar{height:4px!important}
+ body:not(.student-mode) .topbar>*{
+  flex-shrink:0!important;
+ }
+ body:not(.student-mode) #dnacProvinceIdentity{
+  flex:0 0 auto!important;
+  min-width:max-content!important;
+ }
+ body:not(.student-mode) #classControlsTop{
+  display:contents!important;
+ }
+ body:not(.student-mode) .topbar #classTimer,
+ body:not(.student-mode) .topbar #installAppHeaderBtn,
+ body:not(.student-mode) .topbar #startClassBtn,
+ body:not(.student-mode) .topbar #endClassBtn,
+ body:not(.student-mode) .topbar #recordClassBtn,
+ body:not(.student-mode) .topbar #teacherScreenShareBtn,
+ body:not(.student-mode) .topbar .top-actions{
+  flex-shrink:0!important;
+ }
+}
+</style>
 </body>
 </html>
