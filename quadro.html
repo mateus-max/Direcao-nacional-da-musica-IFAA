@@ -3150,6 +3150,10 @@ prepareJoinVoice();
 aznyInitAudioOutputPicker();
 function renderJoinRequest(name,requestId,requestData={}){
  const wrap=document.getElementById("cameraJoinRequests");if(!wrap)return;
+ /* Mostrar os pedidos numa faixa própria da coluna direita, fora do bloco da câmara,
+    cujo tamanho fixo podia cortar a lista de aprovações em ecrãs pequenos. */
+ const rightPanel=document.querySelector(".rightbar"),participantsHeading=document.getElementById("dnac-participants-heading");
+ if(rightPanel&&wrap.parentElement!==rightPanel)rightPanel.insertBefore(wrap,participantsHeading||null);
  const id="jr-"+requestId;let el=document.getElementById(id);
  if(el){updateJoinRequestDetails(el,name,requestData);return}
  el=document.createElement("div");el.dataset.requestId=requestId;el.className="join-request";el.id=id;
@@ -4695,6 +4699,33 @@ body.student-mode.azny-landscape-view .toast,
 body.student-mode.azny-landscape-view .toast-message{
   z-index:100002!important;max-width:calc(100vw - 2 * var(--dnac-student-rail) - 16px)!important;
 }
+</style>
+
+
+<style id="dnac-approval-queue-visible-panel">
+/* Fila de aprovação sempre visível na coluna direita, sem ficar cortada pela caixa da câmara. */
+body:not(.student-mode) .rightbar #cameraJoinRequests{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;z-index:500!important;flex:0 0 auto!important;
+ width:100%!important;min-width:0!important;max-height:min(38vh,300px)!important;
+ min-height:0!important;box-sizing:border-box!important;
+ flex-direction:column!important;gap:7px!important;
+ margin:4px 0 8px!important;padding:5px!important;
+ overflow-x:hidden!important;overflow-y:auto!important;
+ background:#eaf1f8!important;border:1px solid #b9c9d8!important;border-radius:8px!important;
+}
+body:not(.student-mode) .rightbar #cameraJoinRequests:empty{display:none!important}
+body:not(.student-mode) .rightbar #cameraJoinRequests .join-request{
+ display:flex!important;visibility:visible!important;opacity:1!important;
+ position:relative!important;flex:0 0 auto!important;width:100%!important;
+ min-width:0!important;max-height:none!important;box-sizing:border-box!important;
+ flex-direction:column!important;gap:5px!important;padding:8px!important;
+ overflow:visible!important;background:#fff!important;color:#142b43!important;
+ border:2px solid #d9a63b!important;border-radius:9px!important;
+}
+body:not(.student-mode) .rightbar #cameraJoinRequests .jr-name{font-weight:800!important;font-size:14px!important;overflow-wrap:anywhere!important}
+body:not(.student-mode) .rightbar #cameraJoinRequests .jr-actions{display:flex!important;flex-direction:row!important;gap:6px!important}
+body:not(.student-mode) .rightbar #cameraJoinRequests .jr-actions button{flex:1 1 50%!important;min-width:0!important;min-height:34px!important}
 </style>
 
 </body>
