@@ -24,6 +24,8 @@ entry.searchParams.set("sala",room);
 entry.searchParams.set("sess",session);
 entry.searchParams.set("aluno","1");
 entry.searchParams.set("p","1");
+entry.searchParams.set("modo","participante");
+entry.searchParams.set("acesso","convite");
 if(incoming.has("a"))entry.searchParams.set("atividade",incoming.get("a"));
 if(incoming.has("dn"))entry.searchParams.set("dirNome",incoming.get("dn"));
 if(incoming.has("df"))entry.searchParams.set("dirFuncao",incoming.get("df"));
