@@ -4484,158 +4484,137 @@ body.student-mode #board{
 </style>
 
 
-<style id="dnac-landscape-no-overlap-and-shorter-board">
-/* Telemóvel na horizontal — cabeçalho, ferramentas, quadro e câmaras em áreas separadas. */
+
+
+
+
+
+
+<style id="dnac-student-landscape-layout-authoritative">
+/* Vista REAL dos participantes (setupStudent): cabeçalho no topo, ferramentas à esquerda,
+   vídeo à direita e quadro central com moldura completa. Não aplica ao director. */
 @media (orientation:landscape) and (max-height:720px) and (pointer:coarse){
-  html,body{height:100%!important;overflow:hidden!important}
-  body:not(.student-mode) .app{
-    position:relative!important;display:flex!important;flex-direction:column!important;
+  html:has(body.student-mode.azny-landscape-view),
+  body.student-mode.azny-landscape-view{
+    width:100%!important;height:100%!important;min-height:0!important;
+    overflow:hidden!important;overscroll-behavior:none!important;
+    --dnac-student-rail:clamp(100px,15vw,120px);
+    --dnac-student-header:36px;
+  }
+  body.student-mode.azny-landscape-view .app{
+    position:relative!important;display:block!important;
     width:100vw!important;height:100dvh!important;min-height:0!important;
-    max-height:100dvh!important;overflow:hidden!important
+    max-height:100dvh!important;overflow:hidden!important;
   }
-  /* O cabeçalho fica sempre acima das duas barras laterais. */
-  body:not(.student-mode) .topbar{
-    position:relative!important;inset:auto!important;z-index:500!important;
-    display:flex!important;flex:0 0 46px!important;
-    width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;
-    box-sizing:border-box!important;align-items:center!important;flex-wrap:nowrap!important;
-    gap:7px!important;padding:3px 8px!important;
-    overflow-x:auto!important;overflow-y:hidden!important;
-    white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;
-    background:#071b33!important
+  /* Cabeçalho ocupa uma faixa própria; não é coberto pelas ferramentas nem pelos vídeos. */
+  body.student-mode.azny-landscape-view .topbar{
+    position:fixed!important;display:flex!important;
+    top:0!important;left:0!important;right:0!important;bottom:auto!important;
+    width:100vw!important;height:var(--dnac-student-header)!important;
+    min-height:var(--dnac-student-header)!important;max-height:var(--dnac-student-header)!important;
+    box-sizing:border-box!important;z-index:10000!important;
+    flex-wrap:nowrap!important;align-items:center!important;gap:7px!important;
+    padding:2px 7px!important;overflow:hidden!important;
+    background:#071b33!important;border-bottom:1px solid #35506b!important;
   }
-  body:not(.student-mode) .topbar>*{position:relative!important;z-index:501!important;flex-shrink:0!important}
-  body:not(.student-mode) .topbar>.church-logo{
-    display:flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;
-    min-width:38px!important;max-width:38px!important
+  body.student-mode.azny-landscape-view .topbar>.church-logo{
+    display:flex!important;flex:0 0 32px!important;
+    width:32px!important;height:32px!important;min-width:32px!important;max-width:32px!important;
   }
-  body:not(.student-mode) #dnacProvinceIdentity{
-    display:block!important;flex:0 0 auto!important;min-width:max-content!important;
-    max-width:none!important;white-space:nowrap!important;font-size:clamp(10px,1.25vw,14px)!important
+  body.student-mode.azny-landscape-view #dnacProvinceIdentity{
+    display:flex!important;flex:0 1 30%!important;min-width:0!important;max-width:30%!important;
+    align-items:center!important;white-space:nowrap!important;overflow:hidden!important;
+    text-overflow:ellipsis!important;font-size:clamp(9px,1.6vw,13px)!important;
   }
-  body:not(.student-mode) #classControlsTop{display:contents!important}
-  body:not(.student-mode) #classTimer,
-  body:not(.student-mode) #installAppHeaderBtn,
-  body:not(.student-mode) #startClassBtn,
-  body:not(.student-mode) #endClassBtn,
-  body:not(.student-mode) #recordClassBtn,
-  body:not(.student-mode) #teacherScreenShareBtn,
-  body:not(.student-mode) .top-actions{flex:0 0 auto!important;position:relative!important}
-  /* A área de trabalho começa só depois do cabeçalho; nenhuma barra invade o logo ou cronómetro. */
-  body:not(.student-mode) .workspace{
-    position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
-    display:grid!important;grid-template-columns:clamp(112px,13vw,158px) minmax(0,1fr) clamp(126px,15vw,180px)!important;
-    grid-template-rows:minmax(0,1fr)!important;gap:0!important;
-    flex:1 1 0!important;width:100%!important;height:auto!important;min-height:0!important;
-    margin:0!important;padding:0!important;overflow:hidden!important
+  body.student-mode.azny-landscape-view #studentSessionHeading{
+    display:flex!important;flex:1 1 auto!important;min-width:0!important;
+    align-items:center!important;justify-content:center!important;
+    overflow:hidden!important;text-align:center!important;
   }
-  body:not(.student-mode) .leftbar{
-    position:relative!important;inset:auto!important;grid-column:1!important;grid-row:1!important;
-    display:flex!important;width:auto!important;min-width:0!important;max-width:none!important;
-    height:100%!important;min-height:0!important;overflow:hidden!important;z-index:2!important
+  body.student-mode.azny-landscape-view #studentSessionHeading .student-session-title{
+    font-size:clamp(11px,1.7vw,15px)!important;white-space:nowrap!important;
   }
-  body:not(.student-mode) .leftbar .tools{
-    display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
-    min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;
-    gap:5px!important;padding:5px!important
+  body.student-mode.azny-landscape-view #studentSessionHeading .student-session-subtitle{display:none!important}
+  body.student-mode.azny-landscape-view #studentClassTimer{
+    display:inline-flex!important;flex:0 0 auto!important;
+    padding:3px 6px!important;font-size:11px!important;
   }
-  body:not(.student-mode) .leftbar .tool,
-  body:not(.student-mode) .leftbar .tool.wide{
-    flex:0 0 auto!important;width:100%!important;min-width:0!important;
-    min-height:36px!important;padding:4px!important;font-size:clamp(9px,1vw,12px)!important
+  /* Trilho esquerdo de ferramentas: começa abaixo do cabeçalho. */
+  body.student-mode.azny-landscape-view #studentControls.student-controls{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    position:fixed!important;z-index:9998!important;
+    top:var(--dnac-student-header)!important;bottom:0!important;
+    left:0!important;right:auto!important;
+    width:var(--dnac-student-rail)!important;height:auto!important;max-height:none!important;
+    box-sizing:border-box!important;margin:0!important;
+    flex-direction:column!important;flex-wrap:nowrap!important;
+    align-items:stretch!important;justify-content:flex-start!important;
+    gap:6px!important;padding:7px 5px 12px!important;
+    overflow-x:hidden!important;overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;touch-action:pan-y!important;
+    background:#071b33!important;border-right:1px solid #34516f!important;
+    border-radius:0!important;
   }
-  body:not(.student-mode) .main{
-    position:relative!important;inset:auto!important;grid-column:2!important;grid-row:1!important;
-    display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
-    width:auto!important;height:100%!important;min-width:0!important;min-height:0!important;
-    overflow:hidden!important
+  body.student-mode.azny-landscape-view #studentControls.student-controls button{
+    display:flex!important;position:relative!important;flex:0 0 auto!important;
+    width:100%!important;min-width:0!important;min-height:40px!important;height:auto!important;
+    max-height:none!important;align-items:center!important;justify-content:center!important;
+    padding:5px 3px!important;font-size:clamp(9px,1.1vw,12px)!important;
+    line-height:1.15!important;white-space:normal!important;overflow-wrap:anywhere!important;
   }
-  body:not(.student-mode) .toolbar{
-    position:relative!important;flex:0 0 28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;
-    padding:2px 4px!important;gap:3px!important;overflow-x:auto!important;overflow-y:hidden!important
+  /* Painel de vídeo à direita, independente do quadro e do cabeçalho. */
+  body.student-mode.azny-landscape-view #studentLive.student-live{
+    display:flex!important;visibility:visible!important;opacity:1!important;
+    position:fixed!important;z-index:9997!important;
+    top:var(--dnac-student-header)!important;bottom:0!important;
+    left:auto!important;right:0!important;
+    width:var(--dnac-student-rail)!important;height:auto!important;
+    max-height:none!important;min-width:0!important;
+    box-sizing:border-box!important;margin:0!important;padding:0!important;
+    flex-direction:column!important;overflow:hidden!important;
+    border:0!important;border-left:1px solid #34516f!important;border-radius:0!important;
+    background:#071b33!important;
   }
-  body:not(.student-mode) .toolbar .mini,
-  body:not(.student-mode) .toolbar .select,
-  body:not(.student-mode) .toolbar button,
-  body:not(.student-mode) .toolbar select{height:23px!important;min-height:23px!important;padding:1px 4px!important;font-size:10px!important}
-  body:not(.student-mode) .canvas-wrap{
-    position:relative!important;display:block!important;flex:1 1 0!important;
-    width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
-    padding:8px 0!important;box-sizing:border-box!important;overflow:hidden!important
+  body.student-mode.azny-landscape-view #studentLive .student-video-pair{
+    display:flex!important;flex:1 1 auto!important;
+    flex-direction:column!important;min-width:0!important;min-height:0!important;
+    width:100%!important;height:100%!important;gap:0!important;padding:0!important;margin:0!important;
   }
-  body:not(.student-mode) #stage{
-    position:absolute!important;left:0!important;right:0!important;top:8px!important;bottom:8px!important;
-    width:100%!important;height:auto!important;min-height:0!important;overflow:auto!important
+  body.student-mode.azny-landscape-view #studentLive .student-video-card{
+    display:flex!important;position:relative!important;flex:1 1 50%!important;
+    flex-direction:column!important;width:100%!important;min-width:0!important;
+    min-height:0!important;margin:0!important;border-radius:0!important;overflow:hidden!important;
   }
-  body:not(.student-mode) #board{
-    top:0!important;left:0!important;width:100%!important;height:100%!important;
+  body.student-mode.azny-landscape-view #studentLive .student-video-card video{
+    display:block!important;flex:1 1 auto!important;width:100%!important;height:0!important;
+    min-height:0!important;object-fit:cover!important;
+  }
+  /* Área central: reservada entre as duas barras e abaixo do cabeçalho. */
+  body.student-mode.azny-landscape-view .canvas-wrap{
+    display:block!important;position:fixed!important;z-index:40!important;
+    top:var(--dnac-student-header)!important;bottom:8px!important;
+    left:var(--dnac-student-rail)!important;right:var(--dnac-student-rail)!important;
+    width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+    max-height:none!important;margin:0!important;padding:8px 0!important;
+    box-sizing:border-box!important;overflow:hidden!important;
+    border:0!important;border-radius:0!important;background:#8b5a2b!important;
+  }
+  body.student-mode.azny-landscape-view #stage{
+    display:block!important;position:absolute!important;
+    top:8px!important;right:0!important;bottom:8px!important;left:0!important;
+    width:auto!important;height:auto!important;min-width:0!important;min-height:0!important;
+    box-sizing:border-box!important;overflow:hidden!important;background:#8b5a2b!important;
+  }
+  body.student-mode.azny-landscape-view #board{
+    display:block!important;position:absolute!important;
+    top:0!important;left:0!important;right:auto!important;bottom:auto!important;
+    width:100%!important;height:100%!important;
     min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
-    box-sizing:border-box!important;border:8px solid #8b5a2b!important
+    margin:0!important;padding:0!important;box-sizing:border-box!important;
+    border:8px solid #8b5a2b!important;border-radius:0!important;
+    outline:0!important;box-shadow:inset 0 0 0 1px #6f431f!important;
+    overflow:hidden!important;
   }
-  body:not(.student-mode) .rightbar{
-    position:relative!important;inset:auto!important;grid-column:3!important;grid-row:1!important;
-    display:flex!important;flex-direction:column!important;width:auto!important;min-width:0!important;
-    max-width:none!important;height:100%!important;min-height:0!important;overflow-y:auto!important;
-    overflow-x:hidden!important;z-index:2!important
-  }
-  body:not(.student-mode) .rightbar .camera-panel{flex:0 0 auto!important;min-width:0!important;padding:4px!important}
-  body:not(.student-mode) .rightbar .camera{width:100%!important;height:clamp(66px,18vh,112px)!important;min-height:0!important}
-  body:not(.student-mode) #students.students{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
-}
-</style>
-
-
-<style id="dnac-participants-panel-reference-dimensions">
-/* Painel dos participantes: proporções reproduzidas da referência enviada. */
-@media (orientation:landscape) and (max-height:720px) and (pointer:coarse){
- body:not(.student-mode) .workspace{
-   grid-template-columns:clamp(112px,13vw,158px) minmax(0,1fr) clamp(126px,15vw,180px)!important;
- }
- body:not(.student-mode) .rightbar{
-   grid-column:3!important;grid-row:1!important;
-   display:flex!important;flex-direction:column!important;
-   align-self:stretch!important;justify-self:stretch!important;
-   width:100%!important;min-width:0!important;max-width:none!important;
-   height:100%!important;min-height:0!important;max-height:none!important;
-   box-sizing:border-box!important;
-   padding:8px 0 0!important;
-   overflow:hidden!important;
-   border-left:1px solid #c7d8e9!important;
- }
- body:not(.student-mode) .rightbar .camera-panel{
-   display:block!important;flex:0 0 auto!important;
-   width:100%!important;min-width:0!important;
-   box-sizing:border-box!important;padding:4px!important;
-   overflow:visible!important;
- }
- body:not(.student-mode) .rightbar #teacherCamera{
-   display:block!important;width:100%!important;
-   height:clamp(66px,18vh,82px)!important;
-   min-height:66px!important;max-height:82px!important;
-   box-sizing:border-box!important;overflow:hidden!important;
- }
- body:not(.student-mode) .rightbar #dnac-participants-heading{
-   display:flex!important;flex:0 0 auto!important;
-   width:100%!important;min-height:48px!important;height:auto!important;
-   box-sizing:border-box!important;align-items:center!important;
-   padding:5px 7px!important;line-height:1.2!important;
-   font-size:clamp(10px,1.05vw,13px)!important;
-   white-space:normal!important;overflow-wrap:anywhere!important;
- }
- body:not(.student-mode) .rightbar #students.students{
-   display:flex!important;flex:1 1 0!important;
-   width:100%!important;min-width:0!important;min-height:0!important;
-   height:auto!important;max-height:none!important;
-   flex-direction:column!important;align-content:stretch!important;
-   box-sizing:border-box!important;padding:5px!important;
-   overflow-x:hidden!important;overflow-y:auto!important;
- }
- body:not(.student-mode) .rightbar #students .no-students{
-   flex:0 0 auto!important;width:100%!important;min-width:0!important;
-   min-height:90px!important;box-sizing:border-box!important;
-   display:flex!important;align-items:center!important;justify-content:center!important;
-   text-align:center!important;white-space:normal!important;overflow-wrap:anywhere!important;
- }
 }
 </style>
 
