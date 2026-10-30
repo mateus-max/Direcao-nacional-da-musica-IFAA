@@ -221,6 +221,10 @@ $("profileForm").addEventListener("submit",e=>{
  if(voice)next.searchParams.set("voz",voice);
  if(instrument)next.searchParams.set("instrumento",instrument);
  if(inviteRoom){
+   /* Nova submissão do formulário inicia sempre um novo pedido de entrada.
+      A aprovação guardada só é válida para a continuação/atualização dentro do quadro,
+      nunca para saltar a etapa de solicitação num novo percurso de convite. */
+   try{localStorage.removeItem("azny-student-session-"+String(inviteRoom)+"-"+String(inviteSession))}catch(_){}
    next.searchParams.set("aluno","1");next.searchParams.set("sala",inviteRoom);next.searchParams.set("sess",inviteSession);
    ["dirNome","dirFuncao","dirProvincia","dirMunicipio"].forEach(k=>{if(params.has(k))next.searchParams.set(k,params.get(k));});
  }else{
