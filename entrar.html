@@ -189,7 +189,7 @@ const params=new URLSearchParams(location.search);
 const inviteRoom=params.get("sala")||params.get("r")||params.get("room")||"";
 const inviteSession=params.get("sess")||params.get("s")||params.get("session")||"";
 const participantInvite=params.get("aluno")==="1"||params.get("p")==="1"||!!inviteRoom;
-if(participantInvite)document.body.classList.add("invite-mode");
+if(participantInvite){document.body.classList.add("invite-mode");const action=document.getElementById("enterButton");if(action)action.textContent="Continuar para solicitar entrada　›";}
 const inviteActivity=params.get("atividade")||"";
 let divisions={};
 function notice(text,error=false){const el=$("alert");el.textContent=text;el.classList.remove("hidden","error");if(error)el.classList.add("error");}
@@ -237,7 +237,7 @@ $("profileForm").addEventListener("submit",e=>{
  }
  /* Guardar o perfil no próprio dispositivo para que actualizar o navegador não obrigue a preencher o formulário novamente. */
  try{localStorage.setItem("dnm_profile_v1",JSON.stringify({name,role,province,municipality,activity,voice,instrument,room:inviteRoom,session:inviteSession,savedAt:Date.now()}))}catch(_){}
- $("enterButton").disabled=true;$("enterButton").textContent="A abrir o quadro…";
+ $("enterButton").disabled=true;$("enterButton").textContent=participantInvite?"A preparar solicitação…":"A abrir o quadro…";
  location.href=next.href;
 });
 </script>
