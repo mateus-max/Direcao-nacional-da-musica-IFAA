@@ -18,11 +18,12 @@
 <script>
 /* Mantém o convite curto no endereço público, mas apresenta o formulário institucional antes de abrir o quadro. */
 const incoming=new URLSearchParams(location.search);
-const room=incoming.get("r")||"",session=incoming.get("s")||"";
+const room=incoming.get("r")||incoming.get("sala")||incoming.get("room")||"",session=incoming.get("s")||incoming.get("sess")||incoming.get("session")||"";
 const entry=new URL("../entrar.html",location.href);
 entry.searchParams.set("sala",room);
 entry.searchParams.set("sess",session);
 entry.searchParams.set("aluno","1");
+entry.searchParams.set("p","1");
 if(incoming.has("a"))entry.searchParams.set("atividade",incoming.get("a"));
 if(incoming.has("dn"))entry.searchParams.set("dirNome",incoming.get("dn"));
 if(incoming.has("df"))entry.searchParams.set("dirFuncao",incoming.get("df"));
