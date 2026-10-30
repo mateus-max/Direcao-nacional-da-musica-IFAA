@@ -163,7 +163,7 @@ body.invite-mode .form-card{display:block!important;visibility:visible!important
 <h4>Como funciona</h4>
 <div class="step"><div class="num">1</div><div><strong>Identifique-se</strong><span>Informe o seu nome, função e localização em Angola.</span></div></div>
 <div class="step"><div class="num">2</div><div><strong>Escolha a atividade</strong><span>Se for corista num ensaio, selecione também a sua voz.</span></div></div>
-<div class="step"><div class="num">3</div><div><strong>Entre no quadro</strong><span>A sua identificação será apresentada na sessão.</span></div></div>
+<div class="step"><div class="num">3</div><div><strong>Solicite a entrada</strong><span>Depois da identificação, envie o pedido e aguarde a aprovação do director. Só depois entra no quadro.</span></div></div>
 <div class="alert" id="inviteInfo" style="margin-top:18px">Se recebeu um link de convite, confirme aqui a sua identificação antes de entrar.</div>
 </aside>
 </section>
@@ -227,7 +227,8 @@ $("profileForm").addEventListener("submit",e=>{
       A aprovação guardada só é válida para a continuação/atualização dentro do quadro,
       nunca para saltar a etapa de solicitação num novo percurso de convite. */
    try{localStorage.removeItem("azny-student-session-"+String(inviteRoom)+"-"+String(inviteSession))}catch(_){}
-   next.searchParams.set("aluno","1");next.searchParams.set("p","1");next.searchParams.set("sala",inviteRoom);next.searchParams.set("sess",inviteSession);
+   /* Convite institucional: independentemente da função escolhida (incluindo Dirigente), este percurso é sempre de PARTICIPANTE. */
+   next.searchParams.set("aluno","1");next.searchParams.set("p","1");next.searchParams.set("modo","participante");next.searchParams.set("acesso","convite");next.searchParams.set("sala",inviteRoom);next.searchParams.set("sess",inviteSession);
    ["dirNome","dirFuncao","dirProvincia","dirMunicipio"].forEach(k=>{if(params.has(k))next.searchParams.set(k,params.get(k));});
  }else{
    if(role==="corista"){notice("Os coristas precisam do link da sessão.",true);return;}
