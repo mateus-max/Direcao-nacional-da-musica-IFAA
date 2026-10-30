@@ -4483,5 +4483,106 @@ body.student-mode #board{
 }
 </style>
 
+
+<style id="dnac-landscape-no-overlap-and-shorter-board">
+/* Telemóvel na horizontal — cabeçalho, ferramentas, quadro e câmaras em áreas separadas. */
+@media (orientation:landscape) and (max-height:720px) and (pointer:coarse){
+  html,body{height:100%!important;overflow:hidden!important}
+  body:not(.student-mode) .app{
+    position:relative!important;display:flex!important;flex-direction:column!important;
+    width:100vw!important;height:100dvh!important;min-height:0!important;
+    max-height:100dvh!important;overflow:hidden!important
+  }
+  /* O cabeçalho fica sempre acima das duas barras laterais. */
+  body:not(.student-mode) .topbar{
+    position:relative!important;inset:auto!important;z-index:500!important;
+    display:flex!important;flex:0 0 46px!important;
+    width:100%!important;height:46px!important;min-height:46px!important;max-height:46px!important;
+    box-sizing:border-box!important;align-items:center!important;flex-wrap:nowrap!important;
+    gap:7px!important;padding:3px 8px!important;
+    overflow-x:auto!important;overflow-y:hidden!important;
+    white-space:nowrap!important;-webkit-overflow-scrolling:touch!important;
+    background:#071b33!important
+  }
+  body:not(.student-mode) .topbar>*{position:relative!important;z-index:501!important;flex-shrink:0!important}
+  body:not(.student-mode) .topbar>.church-logo{
+    display:flex!important;flex:0 0 38px!important;width:38px!important;height:38px!important;
+    min-width:38px!important;max-width:38px!important
+  }
+  body:not(.student-mode) #dnacProvinceIdentity{
+    display:block!important;flex:0 0 auto!important;min-width:max-content!important;
+    max-width:none!important;white-space:nowrap!important;font-size:clamp(10px,1.25vw,14px)!important
+  }
+  body:not(.student-mode) #classControlsTop{display:contents!important}
+  body:not(.student-mode) #classTimer,
+  body:not(.student-mode) #installAppHeaderBtn,
+  body:not(.student-mode) #startClassBtn,
+  body:not(.student-mode) #endClassBtn,
+  body:not(.student-mode) #recordClassBtn,
+  body:not(.student-mode) #teacherScreenShareBtn,
+  body:not(.student-mode) .top-actions{flex:0 0 auto!important;position:relative!important}
+  /* A área de trabalho começa só depois do cabeçalho; nenhuma barra invade o logo ou cronómetro. */
+  body:not(.student-mode) .workspace{
+    position:relative!important;inset:auto!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;
+    display:grid!important;grid-template-columns:clamp(112px,13vw,158px) minmax(0,1fr) clamp(126px,15vw,180px)!important;
+    grid-template-rows:minmax(0,1fr)!important;gap:0!important;
+    flex:1 1 0!important;width:100%!important;height:auto!important;min-height:0!important;
+    margin:0!important;padding:0!important;overflow:hidden!important
+  }
+  body:not(.student-mode) .leftbar{
+    position:relative!important;inset:auto!important;grid-column:1!important;grid-row:1!important;
+    display:flex!important;width:auto!important;min-width:0!important;max-width:none!important;
+    height:100%!important;min-height:0!important;overflow:hidden!important;z-index:2!important
+  }
+  body:not(.student-mode) .leftbar .tools{
+    display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
+    min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;
+    gap:5px!important;padding:5px!important
+  }
+  body:not(.student-mode) .leftbar .tool,
+  body:not(.student-mode) .leftbar .tool.wide{
+    flex:0 0 auto!important;width:100%!important;min-width:0!important;
+    min-height:36px!important;padding:4px!important;font-size:clamp(9px,1vw,12px)!important
+  }
+  body:not(.student-mode) .main{
+    position:relative!important;inset:auto!important;grid-column:2!important;grid-row:1!important;
+    display:flex!important;flex-direction:column!important;flex:1 1 auto!important;
+    width:auto!important;height:100%!important;min-width:0!important;min-height:0!important;
+    overflow:hidden!important
+  }
+  body:not(.student-mode) .toolbar{
+    position:relative!important;flex:0 0 28px!important;height:28px!important;min-height:28px!important;max-height:28px!important;
+    padding:2px 4px!important;gap:3px!important;overflow-x:auto!important;overflow-y:hidden!important
+  }
+  body:not(.student-mode) .toolbar .mini,
+  body:not(.student-mode) .toolbar .select,
+  body:not(.student-mode) .toolbar button,
+  body:not(.student-mode) .toolbar select{height:23px!important;min-height:23px!important;padding:1px 4px!important;font-size:10px!important}
+  body:not(.student-mode) .canvas-wrap{
+    position:relative!important;display:block!important;flex:1 1 0!important;
+    width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;
+    padding:8px 0!important;box-sizing:border-box!important;overflow:hidden!important
+  }
+  body:not(.student-mode) #stage{
+    position:absolute!important;left:0!important;right:0!important;top:8px!important;bottom:8px!important;
+    width:100%!important;height:auto!important;min-height:0!important;overflow:auto!important
+  }
+  body:not(.student-mode) #board{
+    top:0!important;left:0!important;width:100%!important;height:100%!important;
+    min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;
+    box-sizing:border-box!important;border:8px solid #8b5a2b!important
+  }
+  body:not(.student-mode) .rightbar{
+    position:relative!important;inset:auto!important;grid-column:3!important;grid-row:1!important;
+    display:flex!important;flex-direction:column!important;width:auto!important;min-width:0!important;
+    max-width:none!important;height:100%!important;min-height:0!important;overflow-y:auto!important;
+    overflow-x:hidden!important;z-index:2!important
+  }
+  body:not(.student-mode) .rightbar .camera-panel{flex:0 0 auto!important;min-width:0!important;padding:4px!important}
+  body:not(.student-mode) .rightbar .camera{width:100%!important;height:clamp(66px,18vh,112px)!important;min-height:0!important}
+  body:not(.student-mode) #students.students{min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
+}
+</style>
+
 </body>
 </html>
