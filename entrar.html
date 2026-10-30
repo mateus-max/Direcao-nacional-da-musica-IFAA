@@ -186,9 +186,10 @@ body.invite-mode .form-card{display:block!important;visibility:visible!important
 <script>
 const $=id=>document.getElementById(id);
 const params=new URLSearchParams(location.search);
-const inviteRoom=params.get("sala")||"";
-if(inviteRoom)document.body.classList.add("invite-mode");
-const inviteSession=params.get("sess")||"";
+const inviteRoom=params.get("sala")||params.get("r")||params.get("room")||"";
+const inviteSession=params.get("sess")||params.get("s")||params.get("session")||"";
+const participantInvite=params.get("aluno")==="1"||params.get("p")==="1"||!!inviteRoom;
+if(participantInvite)document.body.classList.add("invite-mode");
 const inviteActivity=params.get("atividade")||"";
 let divisions={};
 function notice(text,error=false){const el=$("alert");el.textContent=text;el.classList.remove("hidden","error");if(error)el.classList.add("error");}
@@ -220,12 +221,13 @@ $("profileForm").addEventListener("submit",e=>{
  next.searchParams.set("nome",name);next.searchParams.set("funcao",role);next.searchParams.set("provincia",province);next.searchParams.set("municipio",municipality);next.searchParams.set("atividade",activity);
  if(voice)next.searchParams.set("voz",voice);
  if(instrument)next.searchParams.set("instrumento",instrument);
- if(inviteRoom){
+ if(participantInvite){
+   if(!inviteRoom||!inviteSession){notice("Este convite de ensaio está incompleto. Volte à página dos ensaios e abra novamente o convite enviado pelo director.",true);return;}
    /* Nova submissão do formulário inicia sempre um novo pedido de entrada.
       A aprovação guardada só é válida para a continuação/atualização dentro do quadro,
       nunca para saltar a etapa de solicitação num novo percurso de convite. */
    try{localStorage.removeItem("azny-student-session-"+String(inviteRoom)+"-"+String(inviteSession))}catch(_){}
-   next.searchParams.set("aluno","1");next.searchParams.set("sala",inviteRoom);next.searchParams.set("sess",inviteSession);
+   next.searchParams.set("aluno","1");next.searchParams.set("p","1");next.searchParams.set("sala",inviteRoom);next.searchParams.set("sess",inviteSession);
    ["dirNome","dirFuncao","dirProvincia","dirMunicipio"].forEach(k=>{if(params.has(k))next.searchParams.set(k,params.get(k));});
  }else{
    if(role==="corista"){notice("Os coristas precisam do link da sessão.",true);return;}
